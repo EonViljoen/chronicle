@@ -58,9 +58,10 @@ input {
 
 /* Home */
 .home-intro p { color: var(--muted); max-width: 60ch; }
-.home-toolbar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; margin: 20px 0; }
-.create-form { display: flex; gap: 8px; flex: 1 1 320px; }
+.home-toolbar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; justify-content: space-between; margin: 20px 0; }
+.create-form { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 320px; }
 .create-form input { flex: 1; min-width: 0; }
+.create-hint { flex-basis: 100%; font-size: 0.8rem; color: var(--danger); }
 .toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .error {

@@ -14,9 +14,12 @@ export default function HomePage() {
   const [newTitle, setNewTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Set when Create is pressed with no title, cleared as soon as you type
+  const [needsTitle, setNeedsTitle] = useState(false);
 
-  // useRef: a handle to a DOM element. Here, the hidden file input.
+  // useRef: a handle to a DOM element. Here, the hidden file input and the title box.
   const fileInput = useRef<HTMLInputElement>(null);
+  const titleInput = useRef<HTMLInputElement>(null);
 
   /** Run an async action with a busy flag and error banner. */
   async function run(action: () => Promise<void>) {
@@ -34,7 +37,12 @@ export default function HomePage() {
   function handleCreate(e: FormEvent) {
     e.preventDefault(); // stop the browser's default full-page form submit
     const title = newTitle.trim();
-    if (!title) return;
+    if (!title) {
+      // Say what's missing instead of silently doing nothing
+      setNeedsTitle(true);
+      titleInput.current?.focus();
+      return;
+    }
     run(async () => {
       const t = await createTimeline(title);
       setNewTitle('');
@@ -97,12 +105,21 @@ export default function HomePage() {
         {/* A "controlled input": React state holds the value, onChange updates it. */}
         <form className="create-form" onSubmit={handleCreate}>
           <input
+            ref={titleInput}
             value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
+            onChange={(e) => {
+              setNewTitle(e.target.value);
+              setNeedsTitle(false);
+            }}
             placeholder="New timeline title"
             aria-label="New timeline title"
+            aria-invalid={needsTitle || undefined}
+            aria-describedby={needsTitle ? 'create-hint' : undefined}
           />
-          <button className="btn btn-primary" disabled={busy || !newTitle.trim()}>Create</button>
+          <button className="btn btn-primary" disabled={busy}>Create</button>
+          {needsTitle && (
+            <span id="create-hint" className="create-hint" role="alert">Type a title first</span>
+          )}
         </form>
 
         <div className="toolbar-actions">
