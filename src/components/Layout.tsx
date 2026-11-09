@@ -6,13 +6,14 @@ export default function Layout() {
     <div className="app">
       <header className="app-header">
         <Link to="/" className="brand">
-          <span className="brand-mark" aria-hidden="true">◆</span> {brand.name}
+          <span className="brand-mark" aria-hidden="true">{brand.mark}</span> {brand.name}
         </Link>
         <span className="brand-sub">{brand.tagline}</span>
       </header>
       <main className="app-main">
         <Outlet />
       </main>
+      {brand.footer && <footer className="app-footer">{brand.footer}</footer>}
     </div>
   );
 }

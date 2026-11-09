@@ -8,6 +8,8 @@
  *
  *   VITE_BRAND_NAME=My Timeline
  *   VITE_BRAND_TAGLINE=a fan chronicle
+ *   VITE_BRAND_MARK=✦
+ *   VITE_BRAND_FOOTER=Unofficial fan project.
  *   VITE_DEFAULT_THEME=parchment
  *   VITE_SEED_URL=/seed/my-timeline.json
  *   VITE_DEMO_URL=
@@ -27,6 +29,10 @@ export const brand = {
   /** Shown in the header and the browser tab. */
   name: read('VITE_BRAND_NAME') ?? 'Chronicle',
   tagline: read('VITE_BRAND_TAGLINE') ?? 'timeline builder',
+  /** The small symbol before the name. */
+  mark: read('VITE_BRAND_MARK') ?? '◆',
+  /** Optional small print at the bottom of every page, e.g. a fan-work disclaimer. */
+  footer: read('VITE_BRAND_FOOTER'),
   /** The theme used outside a timeline (home page) and for timelines without one. */
   defaultTheme: read('VITE_DEFAULT_THEME') ?? 'default',
   /**
