@@ -39,8 +39,9 @@ export default function TimelineCard({ timeline, onError, published = false }: P
       {timeline.description && <p className="card-desc">{timeline.description}</p>}
 
       <p className="card-meta">
-        {timeline.events.length} events · {timeline.eras.length} eras · {published ? 'updated' : 'edited'}{' '}
-        {new Date(timeline.updatedAt).toLocaleDateString()}
+        {timeline.events.length} events · {timeline.eras.length} eras
+        {/* Hand-made files may have no real date (0 = 1 January 1970) */}
+        {timeline.updatedAt > 0 && ` · ${published ? 'updated' : 'edited'} ${new Date(timeline.updatedAt).toLocaleDateString()}`}
       </p>
 
       <div className="card-actions">
