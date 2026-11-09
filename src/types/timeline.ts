@@ -65,6 +65,9 @@ export type MapConfig =
       armColor: string;
     };
 
+/** The 3D galaxy variant of MapConfig. */
+export type GalaxyConfig = Extract<MapConfig, { type: 'galaxy3d' }>;
+
 export interface TimelineEvent {
   id: string;
   title: string;

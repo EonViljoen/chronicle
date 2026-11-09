@@ -63,8 +63,8 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   // listener when the component unmounts or `step`/`select` change.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      const target = e.target as HTMLElement;
-      if (target.closest('input, textarea, select, [contenteditable]')) return;
+      // Don't hijack arrow keys while typing in a field
+      if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
       if (e.key === 'ArrowRight') step(1);
       else if (e.key === 'ArrowLeft') step(-1);
       else if (e.key === 'Escape') select(null);

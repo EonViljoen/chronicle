@@ -13,6 +13,7 @@ export default function ViewerPage() {
               {timeline.description && <p className="muted page-desc">{timeline.description}</p>}
             </div>
             <div className="page-head-actions">
+              {timeline.map.type === 'galaxy3d' && <Link className="btn" to={`/t/${timeline.id}/map`}>Starmap</Link>}
               <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=new`}>+ Add event</Link>
               <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
             </div>

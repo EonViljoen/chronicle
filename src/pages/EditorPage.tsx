@@ -98,7 +98,10 @@ function Editor({ timeline }: { timeline: Timeline }) {
     <div className="page editor">
       <div className="page-head">
         <h1>{timeline.title}</h1>
-        <Link className="btn" to={`/t/${timeline.id}`}>View timeline</Link>
+        <div className="page-head-actions">
+          {timeline.map.type === 'galaxy3d' && <Link className="btn" to={`/t/${timeline.id}/map`}>Starmap</Link>}
+          <Link className="btn" to={`/t/${timeline.id}`}>View timeline</Link>
+        </div>
       </div>
 
       <nav className="tabs" aria-label="Editor sections">
@@ -197,7 +200,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
           save={savePlace}
           remove={removePlace}
           deleteWarning={(p) => usageWarning(countUsage(timeline, 'placeIds', p.id))}
-          renderForm={(p) => <PlaceForm {...p} />}
+          renderForm={(p) => <PlaceForm {...p} timeline={timeline} />}
         />
       )}
     </div>

@@ -45,9 +45,14 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
               <span className="swatch" style={{ background: c.color }} /> {c.name}
             </span>
           ))}
-          {places.map((p) => (
-            <span key={p.id} className="chip chip-place">⌖ {p.name}</span>
-          ))}
+          {places.map((p) =>
+            // Places that are on the map link to it
+            p.position && timeline.map.type === 'galaxy3d' ? (
+              <Link key={p.id} className="chip chip-place chip-link" to={`/t/${timeline.id}/map?place=${p.id}`}>⌖ {p.name}</Link>
+            ) : (
+              <span key={p.id} className="chip chip-place">⌖ {p.name}</span>
+            ),
+          )}
         </div>
       )}
 

@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ViewerPage from './pages/ViewerPage';
 import EditorPage from './pages/EditorPage';
+import MapPage from './pages/MapPage';
 
 /*
  * Routes. `Layout` wraps every page (header etc.) and renders the matched
@@ -16,6 +17,7 @@ const router = createBrowserRouter([
       { path: '/', element: <HomePage /> },
       { path: '/t/:id', element: <ViewerPage /> },
       { path: '/t/:id/edit', element: <EditorPage /> },
+      { path: '/t/:id/map', element: <MapPage /> },
     ],
   },
 ]);
