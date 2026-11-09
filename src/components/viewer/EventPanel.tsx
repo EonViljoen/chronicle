@@ -1,0 +1,85 @@
+import Markdown from 'react-markdown';
+import { Link } from 'react-router-dom';
+import type { Timeline, TimelineEvent } from '../../types/timeline';
+import { eraFor } from '../../lib/eras';
+
+interface Props {
+  timeline: Timeline;
+  event: TimelineEvent;
+  onSelect: (id: string) => void;
+  onClose: () => void;
+}
+
+/** The info box for the selected event. */
+export default function EventPanel({ timeline, event, onSelect, onClose }: Props) {
+  const era = eraFor(event.date.sortKey, timeline.eras);
+  const categories = timeline.categories.filter((c) => event.categoryIds.includes(c.id));
+  const places = timeline.places.filter((p) => event.placeIds.includes(p.id));
+  // Skip related ids that point at deleted events
+  const related = event.relatedIds
+    .map((id) => timeline.events.find((e) => e.id === id))
+    .filter((e): e is TimelineEvent => e !== undefined);
+
+  return (
+    // `key` on the panel (set by the parent) resets the fade-in for each event
+    <article className="event-panel" aria-live="polite" style={era ? { borderTopColor: era.color } : undefined}>
+      <header className="event-panel-head">
+        <div>
+          <p className="event-panel-date">
+            {event.date.precision !== 'exact' && 'c. '}
+            {event.date.display}
+            {era && <span className="muted"> · {era.name}</span>}
+          </p>
+          <h2 className="event-panel-title">{event.title}</h2>
+        </div>
+        <div className="event-panel-actions">
+          <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+          <button className="btn" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+      </header>
+
+      {(categories.length > 0 || places.length > 0) && (
+        <div className="chips">
+          {categories.map((c) => (
+            <span key={c.id} className="chip" style={{ borderColor: c.color }}>
+              <span className="swatch" style={{ background: c.color }} /> {c.name}
+            </span>
+          ))}
+          {places.map((p) => (
+            <span key={p.id} className="chip chip-place">⌖ {p.name}</span>
+          ))}
+        </div>
+      )}
+
+      {event.imageUrl && <img className="event-panel-image" src={event.imageUrl} alt="" />}
+
+      <div className="prose">
+        {event.body ? <Markdown>{event.body}</Markdown> : <p className="muted">{event.summary || 'No details yet.'}</p>}
+      </div>
+
+      {related.length > 0 && (
+        <section className="event-panel-section">
+          <h3>Related</h3>
+          <div className="chips">
+            {related.map((r) => (
+              <button key={r.id} className="chip chip-link" onClick={() => onSelect(r.id)}>
+                {r.date.display} · {r.title}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {event.sources.length > 0 && (
+        <section className="event-panel-section">
+          <h3>Sources</h3>
+          <ul className="sources">
+            {event.sources.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </article>
+  );
+}

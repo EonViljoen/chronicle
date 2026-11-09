@@ -1,0 +1,97 @@
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import type { Category, Era, TimelineEvent } from '../../types/timeline';
+import { eraSegments } from '../../lib/eras';
+import TimelineNode from './TimelineNode';
+
+interface Props {
+  /** Already sorted by date. */
+  events: TimelineEvent[];
+  eras: Era[];
+  categories: Category[];
+  selectedId: string | null;
+  isVisible: (event: TimelineEvent) => boolean;
+  onSelect: (id: string) => void;
+  onStep: (direction: 1 | -1) => void;
+  canStep: { prev: boolean; next: boolean };
+}
+
+const FALLBACK_COLOR = '#c9a227';
+
+/**
+ * The horizontal line. Nodes are evenly spaced (index × gap) rather than to
+ * scale, because the 40k timeline has gaps of millions of years.
+ * Positioning is done in CSS from --i and --n; see `.track` in index.css.
+ */
+export default function TimelineTrack({ events, eras, categories, selectedId, isVisible, onSelect, onStep, canStep }: Props) {
+  // A Map of event id -> button element, filled by each node's ref callback.
+  const nodeRefs = useRef(new Map<string, HTMLButtonElement>());
+
+  const segments = useMemo(() => eraSegments(events, eras), [events, eras]);
+  const colorById = useMemo(() => new Map(categories.map((c) => [c.id, c.color])), [categories]);
+
+  // useEffect runs after render. Whenever the selection changes, slide that
+  // node to the centre of the scroller.
+  useEffect(() => {
+    if (!selectedId) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    nodeRefs.current.get(selectedId)?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, [selectedId]);
+
+  return (
+    <div className="stage">
+      <button className="stage-arrow stage-arrow-left" onClick={() => onStep(-1)} disabled={!canStep.prev} aria-label="Previous event">
+        ‹
+      </button>
+
+      <div className="track-scroller">
+        <div className="track-row">
+          <div className="track-spacer" />
+          <div className="track" style={{ '--n': events.length } as CSSProperties}>
+            {segments.map((seg) => (
+              <div
+                key={seg.startIndex}
+                className="era-band"
+                style={
+                  {
+                    '--start': seg.startIndex,
+                    '--count': seg.endIndex - seg.startIndex + 1,
+                    '--era-color': seg.era?.color ?? 'transparent',
+                  } as CSSProperties
+                }
+              >
+                {seg.era && <span className="era-band-label">{seg.era.name}</span>}
+              </div>
+            ))}
+
+            <div className="track-line" aria-hidden="true" />
+
+            {events.map((event, i) => (
+              <TimelineNode
+                key={event.id}
+                ref={(el) => {
+                  if (el) nodeRefs.current.set(event.id, el);
+                  else nodeRefs.current.delete(event.id);
+                }}
+                event={event}
+                index={i}
+                color={colorById.get(event.categoryIds[0]) ?? FALLBACK_COLOR}
+                selected={event.id === selectedId}
+                dimmed={!isVisible(event)}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
+          <div className="track-spacer" />
+        </div>
+      </div>
+
+      <button className="stage-arrow stage-arrow-right" onClick={() => onStep(1)} disabled={!canStep.next} aria-label="Next event">
+        ›
+      </button>
+    </div>
+  );
+}
