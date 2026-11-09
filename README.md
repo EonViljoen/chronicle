@@ -37,7 +37,17 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 
 1. ✅ Data model, storage, import/export, home screen
 2. ✅ Timeline viewer: nodes, info box, arrow navigation, era bands, deep links
-3. ✅ Editor: forms for eras, categories, events, places
+3. ✅ Editor: forms for eras, factions, events, places
 4. ✅ 3D starmap with clickable places
 5. ✅ Link timeline and map, filters, search, polish
 6. ✅ Setting-neutral: branding config, themes, custom calendars (years, named ages, numbered cycles, free text)
+7. ✅ Themes as data (theme editor, presets), website export, nested factions with themes, main factions, flat image map
+
+## To do
+
+- [ ] **Multiple flat maps.** A timeline can have any number of flat maps (a world map, region maps, city maps…), each with a name and its own image. Keep the one 3D starmap as it is.
+  - Manage the maps in the **Places** tab, not in Settings: add, name, replace, reorder and remove them there, next to the places that go on them.
+  - A place can be pinned on several maps (one position per map) or on none.
+  - The viewer and map page list the starmap and every flat map by name to switch between them.
+  - Upgrade existing timelines: today's single flat map becomes the first map in the list, and each place's pin moves onto it.
+- [ ] Later: link maps, so clicking a place on one map can open that place's own map (e.g. a city on the world map).
