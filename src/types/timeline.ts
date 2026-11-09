@@ -15,6 +15,15 @@ import type { Theme } from './theme';
  */
 export const SCHEMA_VERSION = 2;
 
+/** The header and footer of an exported website. */
+export interface WebsiteSettings {
+  name: string;
+  tagline: string;
+  /** The small symbol before the name */
+  mark: string;
+  footer: string;
+}
+
 /**
  * How a timeline counts and labels its years. Every event date is a
  * `sortKey` number; the calendar turns that number into a label, so editing
@@ -152,6 +161,8 @@ export interface Timeline {
    * timelines, so they look the same anywhere; stored timelines just keep the id.
    */
   themeDef?: Theme;
+  /** Settings for "Export website", remembered for the next export. */
+  website?: WebsiteSettings;
   events: TimelineEvent[];
   createdAt: number;
   updatedAt: number;

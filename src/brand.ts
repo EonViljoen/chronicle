@@ -1,3 +1,5 @@
+import type { Theme } from './types/theme';
+
 /**
  * Branding: the app's name and the few things a site built on Chronicle
  * might want to change.
@@ -25,6 +27,21 @@ const env = import.meta.env;
 function read(name: string): string | undefined {
   const value = env[name] as string | undefined;
   return value?.trim() ? value.trim() : undefined;
+}
+
+/**
+ * What an exported website's site.json can set (see lib/exportSite.ts).
+ * Loaded at start-up, before anything renders, and laid over `brand`.
+ */
+export interface SiteConfig {
+  name?: string;
+  tagline?: string;
+  mark?: string;
+  footer?: string;
+  published?: string[];
+  readOnly?: boolean;
+  /** The whole site's theme, so pages outside the timeline match it */
+  theme?: Theme;
 }
 
 export const brand = {
@@ -61,4 +78,35 @@ export const brand = {
    * to nothing (`VITE_DEMO_URL=`) hides it everywhere.
    */
   demoUrl: 'VITE_DEMO_URL' in env ? read('VITE_DEMO_URL') : env.DEV ? 'http://localhost:5181' : undefined,
+  /** An exported website: links use #/ so any static host can serve them. */
+  isSite: false,
+  /** A site's own theme (from site.json), used instead of defaultTheme. */
+  siteTheme: undefined as Theme | undefined,
 };
+
+/**
+ * An exported website marks its index.html with
+ * <meta name="chronicle-site" content="site.json">. If that's there, read the
+ * config and apply it. Chronicle itself has no marker, so it skips the request.
+ */
+export async function loadSiteConfig(): Promise<void> {
+  const marker = document.querySelector<HTMLMetaElement>('meta[name="chronicle-site"]');
+  if (!marker) return;
+  brand.isSite = true;
+  brand.demoUrl = undefined;
+  try {
+    const res = await fetch(marker.content, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const config = (await res.json()) as SiteConfig;
+    const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+    brand.name = text(config.name) ?? brand.name;
+    brand.tagline = text(config.tagline) ?? '';
+    brand.mark = text(config.mark) ?? brand.mark;
+    brand.footer = text(config.footer);
+    if (Array.isArray(config.published)) brand.published = config.published.filter((p) => typeof p === 'string');
+    brand.readOnly = config.readOnly !== false;
+    if (config.theme) brand.siteTheme = config.theme;
+  } catch (e) {
+    console.error("Couldn't read the site's settings", e);
+  }
+}

@@ -6,6 +6,7 @@ import { EditOnly } from '../components/EditOnly';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
 import ThemeTab from '../components/editor/ThemeTab';
+import WebsiteTab from '../components/editor/WebsiteTab';
 import EraForm from '../components/editor/EraForm';
 import CategoryForm from '../components/editor/CategoryForm';
 import PlaceForm from '../components/editor/PlaceForm';
@@ -24,7 +25,7 @@ import {
   savePlace,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'categories', 'places', 'theme', 'settings'] as const;
+const TABS = ['events', 'eras', 'categories', 'places', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -108,6 +109,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
     categories: categories.length,
     places: places.length,
     theme: null,
+    website: null,
     settings: null,
   };
 
@@ -136,6 +138,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
 
       {tab === 'settings' && <SettingsForm timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'theme' && <ThemeTab timeline={timeline} onDirtyChange={setDirty} />}
+      {tab === 'website' && <WebsiteTab timeline={timeline} onDirtyChange={setDirty} />}
 
       {tab === 'events' && (
         <CollectionTab<TimelineEvent>

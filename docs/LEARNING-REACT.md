@@ -1237,6 +1237,23 @@ Applying the theme is a **side effect**: it changes `<html>`, outside anything R
 
 **Themes travel with timelines.** Exporting a timeline adds a full copy of its theme (`themeDef`). Importing calls `ensureTheme`, which reuses an identical theme, saves a new one, or saves a copy if a *different* theme already has that id, so an import never overwrites your work. [`normalizeTheme`](../src/themes/normalize.ts) fills in anything a file is missing from the default theme, so older or hand-written files still work.
 
+### Exporting a timeline as a website
+
+**Edit → Website → Export website** turns one timeline into a zip you can upload to any static host ([`lib/exportSite.ts`](../src/lib/exportSite.ts)). There's no separate "viewer app": the website *is* Chronicle, copied file by file, plus three files that switch it into site mode:
+
+- `timeline.json`: the timeline with its theme
+- `site.json`: name, tagline, footer, "read-only", and which timeline to publish
+- `index.html`: Chronicle's own page with `<meta name="chronicle-site" content="site.json">` added
+
+How does the running app know which files to copy? `vite.config.ts` turns on Vite's **build manifest**, a JSON list of every file the build produced. The export fetches that list, then each file, and zips them in the browser with `fflate`. That's also why it only works from a *built* copy (`npm run serve:built`): the dev server compiles files on demand and has no list.
+
+When the exported site starts, [`brand.ts`](../src/brand.ts)'s `loadSiteConfig` sees the meta tag, reads `site.json` and lays it over `brand` **before React renders** (`main.tsx` waits for it). Everything else follows from settings you've already met: published timelines, read-only mode and the theme.
+
+Two details make the site work on any host, in any folder:
+
+- **Relative paths.** `base: './'` makes the built `index.html` load `./assets/…` instead of `/assets/…`, so the site works at `example.com/` or `example.com/my-site/`. Chronicle's own `index.html` adds `<base href="/">` so its deep links (`/t/x/edit`) still find the assets; the export removes that tag.
+- **Hash links.** A static host only has `index.html`. A link like `/t/x` would 404 when reloaded. With `createHashRouter` the route lives after `#` (`#/t/x`), which the browser never sends to the server. [`App.tsx`](../src/App.tsx) picks the hash router only for exported sites.
+
 ## 19. Pure update functions and immutability
 
 [`lib/mutations.ts`](../src/lib/mutations.ts) holds every change the editor can make, as **pure functions**: a timeline goes in, a new timeline comes out, and nothing is modified in place.

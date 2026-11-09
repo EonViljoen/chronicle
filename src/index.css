@@ -500,3 +500,10 @@ a.chip { text-decoration: none; }
 .glyph-btn { min-width: 38px; justify-content: center; font-size: 1.1rem; }
 .glyph-btn.is-on { border-color: var(--accent); }
 input[type='range'] { width: 100%; accent-color: var(--accent); }
+
+/* ===== Website tab ===== */
+.website-tab { display: flex; flex-direction: column; gap: 24px; max-width: 720px; }
+.website-tab .form-title + p { margin: 6px 0 0; }
+.website-export { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.website-export h3 { margin: 12px 0 0; font-size: 1rem; }
+.website-export p { margin: 0; }

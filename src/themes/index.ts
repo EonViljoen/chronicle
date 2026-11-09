@@ -11,7 +11,8 @@ export { normalizeTheme } from './normalize';
 export { DEFAULT_THEME, PRESETS, isPreset } from './presets';
 
 /** The theme used outside a timeline, and for timelines that don't pick one. */
-export const siteTheme = (): Theme => PRESETS.find((p) => p.id === brand.defaultTheme) ?? DEFAULT_THEME;
+export const siteTheme = (): Theme =>
+  brand.siteTheme ? normalizeTheme(brand.siteTheme) : (PRESETS.find((p) => p.id === brand.defaultTheme) ?? DEFAULT_THEME);
 
 /**
  * Which theme a timeline shows. A published timeline brings its own copy

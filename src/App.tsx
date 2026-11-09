@@ -1,4 +1,6 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { useState } from 'react';
+import { createBrowserRouter, createHashRouter, RouterProvider } from 'react-router-dom';
+import { brand } from './brand';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ViewerPage from './pages/ViewerPage';
@@ -10,7 +12,7 @@ import MapPage from './pages/MapPage';
  * child page wherever it puts <Outlet />. `:id` becomes a URL parameter the
  * page reads with useParams().
  */
-const router = createBrowserRouter([
+const routes = [
   {
     element: <Layout />,
     children: [
@@ -20,8 +22,12 @@ const router = createBrowserRouter([
       { path: '/t/:id/map', element: <MapPage /> },
     ],
   },
-]);
+];
 
 export default function App() {
+  // Exported websites use #/ links (site.com/#/t/x): they work on any static
+  // host without server rules. Chronicle itself uses normal paths.
+  // useState with an initialiser creates the router once, on first render.
+  const [router] = useState(() => (brand.isSite ? createHashRouter(routes) : createBrowserRouter(routes)));
   return <RouterProvider router={router} />;
 }

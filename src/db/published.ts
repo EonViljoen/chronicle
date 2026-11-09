@@ -20,7 +20,7 @@ const NONE: Published = { timelines: [], errors: [] };
 
 // Module-level cache: fetched at most once per page load, shared by every component
 let request: Promise<Published> | undefined;
-let result: Published | undefined = brand.published.length === 0 ? NONE : undefined;
+let result: Published | undefined;
 
 /** "/published/my-timeline.json" -> "my-timeline": a stable address whatever id the file holds. */
 const idFromUrl = (url: string) =>
@@ -50,7 +50,8 @@ export function loadPublished(): Promise<Published> {
 /** The published timelines. `undefined` while they're still loading. */
 export function usePublished(): Published | undefined {
   // Starts from the cache, so pages opened after the first load don't wait
-  const [published, setPublished] = useState(result);
+  // (Checked when first used, after a website's site.json has been read)
+  const [published, setPublished] = useState(() => result ?? (brand.published.length === 0 ? NONE : undefined));
 
   useEffect(() => {
     if (published) return;

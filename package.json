@@ -1,5 +1,5 @@
 {
-  "name": "wh40k-timeline",
+  "name": "chronicle",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,13 +7,15 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve:built": "vite build && vite preview --port 5182 --strictPort"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.8",
     "@react-three/fiber": "^9.1.2",
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7",
+    "fflate": "^0.8.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^9.0.1",
