@@ -16,7 +16,7 @@ import type { Theme } from './types/theme';
  *   VITE_SEED_URL=/seed/my-timeline.json
  *   VITE_PUBLISHED=/published/my-timeline.json
  *   VITE_READ_ONLY=true
- *   VITE_DEMO_URL=
+ *   VITE_DEMO_URL=https://example.com/my-demo/
  *
  * Vite exposes variables that start with VITE_ on `import.meta.env`, and bakes
  * them in at build time. An empty value counts as "not set".
@@ -72,12 +72,10 @@ export const brand = {
   /** Hide everything for creating and editing: the site only shows its published timelines. */
   readOnly: read('VITE_READ_ONLY') === 'true',
   /**
-   * Where the "View demo" button goes: a live site showing Chronicle in use.
-   * Until the demo is deployed, development builds point at the demo's local
-   * dev server and production builds hide the button. Setting the variable
-   * to nothing (`VITE_DEMO_URL=`) hides it everywhere.
+   * Where the "View demo" button goes: a live website showing Chronicle in
+   * use (an exported timeline, see lib/exportSite.ts). No button until set.
    */
-  demoUrl: 'VITE_DEMO_URL' in env ? read('VITE_DEMO_URL') : env.DEV ? 'http://localhost:5181' : undefined,
+  demoUrl: read('VITE_DEMO_URL'),
   /** An exported website: links use #/ so any static host can serve them. */
   isSite: false,
   /** A site's own theme (from site.json), used instead of defaultTheme. */
