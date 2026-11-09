@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
-import type { Category, Era, TimelineEvent } from '../../types/timeline';
+import type { Calendar, Category, Era, TimelineEvent } from '../../types/timeline';
+import { formatDate } from '../../lib/dates';
 import { eraSegments } from '../../lib/eras';
 import TimelineNode from './TimelineNode';
 
@@ -7,6 +8,7 @@ interface Props {
   /** Already sorted by date. */
   events: TimelineEvent[];
   eras: Era[];
+  calendar: Calendar;
   categories: Category[];
   selectedId: string | null;
   isVisible: (event: TimelineEvent) => boolean;
@@ -24,7 +26,7 @@ const FALLBACK_COLOR = '#c9a227';
  * scale, because some timelines have gaps of millions of years.
  * Positioning is done in CSS from --i and --n; see `.track` in index.css.
  */
-export default function TimelineTrack({ events, eras, categories, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {
+export default function TimelineTrack({ events, eras, calendar, categories, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {
   // A Map of event id -> button element, filled by each node's ref callback.
   const nodeRefs = useRef(new Map<string, HTMLButtonElement>());
 
@@ -79,6 +81,7 @@ export default function TimelineTrack({ events, eras, categories, selectedId, is
                   else nodeRefs.current.delete(event.id);
                 }}
                 event={event}
+                dateLabel={formatDate(event.date, calendar)}
                 index={i}
                 color={colorById.get(event.categoryIds[0]) ?? FALLBACK_COLOR}
                 selected={event.id === selectedId}

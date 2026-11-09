@@ -1,11 +1,25 @@
 import { SCHEMA_VERSION, type Timeline } from '../types/timeline';
+import { upgradeTimeline } from './upgrade';
+
+const CALENDAR_TYPES = ['years', 'ages', 'cycles', 'freeform'];
 
 /**
- * Checks that an imported JSON file looks like a Timeline.
+ * Checks an imported JSON file and returns it as a current Timeline,
+ * upgrading files made by older versions of the app.
+ */
+export function parseTimeline(data: unknown): Timeline {
+  assertTimelineShape(data);
+  const timeline = upgradeTimeline(data);
+  if (!CALENDAR_TYPES.includes(timeline.calendar?.type)) throw new Error('Not a valid timeline file: unknown calendar');
+  return timeline;
+}
+
+/**
+ * Checks that a JSON file looks like a Timeline of any version.
  * Hand-written on purpose (no schema library) so it's easy to read; it checks
  * the structure, not every field.
  */
-export function assertTimeline(data: unknown): asserts data is Timeline {
+function assertTimelineShape(data: unknown): asserts data is { schemaVersion: number } {
   const fail = (msg: string): never => {
     throw new Error(`Not a valid timeline file: ${msg}`);
   };

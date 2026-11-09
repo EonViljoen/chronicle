@@ -58,7 +58,7 @@ Then open the URL it prints (usually `http://localhost:5173`). Vite reloads the 
 23. [Tooling: Vite, TypeScript and ESLint](#23-tooling-vite-typescript-and-eslint)
 
 **Part 4: Putting it together**
-24. [Walkthrough A: loading the 40k demo](#24-walkthrough-a-loading-the-40k-demo)
+24. [Walkthrough A: importing a timeline file](#24-walkthrough-a-importing-a-timeline-file)
 25. [Walkthrough B: pressing → on the timeline](#25-walkthrough-b-pressing--on-the-timeline)
 26. [Walkthrough C: editing and saving an event](#26-walkthrough-c-editing-and-saving-an-event)
 27. [Walkthrough D: clicking a place on the map](#27-walkthrough-d-clicking-a-place-on-the-map)
@@ -159,26 +159,28 @@ That's the whole lifecycle: **render from data → user does something → data 
 ```
 wh40k-timeline/
 ├── index.html                  The one HTML page; loads main.tsx
-├── public/demos/wh40k.json     The 40k demo timeline, fetched by "Load demo"
 ├── vite.config.ts              Vite settings (just the React plugin)
 ├── tsconfig*.json              TypeScript settings
 ├── eslint.config.js            Lint rules, including the Rules of Hooks
 └── src/
     ├── main.tsx                Starts React
     ├── App.tsx                 The routes
+    ├── brand.ts                The app's name, default theme, demo link (from .env)
     ├── index.css               All the styles
     ├── types/timeline.ts       The data model: Timeline, Era, TimelineEvent…
     ├── db/
     │   ├── db.ts               The Dexie database definition
     │   └── timelines.ts        Read hooks and write functions for timelines
     ├── lib/                    Plain functions, no React (easy to test)
-    │   ├── dates.ts            Building and formatting dates (005.M31)
+    │   ├── dates.ts            Calendars: turning a date number into "AD 1066" and back
     │   ├── eras.ts             Which era a date is in; era bands
     │   ├── filters.ts          Does an event match the search/filters?
     │   ├── ids.ts              "Horus Heresy" -> "horus-heresy"
     │   ├── mutations.ts        Timeline -> new Timeline update functions
     │   ├── prefs.ts            Preferences in localStorage (usePref)
+    │   ├── upgrade.ts          Upgrading timelines saved by older versions
     │   └── validate.ts         Checking imported JSON files
+    ├── themes/                 One folder per theme, found automatically
     ├── pages/                  One component per route
     │   ├── HomePage.tsx        Your timelines
     │   ├── ViewerPage.tsx      /t/:id
@@ -215,10 +217,10 @@ export interface Era {
 **Union types allow a fixed set of values:**
 
 ```ts
-export type DateKind = 'year' | 'millennium' | 'freeform';
+export type DatePrecision = 'exact' | 'circa' | 'decade' | 'century' | 'millennium' | 'period';
 ```
 
-A `DateKind` can only be one of those three strings. Typo `'milennium'` and TypeScript refuses to compile.
+A `DatePrecision` can only be one of those strings. Typo `'centruy'` and TypeScript refuses to compile.
 
 **Optional fields** have a `?`: `imageUrl?: string` may be missing.
 
@@ -245,7 +247,7 @@ You can't read `map.arms` until you've checked `map.type === 'galaxy3d'`. After 
 | `Partial<T>` | All fields optional | `patch(changes: Partial<T>)` in `useDraft` |
 | `Pick<T, 'a' \| 'b'>` | Only those fields | `Settings` in `SettingsForm` |
 | `Extract<U, X>` | The members of a union that match `X` | `GalaxyConfig` |
-| `Record<K, V>` | An object with keys `K`, values `V` | `KIND_LABELS` in `DateInputs` |
+| `Record<K, V>` | An object with keys `K`, values `V` | `PRECISION_LABELS` in `DateInputs` |
 | `Omit<T, 'a'>` | All fields except those | `NumberInput`'s props |
 
 **Generics** are type parameters, like function parameters but for types. `upsert<T extends { id: string }>(list: T[], item: T): T[]` in [`mutations.ts`](../src/lib/mutations.ts) works for eras, categories, places and events: anything with an `id`. See [section 14](#14-reusable-components-generics-render-props-and-children) for a generic component.
@@ -260,7 +262,7 @@ You can't read `map.arms` until you've checked `map.type === 'galaxy3d'`. After 
 
 Without the `e is TimelineEvent` part, TypeScript would still think the array might contain `undefined`. ([`EventPanel.tsx`](../src/components/viewer/EventPanel.tsx))
 
-**Assertion functions** do the same for a whole function. In [`validate.ts`](../src/lib/validate.ts), `assertTimeline(data: unknown): asserts data is Timeline` throws if the data is wrong; after calling it, TypeScript treats `data` as a `Timeline`.
+**Assertion functions** do the same for a whole function. In [`validate.ts`](../src/lib/validate.ts), `assertTimelineShape(data: unknown): asserts data is { schemaVersion: number }` throws if the data is wrong; after calling it, TypeScript knows `data` has a `schemaVersion`.
 
 **`as` casts** override TypeScript: `{ '--i': index } as CSSProperties`. Use them sparingly; you're telling the compiler "trust me".
 
@@ -935,7 +937,7 @@ export default function CollectionTab<T extends { id: string }>({ … }: Props<T
   renderRow={(e) => ( <>…swatch, name, date…</> )}
   save={saveEra}
   remove={removeEra}
-  renderForm={(p) => <EraForm {...p} dateFormat={timeline.dateFormat} />}
+  renderForm={(p) => <EraForm {...p} calendar={timeline.calendar} />}
 />
 ```
 
@@ -1180,8 +1182,24 @@ All database code is in `db/`. Components call `useTimeline` or `updateTimeline`
 ### Import, export and the demo
 
 - **Export** turns the timeline into JSON, wraps it in a `Blob`, creates a temporary object URL and clicks an invisible `<a download>`. That's the standard way to save a file from the browser.
-- **Import** reads the chosen file with `file.text()`, parses it, checks it with `assertTimeline` ([`lib/validate.ts`](../src/lib/validate.ts)), and stores it under a **new id** (`addCopy`), so an import never overwrites an existing timeline.
-- **Load demo** `fetch`es `public/demos/wh40k.json` (files in `public/` are served as-is) and imports it the same way.
+- **Import** reads the chosen file with `file.text()`, parses it, checks and upgrades it with `parseTimeline` ([`lib/validate.ts`](../src/lib/validate.ts)), and stores it under a **new id** (`addCopy`), so an import never overwrites an existing timeline.
+- **The demo** is a separate website (a fan timeline built on Chronicle), so "View demo" is just a link. Its address comes from [`brand.ts`](../src/brand.ts).
+
+### Upgrading old data
+
+The data model has a version number, `SCHEMA_VERSION`. When the shape changes (version 2 replaced each date's stored label with a calendar), old timelines still have to work: ones already in the browser, and files exported months ago. [`lib/upgrade.ts`](../src/lib/upgrade.ts) holds one step per version (`v1to2`), and `upgradeTimeline` runs whichever steps a timeline needs. It's called from two places:
+
+- **Dexie's own versioning** in [`db.ts`](../src/db/db.ts): `db.version(2)….upgrade(…)` rewrites every stored timeline once, the first time the new code opens the database.
+- **`parseTimeline`**, for imported and seeded files.
+
+### Branding and themes
+
+Chronicle is meant to be reused, for example by the 40k fan site, without that site editing Chronicle's files (which would make pulling in updates painful). Two features make that possible:
+
+- **Branding from environment variables.** [`brand.ts`](../src/brand.ts) reads `import.meta.env.VITE_BRAND_NAME` and friends. Vite replaces these with values from a `.env` file at build time; only variables starting with `VITE_` are exposed to the browser. A site sets its name, default theme, demo link and a **seed** timeline (loaded on a visitor's first visit) in its own `.env`.
+- **Themes found by the bundler.** [`themes/index.ts`](../src/themes/index.ts) calls `import.meta.glob('./*/index.ts', { eager: true })`, which Vite turns into an import of every matching file. Add a folder, get a theme. Each theme only overrides the CSS variables from the top of `index.css`, scoped under `:root[data-theme='…']`.
+
+Setting the theme is a **side effect**: `data-theme` lives on `<html>`, outside anything React renders. So `useTheme` (called by `TimelineGate`) sets it in a `useEffect` and puts the site default back in the cleanup, when you leave the timeline. Notice the hook is called *above* `TimelineGate`'s early returns: hooks must run on every render, in the same order.
 
 ## 19. Pure update functions and immutability
 
@@ -1221,25 +1239,26 @@ And `saveEvent` keeps "related" links two-way: if event A now lists B, B gains A
 
 ### One number to sort them all
 
-40k dates (`005.M31`), normal years (`1066`) and labels like "~60 million years ago" all need to share one ordering. Every date therefore carries a `sortKey` number alongside what it displays. [`types/timeline.ts`](../src/types/timeline.ts):
+Every date is stored as a single `sortKey` number, which sets its order. [`types/timeline.ts`](../src/types/timeline.ts):
 
 ```ts
 export interface EventDate {
-  kind: DateKind;          // 'year' | 'millennium' | 'freeform'
-  display: string;         // what's shown, e.g. "005.M31"
-  sortKey: number;         // ordering only; higher = later
-  precision: DatePrecision;
+  sortKey: number;          // ordering; higher = later
+  precision: DatePrecision; // 'exact', 'circa', … or 'period' ("M31": only the cycle is known)
+  label?: string;           // only for free-text dates ("Time immemorial")
 }
 ```
 
-For millennium dates, [`lib/dates.ts`](../src/lib/dates.ts) uses `sortKey = (millennium - 1) * 1000 + year`:
+What you *see* comes from the timeline's **calendar**, another discriminated union (`years`, `ages`, `cycles`, `freeform`). [`lib/dates.ts`](../src/lib/dates.ts) converts both ways: `splitKey` turns a number into the calendar's parts (cycle 41, year 999), `joinKey` turns parts back into a number, and `formatKey`/`formatDate` build the label from the calendar's templates. With the "Numbered millennia" calendar (`{year}.M{cycle}`, 1000-year cycles):
 
 | Date | Calculation | sortKey |
 |---|---|---|
 | `005.M31` | 30 × 1000 + 5 | 30005 |
 | `999.M41` | 40 × 1000 + 999 | 40999 |
-| `M31` (year unknown) | 30 × 1000 | 30000 |
+| `M31` (year unknown) | 30 × 1000, precision `period` | 30000 |
 | 60 million years before M1 | negative | −60000000 |
+
+The same number means different things in different calendars: 1066 is "1066" with years, "2A 66" with three 1000-year ages. Because labels aren't stored, changing the calendar relabels every date at once, and the order never changes. It also means the date inputs ([`DateInputs.tsx`](../src/components/form/DateInputs.tsx)) never hold their own state: they split the number, show the parts, and join the edited parts back into a number for the parent.
 
 `compareEvents` sorts by `sortKey`, then title, so ties are stable.
 
@@ -1252,11 +1271,11 @@ An era is a `sortKey` range. `eraFor(sortKey, eras)` finds the one a date falls 
 [`lib/filters.ts`](../src/lib/filters.ts) answers one question: does this event pass the current filters?
 
 ```ts
-export function matchesFilters(event: TimelineEvent, f: Filters): boolean {
+export function matchesFilters(event: TimelineEvent, f: Filters, calendar: Calendar): boolean {
   if (f.categoryIds.length > 0 && !event.categoryIds.some((id) => f.categoryIds.includes(id))) return false;
   if (f.placeId && !event.placeIds.includes(f.placeId)) return false;
   const q = f.query.trim().toLowerCase();
-  if (q && ![event.title, event.summary, event.body, event.date.display].some((text) => text.toLowerCase().includes(q))) {
+  if (q && ![event.title, event.summary, event.body, formatDate(event.date, calendar)].some((text) => text.toLowerCase().includes(q))) {
     return false;
   }
   return true;
@@ -1433,23 +1452,25 @@ Other techniques worth recognising:
 
 Each walkthrough follows one user action through every file it touches. Open the files alongside.
 
-## 24. Walkthrough A: loading the 40k demo
+## 24. Walkthrough A: importing a timeline file
 
-**You click "Load Warhammer 40k demo" on the home page.**
+**You click "Import file…" on the home page and pick a `.json` file.**
 
-1. **The click handler runs.** [`HomePage.tsx`](../src/pages/HomePage.tsx): `onClick={() => run(async () => void (await loadDemo('wh40k')))}`. `run` clears any error, sets `busy` to `true` (which disables the buttons on the next render) and awaits the work.
+1. **A hidden input does the picking.** [`HomePage.tsx`](../src/pages/HomePage.tsx) has an `<input type="file" hidden>` and a ref to it. The button's handler calls `fileInput.current?.click()`, which opens the browser's file picker. Styling a real file input is awkward, so this is the usual trick.
 
-2. **`loadDemo` fetches the file.** [`db/timelines.ts`](../src/db/timelines.ts): `fetch(`${import.meta.env.BASE_URL}demos/wh40k.json`)`. `BASE_URL` is Vite's base path (`/` by default). The file is served from `public/`.
+2. **The input's `onChange` runs.** It calls `handleImport(e.target.files?.[0])`, which calls `run(async () => { await importTimelineFile(file) })`. `run` clears any error, sets `busy` to `true` (which disables the buttons on the next render) and awaits the work. It also resets the input's value, so picking the same file again still fires `onChange`.
 
-3. **The data is checked.** `assertTimeline(data)` ([`lib/validate.ts`](../src/lib/validate.ts)) throws a readable error if it isn't a timeline. If that happens, `run`'s `catch` puts the message in `error` state and the red banner appears.
+3. **The file is read and parsed.** [`db/timelines.ts`](../src/db/timelines.ts): `JSON.parse(await file.text())`. Bad JSON throws "is not valid JSON".
 
-4. **It's stored as a copy.** `addCopy(data)` gives it a fresh `crypto.randomUUID()` id and timestamps, and calls `db.timelines.add(copy)`.
+4. **The data is checked and upgraded.** `parseTimeline(data)` ([`lib/validate.ts`](../src/lib/validate.ts)) throws a readable error if it isn't a timeline, then runs `upgradeTimeline`, so a file exported by an older version comes in with a calendar. If anything throws, `run`'s `catch` puts the message in `error` state and the red banner appears.
 
-5. **The live query notices.** `HomePage` called `useTimelines()`, whose `useLiveQuery` is watching the `timelines` table. The new row triggers a re-run, which returns a longer array, and `HomePage` re-renders.
+5. **It's stored as a copy.** `addCopy(timeline)` gives it a fresh `crypto.randomUUID()` id and timestamps, and calls `db.timelines.add(copy)`.
 
-6. **The list renders.** `timelines.map((t) => <TimelineCard key={t.id} … />)` now includes the demo. React sees a new key and creates one new `TimelineCard`, leaving the existing ones alone.
+6. **The live query notices.** `HomePage` called `useTimelines()`, whose `useLiveQuery` is watching the `timelines` table. The new row triggers a re-run, which returns a longer array, and `HomePage` re-renders.
 
-7. **`run` finishes.** `finally { setBusy(false) }` re-enables the buttons.
+7. **The list renders.** `timelines.map((t) => <TimelineCard key={t.id} … />)` now includes the import. React sees a new key and creates one new `TimelineCard`, leaving the existing ones alone.
+
+8. **`run` finishes.** `finally { setBusy(false) }` re-enables the buttons.
 
 Notice what *didn't* happen: no code told the list to refresh. Saving to the database was enough. That's the payoff of live queries.
 
@@ -1541,7 +1562,7 @@ One piece of state (`filters.placeId`) changed, and the toolbar, track, counter,
 
 ## 28. Exercises
 
-Each one is small and touches a different idea. Do them on a branch, with `npm run dev` running. Load the 40k demo and add a few events first, so there's something to look at.
+Each one is small and touches a different idea. Do them on a branch, with `npm run dev` running. Create a timeline (or import one) and add a few events first, so there's something to look at.
 
 1. **Read the props** *(components, props).* Add an "event count" badge to each era chip in the viewer's era bar, e.g. "The Horus Heresy (3)". Where do you get the count? (Hint: `visible` and `eraFor` are already in `TimelineViewer`.)
 2. **Derived, not stored** *(state vs derived data).* Show "Showing events from 005.M31 to 999.M41" under the toolbar, using the first and last *visible* events. Resist adding `useState`.

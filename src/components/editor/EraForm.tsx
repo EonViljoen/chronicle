@@ -1,11 +1,11 @@
-import type { DateKind, Era } from '../../types/timeline';
+import type { Calendar, Era } from '../../types/timeline';
 import Field from '../form/Field';
 import { SortKeyInput } from '../form/DateInputs';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
 import type { FormProps } from './CollectionTab';
 
-export default function EraForm({ original, isNew, onSave, onDelete, onDirtyChange, dateFormat }: FormProps<Era> & { dateFormat: DateKind }) {
+export default function EraForm({ original, isNew, onSave, onDelete, onDirtyChange, calendar }: FormProps<Era> & { calendar: Calendar }) {
   const { draft, patch, dirty, saving, submit, reset } = useDraft(original, onSave, onDirtyChange);
 
   const errors = {
@@ -27,8 +27,8 @@ export default function EraForm({ original, isNew, onSave, onDelete, onDirtyChan
       </Field>
 
       <div className="field-row">
-        <SortKeyInput label="Starts" kind={dateFormat} value={draft.start} onChange={(start) => patch({ start })} />
-        <SortKeyInput label="Ends" kind={dateFormat} value={draft.end} onChange={(end) => patch({ end })} error={errors.end} />
+        <SortKeyInput label="Starts" calendar={calendar} value={draft.start} onChange={(start) => patch({ start })} />
+        <SortKeyInput label="Ends" calendar={calendar} value={draft.end} onChange={(end) => patch({ end })} error={errors.end} />
       </div>
 
       <FormActions isNew={isNew} dirty={dirty} valid={valid} saving={saving} onRevert={reset} onDelete={onDelete} />

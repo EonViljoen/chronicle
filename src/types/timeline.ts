@@ -6,26 +6,76 @@
  * editor ends up as one of these.
  */
 
-/** Bump this when the shape changes in a way old exports can't satisfy. */
-export const SCHEMA_VERSION = 1;
+/**
+ * Bump this when the shape changes. Older timelines (stored or imported)
+ * are upgraded on the way in; see lib/upgrade.ts.
+ * 2: `dateFormat` became `calendar`; dates lost `kind` and `display`.
+ */
+export const SCHEMA_VERSION = 2;
 
 /**
- * How a date is entered and displayed.
- * - year:       plain numeric years (1066, -500)
- * - millennium: 40k style "999.M41"
- * - freeform:   any label ("~60 million years ago"), ordered by a manual sortKey
+ * How a timeline counts and labels its years. Every event date is a
+ * `sortKey` number; the calendar turns that number into a label, so editing
+ * the calendar relabels every date at once without changing their order.
+ *
+ * - years:    one count with labels either side of year 0 ("500 BC", "AD 1066", "19 BBY")
+ * - ages:     named ages that each count from 1 ("T.A. 3019", "4E 201")
+ * - cycles:   fixed-length numbered cycles ("999.M41": year 999 of the 41st millennium)
+ * - freeform: no calendar; each event has its own text label
+ *
+ * Templates use {n}, {year}, {cycle}, {age} and {name} placeholders.
  */
-export type DateKind = 'year' | 'millennium' | 'freeform';
+export type Calendar =
+  | {
+      type: 'years';
+      /** For negative sortKeys, e.g. "{n} BC". {n} is the distance from year 0. */
+      before: string;
+      /** For year 0 and later, e.g. "AD {n}". */
+      after: string;
+    }
+  | {
+      type: 'ages';
+      /** In order. The first age starts at sortKey 1. */
+      ages: Age[];
+      /** e.g. "{age} {year}" with {age} the age's short label. */
+      format: string;
+    }
+  | {
+      type: 'cycles';
+      /** Years per cycle, e.g. 1000. Years in a cycle run 0 to length - 1. */
+      length: number;
+      /** e.g. "{year}.M{cycle}". {year} is zero-padded to the cycle's width. */
+      format: string;
+      /** When only the cycle is known, e.g. "M{cycle}". */
+      cycleFormat: string;
+      /** Before cycle 1, e.g. "{n} years before M1". */
+      before: string;
+    }
+  | { type: 'freeform' };
 
-export type DatePrecision = 'exact' | 'decade' | 'century' | 'millennium' | 'circa';
+export type CalendarType = Calendar['type'];
+
+export interface Age {
+  name: string;
+  /** Short label used in dates, e.g. "T.A.". */
+  short: string;
+  /** How many years the age lasts. Ignored for the last age, which is open-ended. */
+  length: number;
+}
+
+/**
+ * - exact:   the label as is
+ * - circa, decade, century, millennium: approximate, shown with "c."
+ * - period:  only the age or cycle is known ("M31", "Third Age")
+ */
+export type DatePrecision = 'exact' | 'circa' | 'decade' | 'century' | 'millennium' | 'period';
 
 export interface EventDate {
-  kind: DateKind;
-  /** What the viewer shows above the node, e.g. "005.M31". */
-  display: string;
-  /** A single number used only for ordering. Higher = later. */
+  /** A single number used for ordering, and turned into a label by the calendar. Higher = later. */
   sortKey: number;
   precision: DatePrecision;
+  /** Set for a free-text date ("Time immemorial"); it replaces the calendar's label. */
+  label?: string;
 }
 
 /** A coloured band behind the timeline, e.g. "The Horus Heresy". */
@@ -88,8 +138,7 @@ export interface Timeline {
   schemaVersion: number;
   title: string;
   description: string;
-  /** The default date kind the editor offers for new events. */
-  dateFormat: DateKind;
+  calendar: Calendar;
   eras: Era[];
   categories: Category[];
   places: Place[];

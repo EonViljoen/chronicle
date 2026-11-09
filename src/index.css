@@ -362,3 +362,14 @@ a.chip { text-decoration: none; }
   /* Map first on small screens, so tapping a place shows its event below */
   .viewer-split-map { order: -1; position: relative; top: 0; height: 320px; }
 }
+
+/* Calendar settings */
+.calendar-settings { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: var(--radius); min-width: 0; }
+.calendar-settings > legend { padding: 0 6px; font-family: var(--font-display); font-weight: 700; }
+.calendar-samples { margin: 0; }
+.ages { display: flex; flex-direction: column; gap: 8px; }
+.age-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 110px auto; gap: 8px; align-items: center; }
+.age-row input { min-width: 0; width: 100%; }
+.age-head { font-size: 0.8rem; color: var(--muted); }
+.age-open { font-size: 0.85rem; }
+.add-age { align-self: flex-start; }

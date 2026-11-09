@@ -2,6 +2,7 @@ import Markdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
+import { formatDate } from '../../lib/dates';
 
 interface Props {
   timeline: Timeline;
@@ -26,8 +27,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
       <header className="event-panel-head">
         <div>
           <p className="event-panel-date">
-            {event.date.precision !== 'exact' && 'c. '}
-            {event.date.display}
+            {formatDate(event.date, timeline.calendar)}
             {era && <span className="muted"> · {era.name}</span>}
           </p>
           <h2 className="event-panel-title">{event.title}</h2>
@@ -68,7 +68,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
           <div className="chips">
             {related.map((r) => (
               <button key={r.id} className="chip chip-link" onClick={() => onSelect(r.id)}>
-                {r.date.display} · {r.title}
+                {formatDate(r.date, timeline.calendar)} · {r.title}
               </button>
             ))}
           </div>

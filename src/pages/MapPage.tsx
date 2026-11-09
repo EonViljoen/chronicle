@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import type { Timeline } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
 import { GalaxyMap } from '../components/map/LazyGalaxyMap';
-import { compareEvents } from '../lib/dates';
+import { compareEvents, formatDate } from '../lib/dates';
 
 export default function MapPage() {
   return <TimelineGate>{(timeline) => <StarMap timeline={timeline} />}</TimelineGate>;
@@ -56,7 +56,7 @@ function StarMap({ timeline }: { timeline: Timeline }) {
                     {events.map((e) => (
                       <li key={e.id}>
                         <Link to={`/t/${timeline.id}?event=${e.id}`}>
-                          <span className="map-event-date">{e.date.display}</span> {e.title}
+                          <span className="map-event-date">{formatDate(e.date, timeline.calendar)}</span> {e.title}
                         </Link>
                       </li>
                     ))}

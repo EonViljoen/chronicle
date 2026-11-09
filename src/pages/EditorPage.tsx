@@ -8,7 +8,7 @@ import EraForm from '../components/editor/EraForm';
 import CategoryForm from '../components/editor/CategoryForm';
 import PlaceForm from '../components/editor/PlaceForm';
 import EventForm from '../components/editor/EventForm';
-import { compareEvents, formatSortKey, freeformDate, millenniumDate, yearDate } from '../lib/dates';
+import { compareEvents, defaultSortKey, formatDate, formatKey } from '../lib/dates';
 import { eraFor } from '../lib/eras';
 import {
   countUsage,
@@ -92,7 +92,8 @@ function Editor({ timeline }: { timeline: Timeline }) {
   };
 
   const shared = { timeline, itemId, onSelectItem: selectItem, onDirtyChange: setDirty };
-  const fmt = (key: number) => formatSortKey(key, timeline.dateFormat);
+  const fmt = (key: number) => formatKey(key, timeline.calendar);
+  const dateOf = (e: TimelineEvent) => formatDate(e.date, timeline.calendar);
 
   return (
     <div className="page editor">
@@ -120,16 +121,16 @@ function Editor({ timeline }: { timeline: Timeline }) {
           {...shared}
           items={events}
           noun="event"
-          blank={() => blankEvent(timeline)}
+          blank={() => blankEvent(timeline, events)}
           nameOf={(e) => e.title}
-          matches={(e, q) => e.title.toLowerCase().includes(q) || e.date.display.toLowerCase().includes(q)}
+          matches={(e, q) => e.title.toLowerCase().includes(q) || dateOf(e).toLowerCase().includes(q)}
           renderRow={(e) => {
             const era = eraFor(e.date.sortKey, timeline.eras);
             return (
               <>
                 <span className="swatch" style={{ background: era?.color ?? 'transparent' }} />
                 <span className="row-main">{e.title}</span>
-                <span className="row-meta">{e.date.display}</span>
+                <span className="row-meta">{dateOf(e)}</span>
               </>
             );
           }}
@@ -158,7 +159,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
           )}
           save={saveEra}
           remove={removeEra}
-          renderForm={(p) => <EraForm {...p} dateFormat={timeline.dateFormat} />}
+          renderForm={(p) => <EraForm {...p} calendar={timeline.calendar} />}
         />
       )}
 
@@ -209,12 +210,14 @@ function Editor({ timeline }: { timeline: Timeline }) {
 
 const usageWarning = (n: number) => (n > 0 ? `It's used by ${n} event${n === 1 ? '' : 's'} and will be removed from them.` : undefined);
 
-function blankEvent(timeline: Timeline): TimelineEvent {
-  const date =
-    timeline.dateFormat === 'millennium'
-      ? millenniumDate(41)
-      : timeline.dateFormat === 'year'
-        ? yearDate(new Date().getFullYear())
-        : freeformDate('', 0);
+/** A new event starts at the latest event's date, since timelines are often filled in order. */
+function blankEvent(timeline: Timeline, sortedEvents: TimelineEvent[]): TimelineEvent {
+  const last = sortedEvents[sortedEvents.length - 1];
+  const date: TimelineEvent['date'] = {
+    sortKey: last ? last.date.sortKey : defaultSortKey(timeline.calendar),
+    precision: 'exact',
+    // In a free-text calendar every date is a label
+    ...(timeline.calendar.type === 'freeform' && { label: '' }),
+  };
   return { id: '', title: '', summary: '', body: '', date, categoryIds: [], placeIds: [], relatedIds: [], sources: [] };
 }

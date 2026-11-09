@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
-import { assertTimeline } from '../lib/validate';
+import { parseTimeline } from '../lib/validate';
+import { DEFAULT_CALENDAR } from '../lib/dates';
 import { SCHEMA_VERSION, type Timeline } from '../types/timeline';
 import { slugify } from '../lib/ids';
 import { readPref, writePref } from '../lib/prefs';
@@ -39,7 +40,7 @@ export async function createTimeline(title: string): Promise<Timeline> {
     schemaVersion: SCHEMA_VERSION,
     title,
     description: '',
-    dateFormat: 'year',
+    calendar: DEFAULT_CALENDAR,
     eras: [],
     categories: [],
     places: [],
@@ -109,8 +110,7 @@ export async function importTimelineFile(file: File): Promise<Timeline> {
   } catch {
     throw new Error(`"${file.name}" is not valid JSON`);
   }
-  assertTimeline(data);
-  return addCopy(data);
+  return addCopy(parseTimeline(data));
 }
 
 /**
@@ -125,8 +125,7 @@ export async function seedOnFirstVisit(): Promise<void> {
     const res = await fetch(brand.seedUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data: unknown = await res.json();
-    assertTimeline(data);
-    await addCopy(data);
+    await addCopy(parseTimeline(data));
   } catch (e) {
     writePref('seeded', false); // try again next visit
     console.error(`Couldn't load the seed timeline from ${brand.seedUrl}`, e);

@@ -1,4 +1,6 @@
-import type { DateKind, MapConfig, Timeline } from '../../types/timeline';
+import type { MapConfig, Timeline } from '../../types/timeline';
+import { calendarError, compareEvents } from '../../lib/dates';
+import CalendarSettings from './CalendarSettings';
 import { updateTimeline } from '../../db/timelines';
 import Field from '../form/Field';
 import NumberInput from '../form/NumberInput';
@@ -7,7 +9,15 @@ import { useDraft } from './useDraft';
 import { themes } from '../../themes';
 import { brand } from '../../brand';
 
-type Settings = Pick<Timeline, 'title' | 'description' | 'dateFormat' | 'map' | 'theme'>;
+type Settings = Pick<Timeline, 'title' | 'description' | 'calendar' | 'map' | 'theme'>;
+
+/** Preview dates for a timeline with no events yet. */
+const SAMPLE_KEYS: Record<Timeline['calendar']['type'], number[]> = {
+  years: [-500, 1066],
+  ages: [-99, 1, 1500, 4000],
+  cycles: [-60_000_000, 30_005, 40_999],
+  freeform: [],
+};
 
 const DEFAULT_GALAXY: MapConfig = { type: 'galaxy3d', arms: 4, radius: 100, coreColor: '#ffd9a0', armColor: '#7aa6ff' };
 
@@ -20,7 +30,7 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
   const original: Settings = {
     title: timeline.title,
     description: timeline.description,
-    dateFormat: timeline.dateFormat,
+    calendar: timeline.calendar,
     map: timeline.map,
     theme: timeline.theme,
   };
@@ -30,7 +40,13 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
   };
   const { draft, patch, dirty, saving, submit, reset } = useDraft(original, save, onDirtyChange);
   const titleError = draft.title.trim() ? undefined : 'Give the timeline a title';
+  const valid = !titleError && !calendarError(draft.calendar);
   const map = draft.map;
+
+  // Preview the calendar on the first, middle and last events
+  const sorted = [...timeline.events].sort(compareEvents);
+  const picks = sorted.length ? [sorted[0], sorted[Math.floor(sorted.length / 2)], sorted[sorted.length - 1]] : [];
+  const sampleKeys = picks.length ? picks.map((e) => e.date.sortKey) : SAMPLE_KEYS[draft.calendar.type];
 
   return (
     <form className="form settings-form" onSubmit={(e) => submit(e, (s) => ({ ...s, title: s.title.trim(), description: s.description.trim() }))}>
@@ -44,13 +60,7 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
         <textarea rows={3} value={draft.description} onChange={(e) => patch({ description: e.target.value })} />
       </Field>
 
-      <Field label="Date format" hint="The default for new events, and how era start and end dates are entered. Each event can still pick its own.">
-        <select value={draft.dateFormat} onChange={(e) => patch({ dateFormat: e.target.value as DateKind })}>
-          <option value="year">Years (1066, -500)</option>
-          <option value="millennium">Millennia, 40k style (005.M31)</option>
-          <option value="freeform">Free text with manual ordering</option>
-        </select>
-      </Field>
+      <CalendarSettings value={draft.calendar} onChange={(calendar) => patch({ calendar })} sampleKeys={sampleKeys} />
 
       <Field label="Theme" hint={themes.find((t) => t.id === draft.theme)?.description ?? 'Uses the site default until you pick one.'}>
         {/* '' in the select means "no theme set": stored as undefined */}
@@ -84,7 +94,7 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
         </div>
       )}
 
-      <FormActions isNew={false} dirty={dirty} valid={!titleError} saving={saving} onRevert={reset} />
+      <FormActions isNew={false} dirty={dirty} valid={valid} saving={saving} onRevert={reset} />
     </form>
   );
 }

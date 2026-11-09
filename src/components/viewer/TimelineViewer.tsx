@@ -35,7 +35,8 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
-  const isVisible = useCallback((e: TimelineEvent) => matchesFilters(e, filters), [filters]);
+  const calendar = timeline.calendar;
+  const isVisible = useCallback((e: TimelineEvent) => matchesFilters(e, filters, calendar), [filters, calendar]);
   const visible = useMemo(() => events.filter(isVisible), [events, isVisible]);
 
   const select = setSelectedId;
@@ -169,6 +170,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
       <TimelineTrack
         events={events}
         eras={timeline.eras}
+        calendar={calendar}
         categories={timeline.categories}
         selectedId={selected?.id ?? null}
         isVisible={isVisible}

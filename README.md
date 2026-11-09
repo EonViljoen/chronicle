@@ -31,3 +31,4 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 3. ✅ Editor: forms for eras, categories, events, places
 4. ✅ 3D starmap with clickable places
 5. ✅ Link timeline and map, filters, search, polish
+6. ✅ Setting-neutral: branding config, themes, custom calendars (years, named ages, numbered cycles, free text)

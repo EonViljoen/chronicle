@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
-import { compareEvents } from '../../lib/dates';
+import { compareEvents, formatDate } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
 import Field from '../form/Field';
 import MultiPicker from '../form/MultiPicker';
@@ -17,7 +17,7 @@ const clean = (e: TimelineEvent): TimelineEvent => ({
   summary: e.summary.trim(),
   body: e.body.trim(),
   imageUrl: e.imageUrl?.trim() || undefined,
-  date: { ...e.date, display: e.date.display.trim() },
+  date: e.date.label === undefined ? e.date : { ...e.date, label: e.date.label.trim() },
   sources: e.sources.map((s) => s.trim()).filter(Boolean),
 });
 
@@ -26,7 +26,11 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
 
   const errors = {
     title: draft.title.trim() ? undefined : 'Give the event a title',
-    date: draft.date.display.trim() ? undefined : 'Give the date a label',
+    // Free-text dates (and every date in a free-text calendar) need a label
+    date:
+      (draft.date.label !== undefined || timeline.calendar.type === 'freeform') && !draft.date.label?.trim()
+        ? 'Give the date a label'
+        : undefined,
   };
   const valid = !errors.title && !errors.date;
   const era = eraFor(draft.date.sortKey, timeline.eras);
@@ -34,7 +38,7 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
   const otherEvents = [...timeline.events]
     .filter((e) => e.id !== original.id)
     .sort(compareEvents)
-    .map((e) => ({ id: e.id, label: `${e.date.display} · ${e.title}` }));
+    .map((e) => ({ id: e.id, label: `${formatDate(e.date, timeline.calendar)} · ${e.title}` }));
 
   function toggleCategory(id: string) {
     const ids = draft.categoryIds;
@@ -52,7 +56,7 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
         <input value={draft.title} onChange={(e) => patch({ title: e.target.value })} autoFocus={isNew} />
       </Field>
 
-      <DateInput value={draft.date} onChange={(date) => patch({ date })} error={dirty ? errors.date : undefined} />
+      <DateInput value={draft.date} calendar={timeline.calendar} onChange={(date) => patch({ date })} error={dirty ? errors.date : undefined} />
       <p className="field-note">{era ? <>Falls in <strong>{era.name}</strong></> : 'Not inside any era'}</p>
 
       <Field label="Summary" hint="One line, shown when hovering the node">

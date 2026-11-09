@@ -3,6 +3,8 @@ import type { TimelineEvent } from '../../types/timeline';
 
 interface Props {
   event: TimelineEvent;
+  /** The date as the timeline's calendar shows it. */
+  dateLabel: string;
   index: number;
   color: string;
   selected: boolean;
@@ -16,8 +18,8 @@ interface Props {
  * In React 19 `ref` is a normal prop, so the parent can grab this button
  * to scroll it into view.
  */
-export default function TimelineNode({ event, index, color, selected, dimmed, onSelect, ref }: Props) {
-  const approximate = event.date.precision !== 'exact';
+export default function TimelineNode({ event, dateLabel, index, color, selected, dimmed, onSelect, ref }: Props) {
+  const approximate = event.date.precision !== 'exact' && event.date.precision !== 'period';
   const classes = ['node', selected && 'is-selected', dimmed && 'is-dimmed', approximate && 'is-approx']
     .filter(Boolean)
     .join(' ');
@@ -32,7 +34,7 @@ export default function TimelineNode({ event, index, color, selected, dimmed, on
       aria-pressed={selected}
       title={event.summary || event.title}
     >
-      <span className="node-date">{approximate ? `c. ${event.date.display}` : event.date.display}</span>
+      <span className="node-date">{dateLabel}</span>
       <span className="node-dot" aria-hidden="true" />
       <span className="node-title">{event.title}</span>
     </button>

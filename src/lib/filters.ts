@@ -1,4 +1,5 @@
-import type { TimelineEvent } from '../types/timeline';
+import type { Calendar, TimelineEvent } from '../types/timeline';
+import { formatDate } from './dates';
 
 /** What the viewer is currently filtering by. */
 export interface Filters {
@@ -17,11 +18,11 @@ export const hasFilters = (f: Filters) => f.query.trim() !== '' || f.categoryIds
  * - place: happens at that place
  * - search: text appears in the title, summary, details or date
  */
-export function matchesFilters(event: TimelineEvent, f: Filters): boolean {
+export function matchesFilters(event: TimelineEvent, f: Filters, calendar: Calendar): boolean {
   if (f.categoryIds.length > 0 && !event.categoryIds.some((id) => f.categoryIds.includes(id))) return false;
   if (f.placeId && !event.placeIds.includes(f.placeId)) return false;
   const q = f.query.trim().toLowerCase();
-  if (q && ![event.title, event.summary, event.body, event.date.display].some((text) => text.toLowerCase().includes(q))) {
+  if (q && ![event.title, event.summary, event.body, formatDate(event.date, calendar)].some((text) => text.toLowerCase().includes(q))) {
     return false;
   }
   return true;

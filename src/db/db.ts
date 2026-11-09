@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { Timeline } from '../types/timeline';
+import { upgradeTimeline } from '../lib/upgrade';
 
 /**
  * The browser database (IndexedDB, via Dexie).
@@ -18,3 +19,16 @@ export const db = new Dexie('timeline-builder') as Dexie & {
 db.version(1).stores({
   timelines: 'id, title, updatedAt',
 });
+
+// Version 2: dates moved to calendars (see lib/upgrade.ts). The indexes are
+// unchanged; the upgrade rewrites each stored timeline once, on first open.
+db.version(2)
+  .stores({ timelines: 'id, title, updatedAt' })
+  .upgrade((tx) =>
+    tx
+      .table('timelines')
+      .toCollection()
+      .modify((timeline, ref) => {
+        ref.value = upgradeTimeline(timeline);
+      }),
+  );
