@@ -6,10 +6,8 @@ import Field from '../form/Field';
 import NumberInput from '../form/NumberInput';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
-import { themes } from '../../themes';
-import { brand } from '../../brand';
 
-type Settings = Pick<Timeline, 'title' | 'description' | 'calendar' | 'map' | 'theme'>;
+type Settings = Pick<Timeline, 'title' | 'description' | 'calendar' | 'map'>;
 
 /** Preview dates for a timeline with no events yet. */
 const SAMPLE_KEYS: Record<Timeline['calendar']['type'], number[]> = {
@@ -32,7 +30,6 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
     description: timeline.description,
     calendar: timeline.calendar,
     map: timeline.map,
-    theme: timeline.theme,
   };
   const save = async (s: Settings) => {
     await updateTimeline(timeline.id, (t) => ({ ...t, ...s }));
@@ -61,16 +58,6 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
       </Field>
 
       <CalendarSettings value={draft.calendar} onChange={(calendar) => patch({ calendar })} sampleKeys={sampleKeys} />
-
-      <Field label="Theme" hint={themes.find((t) => t.id === draft.theme)?.description ?? 'Uses the site default until you pick one.'}>
-        {/* '' in the select means "no theme set": stored as undefined */}
-        <select value={draft.theme ?? ''} onChange={(e) => patch({ theme: e.target.value || undefined })}>
-          <option value="">Site default ({themes.find((t) => t.id === brand.defaultTheme)?.name ?? 'Chronicle'})</option>
-          {themes.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
-        </select>
-      </Field>
 
       <Field label="Map">
         <select value={map.type} onChange={(e) => patch({ map: e.target.value === 'galaxy3d' ? DEFAULT_GALAXY : { type: 'none' } })}>

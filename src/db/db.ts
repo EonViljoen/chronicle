@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { Timeline } from '../types/timeline';
+import type { Theme } from '../types/theme';
 import { upgradeTimeline } from '../lib/upgrade';
 
 /**
@@ -14,6 +15,7 @@ import { upgradeTimeline } from '../lib/upgrade';
  */
 export const db = new Dexie('timeline-builder') as Dexie & {
   timelines: EntityTable<Timeline, 'id'>;
+  themes: EntityTable<Theme, 'id'>;
 };
 
 db.version(1).stores({
@@ -32,3 +34,6 @@ db.version(2)
         ref.value = upgradeTimeline(timeline);
       }),
   );
+
+// Version 3: a library of your own themes (built-in presets live in code).
+db.version(3).stores({ timelines: 'id, title, updatedAt', themes: 'id, name' });

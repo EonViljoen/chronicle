@@ -180,7 +180,7 @@ wh40k-timeline/
     │   ├── prefs.ts            Preferences in localStorage (usePref)
     │   ├── upgrade.ts          Upgrading timelines saved by older versions
     │   └── validate.ts         Checking imported JSON files
-    ├── themes/                 One folder per theme, found automatically
+    ├── themes/                 Theme presets, fonts, and applying a theme to the page
     ├── pages/                  One component per route
     │   ├── HomePage.tsx        Your timelines
     │   ├── ViewerPage.tsx      /t/:id
@@ -1215,14 +1215,27 @@ The data model has a version number, `SCHEMA_VERSION`. When the shape changes (v
 - **Dexie's own versioning** in [`db.ts`](../src/db/db.ts): `db.version(2)….upgrade(…)` rewrites every stored timeline once, the first time the new code opens the database.
 - **`parseTimeline`**, for imported and seeded files.
 
-### Branding and themes
+### Branding
 
-Chronicle is meant to be reused, for example by the 40k fan site, without that site editing Chronicle's files (which would make pulling in updates painful). Two features make that possible:
+[`brand.ts`](../src/brand.ts) reads `import.meta.env.VITE_BRAND_NAME` and friends. Vite replaces these with values from a `.env` file at build time; only variables starting with `VITE_` are exposed to the browser. A site sets its name, default theme, demo link and published timelines there.
 
-- **Branding from environment variables.** [`brand.ts`](../src/brand.ts) reads `import.meta.env.VITE_BRAND_NAME` and friends. Vite replaces these with values from a `.env` file at build time; only variables starting with `VITE_` are exposed to the browser. A site sets its name, default theme, demo link and a **seed** timeline (loaded on a visitor's first visit) in its own `.env`.
-- **Themes found by the bundler.** [`themes/index.ts`](../src/themes/index.ts) calls `import.meta.glob('./*/index.ts', { eager: true })`, which Vite turns into an import of every matching file. Add a folder, get a theme. Each theme only overrides the CSS variables from the top of `index.css`, scoped under `:root[data-theme='…']`.
+### Themes are data
 
-Setting the theme is a **side effect**: `data-theme` lives on `<html>`, outside anything React renders. So `useTheme` (called by `TimelineGate`) sets it in a `useEffect` and puts the site default back in the cleanup, when you leave the timeline. Notice the hook is called *above* `TimelineGate`'s early returns: hooks must run on every render, in the same order.
+A theme ([`types/theme.ts`](../src/types/theme.ts)) is a plain object: colours, three fonts, a corner radius, a node shape and a handful of ornament switches. Four built-in **presets** live in code ([`themes/presets.ts`](../src/themes/presets.ts)); themes you make are stored in the browser in a second Dexie table, `themes` ([`db/themes.ts`](../src/db/themes.ts)). A timeline only stores the theme's **id**, which is why switching themes is one click: it changes one field.
+
+How a theme reaches the screen ([`themes/apply.ts`](../src/themes/apply.ts)):
+
+- Colours, fonts and sizes become **CSS custom properties** on `<html>`: `root.style.setProperty('--accent', theme.colors.accent)`. Everything in `index.css` already uses `var(--accent)`, so it all changes at once.
+- Switch-like options become **data attributes**: `data-node="diamond"`, `data-frame="engraved"`. The bottom of `index.css` has one block per option, e.g. `:root[data-node='diamond'] .node-dot { transform: rotate(45deg); }`.
+- Fonts are loaded on demand by adding a Google Fonts `<link>` to the page.
+
+So the styling all lives in one stylesheet, and a theme just flips its switches. That's what lets you build a theme in the app instead of writing CSS.
+
+Applying the theme is a **side effect**: it changes `<html>`, outside anything React renders. So `useTheme` (called by `TimelineGate`) does it in a `useEffect` and puts the site default back in the cleanup, when you leave the timeline. The hook is called *above* `TimelineGate`'s early returns: hooks must run on every render, in the same order.
+
+**Live preview** needs the theme editor, deep inside the editor page, to override what `TimelineGate` applies. Two components both calling `useTheme` would fight (child effects run before parent effects, so the parent would win on mount). Instead `TimelineGate` keeps a `preview` state and passes its setter down through a second Context, `ThemePreviewContext` ([`themePreview.ts`](../src/components/themePreview.ts)). The editor calls `usePreviewTheme(draft)`; `TimelineGate` applies `preview ?? savedTheme`. One owner, no fight: the same "lift state up" idea as everywhere else, with Context doing the lifting across many levels.
+
+**Themes travel with timelines.** Exporting a timeline adds a full copy of its theme (`themeDef`). Importing calls `ensureTheme`, which reuses an identical theme, saves a new one, or saves a copy if a *different* theme already has that id, so an import never overwrites your work. [`normalizeTheme`](../src/themes/normalize.ts) fills in anything a file is missing from the default theme, so older or hand-written files still work.
 
 ## 19. Pure update functions and immutability
 

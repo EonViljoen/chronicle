@@ -1,3 +1,5 @@
+import type { Theme } from './theme';
+
 /**
  * The data model for a timeline.
  *
@@ -143,8 +145,13 @@ export interface Timeline {
   categories: Category[];
   places: Place[];
   map: MapConfig;
-  /** A theme id (see src/themes). Unset = the site's default theme. */
+  /** The theme's id: a built-in preset or one from your library. Unset = the site's default. */
   theme?: string;
+  /**
+   * A full copy of the theme. Only in exported files and published
+   * timelines, so they look the same anywhere; stored timelines just keep the id.
+   */
+  themeDef?: Theme;
   events: TimelineEvent[];
   createdAt: number;
   updatedAt: number;

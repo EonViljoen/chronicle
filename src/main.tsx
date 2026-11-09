@@ -4,11 +4,11 @@ import './index.css'
 import App from './App.tsx'
 import { brand } from './brand'
 import { seedOnFirstVisit } from './db/timelines'
-import { applyTheme } from './themes'
+import { applyTheme, siteTheme } from './themes'
 
 document.title = brand.name
 void seedOnFirstVisit()
-applyTheme(brand.defaultTheme)
+applyTheme(siteTheme())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

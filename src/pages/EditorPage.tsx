@@ -5,6 +5,7 @@ import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
+import ThemeTab from '../components/editor/ThemeTab';
 import EraForm from '../components/editor/EraForm';
 import CategoryForm from '../components/editor/CategoryForm';
 import PlaceForm from '../components/editor/PlaceForm';
@@ -23,7 +24,7 @@ import {
   savePlace,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'categories', 'places', 'settings'] as const;
+const TABS = ['events', 'eras', 'categories', 'places', 'theme', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -106,6 +107,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
     eras: eras.length,
     categories: categories.length,
     places: places.length,
+    theme: null,
     settings: null,
   };
 
@@ -133,6 +135,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
       </nav>
 
       {tab === 'settings' && <SettingsForm timeline={timeline} onDirtyChange={setDirty} />}
+      {tab === 'theme' && <ThemeTab timeline={timeline} onDirtyChange={setDirty} />}
 
       {tab === 'events' && (
         <CollectionTab<TimelineEvent>

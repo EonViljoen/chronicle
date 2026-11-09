@@ -16,6 +16,7 @@ interface Props {
 
 export default function TimelineCard({ timeline, onError, published = false }: Props) {
   const handleDuplicate = () => duplicateTimeline(timeline.id).catch((e: Error) => onError(e.message));
+  const handleExport = () => exportTimeline(timeline).catch((e: Error) => onError(e.message));
   const handleCopy = () => copyToBrowser(timeline).catch((e: Error) => onError(e.message));
 
   const handleDelete = () => {
@@ -48,14 +49,14 @@ export default function TimelineCard({ timeline, onError, published = false }: P
         <Link className="btn btn-primary" to={`/t/${timeline.id}`}>View</Link>
         {published ? (
           <>
-            <button className="btn" onClick={() => exportTimeline(timeline)}>Export</button>
+            <button className="btn" onClick={handleExport}>Export</button>
             {/* An editable copy only makes sense where people can edit */}
             {!brand.readOnly && <button className="btn" onClick={handleCopy}>Make an editable copy</button>}
           </>
         ) : (
           <>
             <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
-            <button className="btn" onClick={() => exportTimeline(timeline)}>Export</button>
+            <button className="btn" onClick={handleExport}>Export</button>
             <button className="btn" onClick={handleDuplicate}>Duplicate</button>
             <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
           </>

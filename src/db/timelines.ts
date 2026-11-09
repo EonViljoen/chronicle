@@ -7,6 +7,7 @@ import { slugify } from '../lib/ids';
 import { readPref, writePref } from '../lib/prefs';
 import { brand } from '../brand';
 import { usePublished } from './published';
+import { ensureTheme, getTheme } from './themes';
 
 /*
  * Everything the UI needs to read and write timelines.
@@ -98,16 +99,20 @@ export const copyToBrowser = (timeline: Timeline) => addCopy(timeline);
 /** Store a copy under a fresh id, so imports never overwrite existing timelines. */
 async function addCopy(source: Timeline, title = source.title): Promise<Timeline> {
   const now = Date.now();
-  const copy: Timeline = { ...source, id: newId(), title, createdAt: now, updatedAt: now };
+  // A file may bring its theme along: add it to the library and keep just the id
+  const { themeDef, ...rest } = source;
+  const theme = themeDef ? await ensureTheme(themeDef) : source.theme;
+  const copy: Timeline = { ...rest, theme, id: newId(), title, createdAt: now, updatedAt: now };
   await db.timelines.add(copy);
   return copy;
 }
 
 // ---------- Import / export ----------
 
-/** Download a timeline as a .json file. */
-export function exportTimeline(timeline: Timeline) {
-  const json = JSON.stringify(timeline, null, 2);
+/** Download a timeline as a .json file, with a copy of its theme so it looks the same anywhere. */
+export async function exportTimeline(timeline: Timeline) {
+  const themeDef = timeline.themeDef ?? (await getTheme(timeline.theme));
+  const json = JSON.stringify({ ...timeline, themeDef }, null, 2);
   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
   const link = document.createElement('a');
   link.href = url;

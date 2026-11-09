@@ -1,52 +1,40 @@
 import { useEffect } from 'react';
+import type { Theme } from '../types/theme';
+import type { Timeline } from '../types/timeline';
 import { brand } from '../brand';
-import type { ThemeMeta } from './types';
+import { applyTheme } from './apply';
+import { normalizeTheme } from './normalize';
+import { DEFAULT_THEME, PRESETS } from './presets';
 
-export type { ThemeMeta };
+export { applyTheme } from './apply';
+export { normalizeTheme } from './normalize';
+export { DEFAULT_THEME, PRESETS, isPreset } from './presets';
 
-/*
- * Every folder in src/themes with an index.ts is a theme. import.meta.glob is
- * a Vite feature: at build time it finds the matching files and imports them,
- * so adding a theme never means editing this file. `eager: true` imports them
- * straight away (each theme's CSS is small) instead of lazily.
- */
-const modules = import.meta.glob<{ default: ThemeMeta }>('./*/index.ts', { eager: true });
-
-/** All themes, the default first, then by name. */
-export const themes: ThemeMeta[] = Object.values(modules)
-  .map((m) => m.default)
-  .sort((a, b) => (a.id === 'default' ? -1 : b.id === 'default' ? 1 : a.name.localeCompare(b.name)));
+/** The theme used outside a timeline, and for timelines that don't pick one. */
+export const siteTheme = (): Theme => PRESETS.find((p) => p.id === brand.defaultTheme) ?? DEFAULT_THEME;
 
 /**
- * The theme for an id. Unknown ids (say, a timeline imported from a site that
- * has extra themes) fall back to the site default, then the base theme.
+ * Which theme a timeline shows. A published timeline brings its own copy
+ * (themeDef), so it looks right whatever is in this browser's library.
+ * Otherwise its id is looked up in `library` (presets + your themes).
+ * Unknown ids fall back to the site default.
  */
-export function themeFor(id: string | undefined): ThemeMeta {
-  const byId = (x: string | undefined) => themes.find((t) => t.id === x);
-  return byId(id) ?? byId(brand.defaultTheme) ?? byId('default') ?? themes[0];
-}
-
-/** Puts the theme on <html data-theme="…"> and loads its fonts once. */
-export function applyTheme(id: string | undefined) {
-  const theme = themeFor(id);
-  document.documentElement.dataset.theme = theme.id;
-  if (theme.fontsUrl && !document.querySelector(`link[data-theme-fonts="${theme.id}"]`)) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = theme.fontsUrl;
-    link.dataset.themeFonts = theme.id;
-    document.head.append(link);
-  }
+export function resolveTheme(timeline: Pick<Timeline, 'theme' | 'themeDef'>, library: Theme[]): Theme {
+  if (timeline.themeDef) return normalizeTheme(timeline.themeDef);
+  return library.find((t) => t.id === timeline.theme) ?? siteTheme();
 }
 
 /**
- * Use a theme while this component is on screen. The theme is set on <html>,
- * outside React's tree, so it's a side effect: useEffect applies it, and the
- * cleanup puts the site default back when the component goes away.
+ * Show a theme while the calling component is on screen. The theme lives on
+ * <html>, outside React's tree, so applying it is a side effect: useEffect
+ * applies it and the cleanup puts the site default back.
+ * The effect depends on the theme's JSON, so a new object with the same
+ * contents (common when data is re-read) doesn't re-apply it.
  */
-export function useTheme(id: string | undefined) {
+export function useTheme(theme: Theme | undefined) {
+  const key = theme ? JSON.stringify(theme) : '';
   useEffect(() => {
-    applyTheme(id);
-    return () => applyTheme(brand.defaultTheme);
-  }, [id]);
+    applyTheme(key ? (JSON.parse(key) as Theme) : siteTheme());
+    return () => applyTheme(siteTheme());
+  }, [key]);
 }
