@@ -49,10 +49,29 @@ function v1to2(t: V1Timeline): Timeline {
   };
 }
 
+// ---------- Version 2 -> 3: categories became factions ----------
+
+type V2Timeline = Omit<Timeline, 'factions' | 'events'> & {
+  categories?: Timeline['factions'];
+  factions?: Timeline['factions'];
+  events: (Omit<Timeline['events'][number], 'factionIds'> & { categoryIds?: string[]; factionIds?: string[] })[];
+};
+
+function v2to3(t: V2Timeline): Timeline {
+  const { categories, factions, events, ...rest } = t;
+  return {
+    ...rest,
+    schemaVersion: 3,
+    factions: factions ?? categories ?? [],
+    events: events.map(({ categoryIds, factionIds, ...e }) => ({ ...e, factionIds: factionIds ?? categoryIds ?? [] })),
+  };
+}
+
 /** Returns the timeline in the current shape. Already-current ones pass through unchanged. */
 export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
   let t: unknown = data;
   if ((t as { schemaVersion: number }).schemaVersion < 2) t = v1to2(t as V1Timeline);
-  // Future steps go here: if (version < 3) t = v2to3(t) …
+  if ((t as { schemaVersion: number }).schemaVersion < 3) t = v2to3(t as V2Timeline);
+  // Future steps go here: if (version < 4) t = v3to4(t) …
   return { ...(t as Timeline), schemaVersion: SCHEMA_VERSION };
 }

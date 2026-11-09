@@ -12,8 +12,9 @@ import type { Theme } from './theme';
  * Bump this when the shape changes. Older timelines (stored or imported)
  * are upgraded on the way in; see lib/upgrade.ts.
  * 2: `dateFormat` became `calendar`; dates lost `kind` and `display`.
+ * 3: categories were renamed factions (`factions`, `factionIds`).
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /** The header and footer of an exported website. */
 export interface WebsiteSettings {
@@ -100,15 +101,15 @@ export interface Era {
 }
 
 /**
- * A tag with a colour, e.g. factions, characters or themes. Categories nest:
- * a category with a `parentId` sits under that category, to any depth
- * ("Imperium › Space Marines › Ultramarines"). See lib/categories.ts.
+ * A tag with a colour, e.g. factions, characters or themes. Factions nest:
+ * a faction with a `parentId` sits under that faction, to any depth
+ * ("Imperium › Space Marines › Ultramarines"). See lib/factions.ts.
  */
-export interface Category {
+export interface Faction {
   id: string;
   name: string;
   color: string;
-  /** The category this one sits under. Unset = top level. */
+  /** The faction this one sits under. Unset = top level. */
   parentId?: string;
 }
 
@@ -144,7 +145,7 @@ export interface TimelineEvent {
   body: string;
   imageUrl?: string;
   date: EventDate;
-  categoryIds: string[];
+  factionIds: string[];
   placeIds: string[];
   relatedIds: string[];
   sources: string[];
@@ -157,7 +158,7 @@ export interface Timeline {
   description: string;
   calendar: Calendar;
   eras: Era[];
-  categories: Category[];
+  factions: Faction[];
   places: Place[];
   map: MapConfig;
   /** The theme's id: a built-in preset or one from your library. Unset = the site's default. */

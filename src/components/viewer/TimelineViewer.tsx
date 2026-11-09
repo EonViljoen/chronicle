@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
-import { expandCategories } from '../../lib/categories';
+import { expandFactions } from '../../lib/factions';
 import { matchesFilters, NO_FILTERS, type Filters } from '../../lib/filters';
 import { usePref } from '../../lib/prefs';
 import { GalaxyMap } from '../map/LazyGalaxyMap';
@@ -15,7 +15,7 @@ import ViewerToolbar from './ViewerToolbar';
  * Owns the viewer's state and passes it down:
  * - the selected event is React state, mirrored into the URL (?event=<id>)
  *   so links are shareable and a refresh keeps your place
- * - filters (search, categories, place) live in component state
+ * - filters (search, factions, place) live in component state
  * - "show the map" is remembered per browser (usePref)
  *
  * The timeline and the map are linked through this shared state: selecting
@@ -37,11 +37,11 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
   const calendar = timeline.calendar;
-  // Picking a category also matches everything under it, so expand the
+  // Picking a faction also matches everything under it, so expand the
   // picked ids before filtering (the filter itself stays a simple "any of")
   const matchFilters = useMemo(
-    () => ({ ...filters, categoryIds: expandCategories(filters.categoryIds, timeline.categories) }),
-    [filters, timeline.categories],
+    () => ({ ...filters, factionIds: expandFactions(filters.factionIds, timeline.factions) }),
+    [filters, timeline.factions],
   );
   const isVisible = useCallback((e: TimelineEvent) => matchesFilters(e, matchFilters, calendar), [matchFilters, calendar]);
   const visible = useMemo(() => events.filter(isVisible), [events, isVisible]);
@@ -165,7 +165,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
       <ViewerToolbar
         filters={filters}
         onChange={setFilters}
-        categories={timeline.categories}
+        factions={timeline.factions}
         places={timeline.places}
         visibleCount={visible.length}
         totalCount={events.length}
@@ -178,7 +178,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         events={events}
         eras={timeline.eras}
         calendar={calendar}
-        categories={timeline.categories}
+        factions={timeline.factions}
         selectedId={selected?.id ?? null}
         isVisible={isVisible}
         onSelect={select}

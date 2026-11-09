@@ -54,7 +54,7 @@ export async function createTimeline(title: string): Promise<Timeline> {
     description: '',
     calendar: DEFAULT_CALENDAR,
     eras: [],
-    categories: [],
+    factions: [],
     places: [],
     map: { type: 'none' },
     events: [],

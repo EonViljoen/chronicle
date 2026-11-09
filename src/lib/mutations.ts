@@ -1,4 +1,4 @@
-import type { Category, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
+import type { Faction, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
 
 /*
  * Pure functions: each takes a timeline and returns a NEW timeline with one
@@ -7,7 +7,7 @@ import type { Category, Era, Place, Timeline, TimelineEvent } from '../types/tim
  * functions are easy to test.
  *
  * Deleting something also removes references to it, so events never point
- * at a category, place or event that no longer exists.
+ * at a faction, place or event that no longer exists.
  */
 
 /** Replace the item with the same id, or add it if it's new. */
@@ -20,19 +20,19 @@ const without = (ids: string[], id: string) => ids.filter((x) => x !== id);
 export const saveEra = (t: Timeline, era: Era): Timeline => ({ ...t, eras: upsert(t.eras, era) });
 export const removeEra = (t: Timeline, id: string): Timeline => ({ ...t, eras: t.eras.filter((e) => e.id !== id) });
 
-export const saveCategory = (t: Timeline, category: Category): Timeline => ({
+export const saveFaction = (t: Timeline, faction: Faction): Timeline => ({
   ...t,
-  categories: upsert(t.categories, category),
+  factions: upsert(t.factions, faction),
 });
-/** Deletes a category. Its sub-categories move up to its parent, so they aren't lost. */
-export function removeCategory(t: Timeline, id: string): Timeline {
-  const parentId = t.categories.find((c) => c.id === id)?.parentId;
+/** Deletes a faction. Its sub-factions move up to its parent, so they aren't lost. */
+export function removeFaction(t: Timeline, id: string): Timeline {
+  const parentId = t.factions.find((c) => c.id === id)?.parentId;
   return {
     ...t,
-    categories: t.categories
+    factions: t.factions
       .filter((c) => c.id !== id)
       .map((c) => (c.parentId === id ? { ...c, parentId } : c)),
-    events: t.events.map((e) => ({ ...e, categoryIds: without(e.categoryIds, id) })),
+    events: t.events.map((e) => ({ ...e, factionIds: without(e.factionIds, id) })),
   };
 }
 
@@ -64,6 +64,6 @@ export const removeEvent = (t: Timeline, id: string): Timeline => ({
   events: t.events.filter((e) => e.id !== id).map((e) => ({ ...e, relatedIds: without(e.relatedIds, id) })),
 });
 
-/** How many events use a category or place (for delete warnings). */
-export const countUsage = (t: Timeline, key: 'categoryIds' | 'placeIds', id: string) =>
+/** How many events use a faction or place (for delete warnings). */
+export const countUsage = (t: Timeline, key: 'factionIds' | 'placeIds', id: string) =>
   t.events.filter((e) => e[key].includes(id)).length;

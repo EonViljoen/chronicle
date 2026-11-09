@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents, formatDate } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
-import { categoryPath, categoryTree } from '../../lib/categories';
+import { factionPath, factionTree } from '../../lib/factions';
 import Field from '../form/Field';
 import MultiPicker from '../form/MultiPicker';
 import MarkdownField from '../form/MarkdownField';
@@ -60,24 +60,24 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
       </Field>
 
       <Field
-        label="Categories"
+        label="Factions"
         group
         hint={
-          timeline.categories.length === 0
-            ? 'Add categories in the Categories tab'
+          timeline.factions.length === 0
+            ? 'Add factions in the Factions tab'
             : 'Pick the most specific one: it also counts under its parents. The first one sets the node colour.'
         }
       >
         <MultiPicker
-          label="Add a category"
-          placeholder="Add a category…"
+          label="Add a faction"
+          placeholder="Add a faction…"
           // Full paths, so two "Veterans" under different parents can be told apart
-          options={categoryTree(timeline.categories).map(({ category }) => ({
-            id: category.id,
-            label: categoryPath(category.id, timeline.categories),
+          options={factionTree(timeline.factions).map(({ faction }) => ({
+            id: faction.id,
+            label: factionPath(faction.id, timeline.factions),
           }))}
-          value={draft.categoryIds}
-          onChange={(categoryIds) => patch({ categoryIds })}
+          value={draft.factionIds}
+          onChange={(factionIds) => patch({ factionIds })}
         />
       </Field>
 

@@ -32,7 +32,7 @@ interface Props<T extends { id: string }> {
 }
 
 /**
- * A list on the left and a form on the right. Eras, categories, places and
+ * A list on the left and a form on the right. Eras, factions, places and
  * events all use this, so it's a *generic* component: `T` is whichever item
  * type it's showing, and TypeScript checks the callbacks match it.
  */
@@ -52,7 +52,7 @@ export default function CollectionTab<T extends { id: string }>({
   deleteWarning,
   renderForm,
 }: Props<T>) {
-  // "category" -> "categories", "event" -> "events"
+  // "faction" -> "factions", "event" -> "events"
   const plural = noun.endsWith('y') ? `${noun.slice(0, -1)}ies` : `${noun}s`;
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);

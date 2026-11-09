@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
-import type { Calendar, Category, Era, TimelineEvent } from '../../types/timeline';
+import type { Calendar, Faction, Era, TimelineEvent } from '../../types/timeline';
 import { formatDate } from '../../lib/dates';
 import { eraSegments } from '../../lib/eras';
 import TimelineNode from './TimelineNode';
@@ -9,7 +9,7 @@ interface Props {
   events: TimelineEvent[];
   eras: Era[];
   calendar: Calendar;
-  categories: Category[];
+  factions: Faction[];
   selectedId: string | null;
   isVisible: (event: TimelineEvent) => boolean;
   onSelect: (id: string) => void;
@@ -26,12 +26,12 @@ const FALLBACK_COLOR = '#c9a227';
  * scale, because some timelines have gaps of millions of years.
  * Positioning is done in CSS from --i and --n; see `.track` in index.css.
  */
-export default function TimelineTrack({ events, eras, calendar, categories, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {
+export default function TimelineTrack({ events, eras, calendar, factions, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {
   // A Map of event id -> button element, filled by each node's ref callback.
   const nodeRefs = useRef(new Map<string, HTMLButtonElement>());
 
   const segments = useMemo(() => eraSegments(events, eras), [events, eras]);
-  const colorById = useMemo(() => new Map(categories.map((c) => [c.id, c.color])), [categories]);
+  const colorById = useMemo(() => new Map(factions.map((c) => [c.id, c.color])), [factions]);
 
   // useEffect runs after render. Whenever the selection changes, slide that
   // node to the centre of the scroller.
@@ -83,7 +83,7 @@ export default function TimelineTrack({ events, eras, calendar, categories, sele
                 event={event}
                 dateLabel={formatDate(event.date, calendar)}
                 index={i}
-                color={colorById.get(event.categoryIds[0]) ?? FALLBACK_COLOR}
+                color={colorById.get(event.factionIds[0]) ?? FALLBACK_COLOR}
                 selected={event.id === selectedId}
                 dimmed={!isVisible(event)}
                 onSelect={onSelect}

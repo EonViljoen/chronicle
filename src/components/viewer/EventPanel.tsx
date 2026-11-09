@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
 import { formatDate } from '../../lib/dates';
-import { categoryPath } from '../../lib/categories';
+import { factionPath } from '../../lib/factions';
 import { EditOnly } from '../EditOnly';
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
 /** The info box for the selected event. */
 export default function EventPanel({ timeline, event, onSelect, onClose }: Props) {
   const era = eraFor(event.date.sortKey, timeline.eras);
-  const categories = timeline.categories.filter((c) => event.categoryIds.includes(c.id));
+  const factions = timeline.factions.filter((c) => event.factionIds.includes(c.id));
   const places = timeline.places.filter((p) => event.placeIds.includes(p.id));
   // Skip related ids that point at deleted events
   const related = event.relatedIds
@@ -42,10 +42,10 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
         </div>
       </header>
 
-      {(categories.length > 0 || places.length > 0) && (
+      {(factions.length > 0 || places.length > 0) && (
         <div className="chips">
-          {categories.map((c) => (
-            <span key={c.id} className="chip" style={{ borderColor: c.color }} title={categoryPath(c.id, timeline.categories)}>
+          {factions.map((c) => (
+            <span key={c.id} className="chip" style={{ borderColor: c.color }} title={factionPath(c.id, timeline.factions)}>
               <span className="swatch" style={{ background: c.color }} /> {c.name}
             </span>
           ))}

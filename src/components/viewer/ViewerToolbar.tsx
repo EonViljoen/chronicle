@@ -1,11 +1,11 @@
-import type { Category, Place } from '../../types/timeline';
+import type { Faction, Place } from '../../types/timeline';
 import { hasFilters, NO_FILTERS, type Filters } from '../../lib/filters';
-import { categoryPath, categoryTree, expandCategories, indentLabel } from '../../lib/categories';
+import { factionPath, factionTree, expandFactions, indentLabel } from '../../lib/factions';
 
 interface Props {
   filters: Filters;
   onChange: (filters: Filters) => void;
-  categories: Category[];
+  factions: Faction[];
   places: Place[];
   visibleCount: number;
   totalCount: number;
@@ -17,22 +17,22 @@ interface Props {
 }
 
 /**
- * Search, category filter, place filter and the map toggle.
- * Categories are picked from a dropdown (the whole tree, indented); each
+ * Search, faction filter, place filter and the map toggle.
+ * Factions are picked from a dropdown (the whole tree, indented); each
  * picked one shows as a chip with × to remove it.
  */
-export default function ViewerToolbar({ filters, onChange, categories, places, visibleCount, totalCount, onSearchEnter, showMap, onToggleMap }: Props) {
+export default function ViewerToolbar({ filters, onChange, factions, places, visibleCount, totalCount, onSearchEnter, showMap, onToggleMap }: Props) {
   const place = places.find((p) => p.id === filters.placeId);
   const set = (changes: Partial<Filters>) => onChange({ ...filters, ...changes });
 
-  const picked = filters.categoryIds
-    .map((id) => categories.find((c) => c.id === id))
-    .filter((c): c is Category => c !== undefined);
+  const picked = filters.factionIds
+    .map((id) => factions.find((c) => c.id === id))
+    .filter((c): c is Faction => c !== undefined);
   // Hide what's already picked, and what's already covered by a picked parent
-  const covered = new Set(expandCategories(filters.categoryIds, categories));
-  const pickable = categoryTree(categories).filter((row) => !covered.has(row.category.id));
-  const addCategory = (id: string) => id && set({ categoryIds: [...filters.categoryIds, id] });
-  const removeCategory = (id: string) => set({ categoryIds: filters.categoryIds.filter((c) => c !== id) });
+  const covered = new Set(expandFactions(filters.factionIds, factions));
+  const pickable = factionTree(factions).filter((row) => !covered.has(row.faction.id));
+  const addFaction = (id: string) => id && set({ factionIds: [...filters.factionIds, id] });
+  const removeFaction = (id: string) => set({ factionIds: filters.factionIds.filter((c) => c !== id) });
 
   return (
     <div className="viewer-toolbar">
@@ -53,12 +53,12 @@ export default function ViewerToolbar({ filters, onChange, categories, places, v
             {visibleCount} of {totalCount} events
           </span>
         )}
-        {categories.length > 0 && pickable.length > 0 && (
+        {factions.length > 0 && pickable.length > 0 && (
           // value="" keeps the dropdown on its prompt after each pick
-          <select className="category-filter" value="" aria-label="Filter by category" onChange={(e) => addCategory(e.target.value)}>
-            <option value="">Filter by category…</option>
+          <select className="faction-filter" value="" aria-label="Filter by faction" onChange={(e) => addFaction(e.target.value)}>
+            <option value="">Filter by faction…</option>
             {pickable.map((row) => (
-              <option key={row.category.id} value={row.category.id}>{indentLabel(row)}</option>
+              <option key={row.faction.id} value={row.faction.id}>{indentLabel(row)}</option>
             ))}
           </select>
         )}
@@ -78,9 +78,9 @@ export default function ViewerToolbar({ filters, onChange, categories, places, v
             </span>
           )}
           {picked.map((c) => (
-            <span key={c.id} className="chip" style={{ borderColor: c.color }} title={categoryPath(c.id, categories)}>
+            <span key={c.id} className="chip" style={{ borderColor: c.color }} title={factionPath(c.id, factions)}>
               <span className="swatch" style={{ background: c.color }} /> {c.name}
-              <button className="chip-remove" aria-label={`Stop filtering by ${c.name}`} onClick={() => removeCategory(c.id)}>×</button>
+              <button className="chip-remove" aria-label={`Stop filtering by ${c.name}`} onClick={() => removeFaction(c.id)}>×</button>
             </span>
           ))}
           {hasFilters(filters) && (

@@ -37,3 +37,15 @@ db.version(2)
 
 // Version 3: a library of your own themes (built-in presets live in code).
 db.version(3).stores({ timelines: 'id, title, updatedAt', themes: 'id, name' });
+
+// Version 4: categories renamed factions (timeline schema 3).
+db.version(4)
+  .stores({ timelines: 'id, title, updatedAt', themes: 'id, name' })
+  .upgrade((tx) =>
+    tx
+      .table('timelines')
+      .toCollection()
+      .modify((timeline, ref) => {
+        ref.value = upgradeTimeline(timeline);
+      }),
+  );

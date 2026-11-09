@@ -32,9 +32,11 @@ function assertTimelineShape(data: unknown): asserts data is { schemaVersion: nu
   if ((t.schemaVersion as number) > SCHEMA_VERSION) {
     fail(`made by a newer version of the app (schema ${t.schemaVersion})`);
   }
-  for (const key of ['eras', 'categories', 'places', 'events']) {
+  for (const key of ['eras', 'places', 'events']) {
     if (!Array.isArray(t[key])) fail(`"${key}" must be a list`);
   }
+  // Files from before schema 3 call factions "categories"
+  if (!Array.isArray(t.factions) && !Array.isArray(t.categories)) fail('"factions" must be a list');
   for (const [i, e] of (t.events as Record<string, unknown>[]).entries()) {
     const date = e?.date as Record<string, unknown> | undefined;
     if (typeof e?.id !== 'string' || typeof e?.title !== 'string') fail(`event ${i + 1} needs an id and title`);

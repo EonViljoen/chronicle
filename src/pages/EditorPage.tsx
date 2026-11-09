@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useBlocker, useSearchParams, type BlockerFunction } from 'react-router-dom';
-import type { Category, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
+import type { Faction, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
 import CollectionTab from '../components/editor/CollectionTab';
@@ -8,25 +8,25 @@ import SettingsForm from '../components/editor/SettingsForm';
 import ThemeTab from '../components/editor/ThemeTab';
 import WebsiteTab from '../components/editor/WebsiteTab';
 import EraForm from '../components/editor/EraForm';
-import CategoryForm from '../components/editor/CategoryForm';
+import FactionForm from '../components/editor/FactionForm';
 import PlaceForm from '../components/editor/PlaceForm';
 import EventForm from '../components/editor/EventForm';
 import { compareEvents, defaultSortKey, formatDate, formatKey } from '../lib/dates';
 import { eraFor } from '../lib/eras';
-import { categoryTree } from '../lib/categories';
+import { factionTree } from '../lib/factions';
 import {
   countUsage,
-  removeCategory,
+  removeFaction,
   removeEra,
   removeEvent,
   removePlace,
-  saveCategory,
+  saveFaction,
   saveEra,
   saveEvent,
   savePlace,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'categories', 'places', 'theme', 'website', 'settings'] as const;
+const TABS = ['events', 'eras', 'factions', 'places', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -101,16 +101,16 @@ function Editor({ timeline }: { timeline: Timeline }) {
   // ----- Sorted lists -----
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
   const eras = useMemo(() => [...timeline.eras].sort((a, b) => a.start - b.start), [timeline.eras]);
-  // Categories in tree order: each one followed by its sub-categories
-  const categoryRows = useMemo(() => categoryTree(timeline.categories), [timeline.categories]);
-  const categories = useMemo(() => categoryRows.map((r) => r.category), [categoryRows]);
-  const depthOf = (id: string) => categoryRows.find((r) => r.category.id === id)?.depth ?? 0;
+  // Factions in tree order: each one followed by its sub-factions
+  const factionRows = useMemo(() => factionTree(timeline.factions), [timeline.factions]);
+  const factions = useMemo(() => factionRows.map((r) => r.faction), [factionRows]);
+  const depthOf = (id: string) => factionRows.find((r) => r.faction.id === id)?.depth ?? 0;
   const places = useMemo(() => [...timeline.places].sort((a, b) => a.name.localeCompare(b.name)), [timeline.places]);
 
   const counts: Record<Tab, number | null> = {
     events: events.length,
     eras: eras.length,
-    categories: categories.length,
+    factions: factions.length,
     places: places.length,
     theme: null,
     website: null,
@@ -191,26 +191,26 @@ function Editor({ timeline }: { timeline: Timeline }) {
         />
       )}
 
-      {tab === 'categories' && (
-        <CollectionTab<Category>
+      {tab === 'factions' && (
+        <CollectionTab<Faction>
           {...shared}
-          items={categories}
-          noun="category"
+          items={factions}
+          noun="faction"
           blank={() => ({ id: '', name: '', color: '#c9a227' })}
           nameOf={(c) => c.name}
           matches={(c, q) => c.name.toLowerCase().includes(q)}
           renderRow={(c) => (
             <>
-              {/* Sub-categories are indented under their parent */}
+              {/* Sub-factions are indented under their parent */}
               <span className="swatch" style={{ background: c.color, marginLeft: depthOf(c.id) * 16 }} />
               <span className="row-main">{c.name}</span>
-              <span className="row-meta">{countUsage(timeline, 'categoryIds', c.id)}</span>
+              <span className="row-meta">{countUsage(timeline, 'factionIds', c.id)}</span>
             </>
           )}
-          save={saveCategory}
-          remove={removeCategory}
-          deleteWarning={(c) => categoryDeleteWarning(timeline, c)}
-          renderForm={(p) => <CategoryForm {...p} categories={timeline.categories} />}
+          save={saveFaction}
+          remove={removeFaction}
+          deleteWarning={(c) => factionDeleteWarning(timeline, c)}
+          renderForm={(p) => <FactionForm {...p} factions={timeline.factions} />}
         />
       )}
 
@@ -238,14 +238,14 @@ function Editor({ timeline }: { timeline: Timeline }) {
   );
 }
 
-/** What deleting a category affects: events lose the tag; sub-categories move up a level. */
-function categoryDeleteWarning(timeline: Timeline, category: Category): string | undefined {
-  const children = timeline.categories.filter((c) => c.parentId === category.id).length;
-  const parent = timeline.categories.find((c) => c.id === category.parentId);
+/** What deleting a faction affects: events lose the tag; sub-factions move up a level. */
+function factionDeleteWarning(timeline: Timeline, faction: Faction): string | undefined {
+  const children = timeline.factions.filter((c) => c.parentId === faction.id).length;
+  const parent = timeline.factions.find((c) => c.id === faction.parentId);
   const lines = [
-    usageWarning(countUsage(timeline, 'categoryIds', category.id)),
+    usageWarning(countUsage(timeline, 'factionIds', faction.id)),
     children > 0 &&
-      `Its ${children} sub-categor${children === 1 ? 'y moves' : 'ies move'} ${parent ? `up to ${parent.name}` : 'to the top level'}.`,
+      `Its ${children} sub-faction${children === 1 ? ' moves' : 's move'} ${parent ? `up to ${parent.name}` : 'to the top level'}.`,
   ].filter(Boolean);
   return lines.length ? lines.join('\n') : undefined;
 }
@@ -261,5 +261,5 @@ function blankEvent(timeline: Timeline, sortedEvents: TimelineEvent[]): Timeline
     // In a free-text calendar every date is a label
     ...(timeline.calendar.type === 'freeform' && { label: '' }),
   };
-  return { id: '', title: '', summary: '', body: '', date, categoryIds: [], placeIds: [], relatedIds: [], sources: [] };
+  return { id: '', title: '', summary: '', body: '', date, factionIds: [], placeIds: [], relatedIds: [], sources: [] };
 }
