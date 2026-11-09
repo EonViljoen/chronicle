@@ -51,3 +51,4 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
   - The viewer and map page list the starmap and every flat map by name to switch between them.
   - Upgrade existing timelines: today's single flat map becomes the first map in the list, and each place's pin moves onto it.
 - [ ] Later: link maps, so clicking a place on one map can open that place's own map (e.g. a city on the world map).
+- [ ] **Calendar in its own tab.** Move the calendar settings out of the Settings tab into a **Calendar** tab in the editor, so they're easier to find and the Settings form gets shorter.
