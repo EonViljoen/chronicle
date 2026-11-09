@@ -50,5 +50,9 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
   - A place can be pinned on several maps (one position per map) or on none.
   - The viewer and map page list the starmap and every flat map by name to switch between them.
   - Upgrade existing timelines: today's single flat map becomes the first map in the list, and each place's pin moves onto it.
-- [ ] Later: link maps, so clicking a place on one map can open that place's own map (e.g. a city on the world map).
+- [ ] **Nested maps, like nested factions.** Pick one **master map** (the 3D starmap or any flat map, e.g. a world or galaxy map) as the top of the tree.
+  - A place on a map can link to another map (its "child" map): clicking that pin opens the linked map, e.g. galaxy → sector → planet → city. Each map can have its own linked maps, to any depth.
+  - Breadcrumbs above the map (Galaxy › Segmentum › Cadia) go back up a level; the master map is where the viewer starts.
+  - Store it the way factions are stored: a flat list of maps, each with an optional `parentMapId` and the place it hangs off, with the same loop protection.
+  - Builds on the multiple flat maps item above.
 - [ ] **Calendar in its own tab.** Move the calendar settings out of the Settings tab into a **Calendar** tab in the editor, so they're easier to find and the Settings form gets shorter.
