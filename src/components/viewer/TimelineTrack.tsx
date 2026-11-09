@@ -13,6 +13,8 @@ interface Props {
   onSelect: (id: string) => void;
   onStep: (direction: 1 | -1) => void;
   canStep: { prev: boolean; next: boolean };
+  /** Small text under the line, e.g. "3 / 14". */
+  status?: string;
 }
 
 const FALLBACK_COLOR = '#c9a227';
@@ -22,7 +24,7 @@ const FALLBACK_COLOR = '#c9a227';
  * scale, because the 40k timeline has gaps of millions of years.
  * Positioning is done in CSS from --i and --n; see `.track` in index.css.
  */
-export default function TimelineTrack({ events, eras, categories, selectedId, isVisible, onSelect, onStep, canStep }: Props) {
+export default function TimelineTrack({ events, eras, categories, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {
   // A Map of event id -> button element, filled by each node's ref callback.
   const nodeRefs = useRef(new Map<string, HTMLButtonElement>());
 
@@ -88,6 +90,8 @@ export default function TimelineTrack({ events, eras, categories, selectedId, is
           <div className="track-spacer" />
         </div>
       </div>
+
+      {status && <span className="stage-status" aria-live="polite">{status}</span>}
 
       <button className="stage-arrow stage-arrow-right" onClick={() => onStep(1)} disabled={!canStep.next} aria-label="Next event">
         ›

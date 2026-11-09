@@ -1,31 +1,42 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
+import { matchesFilters, NO_FILTERS, type Filters } from '../../lib/filters';
+import { usePref } from '../../lib/prefs';
+import { GalaxyMap } from '../map/LazyGalaxyMap';
 import TimelineTrack from './TimelineTrack';
 import EventPanel from './EventPanel';
+import ViewerToolbar from './ViewerToolbar';
 
 /**
  * Owns the viewer's state and passes it down:
  * - the selected event is React state, mirrored into the URL (?event=<id>)
  *   so links are shareable and a refresh keeps your place
- * - the category filter lives in component state
+ * - filters (search, categories, place) live in component state
+ * - "show the map" is remembered per browser (usePref)
+ *
+ * The timeline and the map are linked through this shared state: selecting
+ * an event highlights its places on the map, and clicking a place on the
+ * map filters the timeline to events there.
  */
 export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const [params, setParams] = useSearchParams();
   // Lazy initial value: read from the URL once, on first render
   const [selectedId, setSelectedId] = useState<string | null>(() => params.get('event'));
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const [showMap, setShowMap] = usePref('viewer.showMap', true);
+
+  const map = timeline.map;
+  const hasMap = map.type === 'galaxy3d' && timeline.places.some((p) => p.position);
 
   // useMemo: only re-sort when the events actually change
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
-  const isVisible = useCallback(
-    (e: TimelineEvent) => activeCategories.length === 0 || e.categoryIds.some((id) => activeCategories.includes(id)),
-    [activeCategories],
-  );
+  const isVisible = useCallback((e: TimelineEvent) => matchesFilters(e, filters), [filters]);
+  const visible = useMemo(() => events.filter(isVisible), [events, isVisible]);
 
   const select = setSelectedId;
 
@@ -59,37 +70,53 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
     [neighbourOf],
   );
 
-  // Keyboard: ← → to move, Esc to close. The cleanup function removes the
-  // listener when the component unmounts or `step`/`select` change.
+  // Keyboard: ← → to move, Home/End for first/last, Esc to close.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      // Don't hijack arrow keys while typing in a field
+      // Don't hijack keys while typing in a field
       if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
       if (e.key === 'ArrowRight') step(1);
       else if (e.key === 'ArrowLeft') step(-1);
+      else if (e.key === 'Home' && visible.length) select(visible[0].id);
+      else if (e.key === 'End' && visible.length) select(visible[visible.length - 1].id);
       else if (e.key === 'Escape') select(null);
       else return;
       e.preventDefault();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [step, select]);
+  }, [step, select, visible]);
 
-  function toggleCategory(id: string) {
-    setActiveCategories((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
+  /** Enter in search: next match after the current one, wrapping round. */
+  function nextMatch() {
+    const next = neighbourOf(selectedId, 1) ?? visible[0];
+    if (next) select(next.id);
+  }
+
+  /** Clicking a place on the map: filter to it and show its first event. */
+  function focusPlace(placeId: string) {
+    setFilters((f) => ({ ...f, placeId }));
+    const first = events.find((e) => e.placeIds.includes(placeId));
+    if (first) select(first.id);
   }
 
   function jumpToEra(eraId: string) {
     const era = timeline.eras.find((e) => e.id === eraId);
-    const first = events.find((e) => isVisible(e) && eraFor(e.date.sortKey, era ? [era] : []));
+    const first = visible.find((e) => eraFor(e.date.sortKey, era ? [era] : []));
     if (first) select(first.id);
   }
 
   // Eras with no visible events can't be jumped to
-  const erasWithEvents = new Set(
-    events.filter(isVisible).map((e) => eraFor(e.date.sortKey, timeline.eras)?.id),
-  );
+  const erasWithEvents = new Set(visible.map((e) => eraFor(e.date.sortKey, timeline.eras)?.id));
   const currentEra = selected ? eraFor(selected.date.sortKey, timeline.eras) : undefined;
+
+  // "3 / 14" when the selected event is visible
+  const position = selected ? visible.indexOf(selected) : -1;
+  const status = position !== -1 ? `${position + 1} / ${visible.length}` : `${visible.length} events`;
+
+  // Which place the map focuses: the place filter, else the selected event's first placed place
+  const placedIds = new Set(timeline.places.filter((p) => p.position).map((p) => p.id));
+  const mapFocus = filters.placeId ?? selected?.placeIds.find((id) => placedIds.has(id)) ?? null;
 
   if (events.length === 0) {
     return (
@@ -99,6 +126,15 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
       </div>
     );
   }
+
+  const panel = selected ? (
+    <EventPanel key={selected.id} timeline={timeline} event={selected} onSelect={select} onClose={() => select(null)} />
+  ) : (
+    <p className="viewer-hint muted">
+      Select an event on the timeline, or use the arrows (← → on a keyboard).
+      {hasMap && showMap && ' Click a place on the map to see what happened there.'}
+    </p>
+  );
 
   return (
     <div className="viewer">
@@ -118,24 +154,17 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         </nav>
       )}
 
-      {timeline.categories.length > 0 && (
-        <div className="filter-bar" role="group" aria-label="Filter by category">
-          {timeline.categories.map((c) => (
-            <button
-              key={c.id}
-              className={`chip chip-toggle${activeCategories.includes(c.id) ? ' is-on' : ''}`}
-              style={{ borderColor: c.color }}
-              aria-pressed={activeCategories.includes(c.id)}
-              onClick={() => toggleCategory(c.id)}
-            >
-              <span className="swatch" style={{ background: c.color }} /> {c.name}
-            </button>
-          ))}
-          {activeCategories.length > 0 && (
-            <button className="link-btn muted" onClick={() => setActiveCategories([])}>Clear</button>
-          )}
-        </div>
-      )}
+      <ViewerToolbar
+        filters={filters}
+        onChange={setFilters}
+        categories={timeline.categories}
+        places={timeline.places}
+        visibleCount={visible.length}
+        totalCount={events.length}
+        onSearchEnter={nextMatch}
+        showMap={hasMap ? showMap : null}
+        onToggleMap={() => setShowMap(!showMap)}
+      />
 
       <TimelineTrack
         events={events}
@@ -146,12 +175,26 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         onSelect={select}
         onStep={step}
         canStep={{ prev: neighbourOf(selectedId, -1) !== undefined, next: neighbourOf(selectedId, 1) !== undefined }}
+        status={status}
       />
 
-      {selected ? (
-        <EventPanel key={selected.id} timeline={timeline} event={selected} onSelect={select} onClose={() => select(null)} />
+      {hasMap && showMap && map.type === 'galaxy3d' ? (
+        <div className="viewer-split">
+          <div className="viewer-split-panel">{panel}</div>
+          <div className="viewer-split-map">
+            <Suspense fallback={<p className="map-loading">Charting the galaxy…</p>}>
+              <GalaxyMap
+                config={map}
+                places={timeline.places}
+                selectedPlaceId={mapFocus}
+                highlightIds={selected?.placeIds ?? []}
+                onSelectPlace={focusPlace}
+              />
+            </Suspense>
+          </div>
+        </div>
       ) : (
-        <p className="viewer-hint muted">Select an event on the timeline, or use the arrows (← → on a keyboard).</p>
+        panel
       )}
     </div>
   );

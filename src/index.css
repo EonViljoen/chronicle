@@ -335,3 +335,30 @@ a.chip { text-decoration: none; }
 @media (max-width: 640px) { .map-stage .map-reset { top: 10px; bottom: auto; } }
 .coords { gap: 12px; }
 .coord { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+
+/* ===== Viewer: toolbar, linked map ===== */
+.viewer-toolbar { display: flex; flex-direction: column; gap: 10px; }
+.toolbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.viewer-search { flex: 1 1 220px; max-width: 360px; }
+.filter-count { color: var(--muted); font-size: 0.85rem; }
+.map-toggle { margin-left: auto; }
+.map-toggle[aria-pressed='true'] { border-color: var(--accent); }
+.chip-place-filter { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+.stage-status {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 2;
+  padding: 1px 10px; border-radius: 999px; background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: var(--muted); font-size: 0.75rem; pointer-events: none;
+}
+
+.viewer-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.viewer-split-map {
+  position: sticky; top: 12px; height: clamp(360px, 60vh, 560px);
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #05050a;
+}
+.viewer-split .viewer-hint { padding: 40px 16px; border: 1px dashed var(--border); border-radius: var(--radius); }
+@media (max-width: 860px) {
+  .viewer-split { grid-template-columns: 1fr; }
+  /* Map first on small screens, so tapping a place shows its event below */
+  .viewer-split-map { order: -1; position: relative; top: 0; height: 320px; }
+}
