@@ -20,6 +20,8 @@ const clean = (e: TimelineEvent): TimelineEvent => ({
   imageUrl: e.imageUrl?.trim() || undefined,
   date: e.date.label === undefined ? e.date : { ...e.date, label: e.date.label.trim() },
   sources: e.sources.map((s) => s.trim()).filter(Boolean),
+  // Only keep a main faction that's still one of the event's factions
+  mainFactionId: e.mainFactionId && e.factionIds.includes(e.mainFactionId) ? e.mainFactionId : undefined,
 });
 
 export default function EventForm({ original, isNew, onSave, onDelete, onDirtyChange, timeline }: FormProps<TimelineEvent> & { timeline: Timeline }) {
@@ -65,7 +67,7 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
         hint={
           timeline.factions.length === 0
             ? 'Add factions in the Factions tab'
-            : 'Pick the most specific one: it also counts under its parents. The first one sets the node colour.'
+            : 'Pick the most specific one: it also counts under its parents. Mark the main player with ☆: it sets the node colour and the theme.'
         }
       >
         <MultiPicker
@@ -78,6 +80,9 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
           }))}
           value={draft.factionIds}
           onChange={(factionIds) => patch({ factionIds })}
+          primaryId={draft.mainFactionId}
+          onPrimaryChange={(mainFactionId) => patch({ mainFactionId })}
+          primaryLabel="main faction"
         />
       </Field>
 

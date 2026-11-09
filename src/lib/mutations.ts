@@ -32,7 +32,11 @@ export function removeFaction(t: Timeline, id: string): Timeline {
     factions: t.factions
       .filter((c) => c.id !== id)
       .map((c) => (c.parentId === id ? { ...c, parentId } : c)),
-    events: t.events.map((e) => ({ ...e, factionIds: without(e.factionIds, id) })),
+    events: t.events.map((e) => ({
+      ...e,
+      factionIds: without(e.factionIds, id),
+      mainFactionId: e.mainFactionId === id ? undefined : e.mainFactionId,
+    })),
   };
 }
 

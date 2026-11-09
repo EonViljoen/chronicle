@@ -146,6 +146,8 @@ export interface TimelineEvent {
   imageUrl?: string;
   date: EventDate;
   factionIds: string[];
+  /** The faction at the heart of the event (one of factionIds). Sets the node colour and, if it has one, the theme. */
+  mainFactionId?: string;
   placeIds: string[];
   relatedIds: string[];
   sources: string[];

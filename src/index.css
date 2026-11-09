@@ -507,3 +507,12 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .website-export { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .website-export h3 { margin: 12px 0 0; font-size: 1rem; }
 .website-export p { margin: 0; }
+
+/* Main faction marker */
+.chip.is-primary { font-weight: 600; }
+.chip-star { margin: 0 -2px 0 -4px; padding: 0 3px; border: 0; background: none; color: var(--muted); font-size: 0.95rem; line-height: 1; cursor: pointer; }
+.chip-star[aria-pressed='true'] { color: var(--accent); }
+.chip-star:hover { color: var(--accent); }
+
+/* Text for screen readers only */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

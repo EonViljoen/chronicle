@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
 import { formatDate } from '../../lib/dates';
-import { factionPath } from '../../lib/factions';
+import { factionPath, mainFactionOf } from '../../lib/factions';
 import { EditOnly } from '../EditOnly';
 
 interface Props {
@@ -16,7 +16,11 @@ interface Props {
 /** The info box for the selected event. */
 export default function EventPanel({ timeline, event, onSelect, onClose }: Props) {
   const era = eraFor(event.date.sortKey, timeline.eras);
-  const factions = timeline.factions.filter((c) => event.factionIds.includes(c.id));
+  // The main faction first, marked with a star
+  const mainId = mainFactionOf(event);
+  const factions = timeline.factions
+    .filter((c) => event.factionIds.includes(c.id))
+    .sort((a, b) => Number(b.id === mainId) - Number(a.id === mainId));
   const places = timeline.places.filter((p) => event.placeIds.includes(p.id));
   // Skip related ids that point at deleted events
   const related = event.relatedIds
@@ -45,8 +49,14 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
       {(factions.length > 0 || places.length > 0) && (
         <div className="chips">
           {factions.map((c) => (
-            <span key={c.id} className="chip" style={{ borderColor: c.color }} title={factionPath(c.id, timeline.factions)}>
-              <span className="swatch" style={{ background: c.color }} /> {c.name}
+            <span
+              key={c.id}
+              className={`chip${c.id === mainId ? ' is-primary' : ''}`}
+              style={{ borderColor: c.color }}
+              title={`${factionPath(c.id, timeline.factions)}${c.id === mainId ? ' (main faction)' : ''}`}
+            >
+              <span className="swatch" style={{ background: c.color }} /> {c.id === mainId && <span aria-hidden="true">★</span>} {c.name}
+              {c.id === mainId && <span className="sr-only">(main faction)</span>}
             </span>
           ))}
           {places.map((p) =>

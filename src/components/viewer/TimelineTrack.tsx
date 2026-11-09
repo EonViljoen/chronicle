@@ -3,6 +3,7 @@ import type { Calendar, Faction, Era, TimelineEvent } from '../../types/timeline
 import { formatDate } from '../../lib/dates';
 import { eraSegments } from '../../lib/eras';
 import TimelineNode from './TimelineNode';
+import { mainFactionOf } from '../../lib/factions';
 
 interface Props {
   /** Already sorted by date. */
@@ -83,7 +84,8 @@ export default function TimelineTrack({ events, eras, calendar, factions, select
                 event={event}
                 dateLabel={formatDate(event.date, calendar)}
                 index={i}
-                color={colorById.get(event.factionIds[0]) ?? FALLBACK_COLOR}
+                // The main faction's colour, else the first faction's
+                color={colorById.get(mainFactionOf(event) ?? event.factionIds[0]) ?? FALLBACK_COLOR}
                 selected={event.id === selectedId}
                 dimmed={!isVisible(event)}
                 onSelect={onSelect}

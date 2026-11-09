@@ -9,10 +9,14 @@ interface Props {
   value: string[];
   onChange: (ids: string[]) => void;
   placeholder: string;
+  /** Optional: one selected item can be marked as the main one (shown with ★). */
+  primaryId?: string;
+  onPrimaryChange?: (id: string | undefined) => void;
+  primaryLabel?: string;
 }
 
 /** Selected items as removable chips, plus a dropdown to add more. */
-export default function MultiPicker({ label, options, value, onChange, placeholder }: Props) {
+export default function MultiPicker({ label, options, value, onChange, placeholder, primaryId, onPrimaryChange, primaryLabel = 'main' }: Props) {
   const selected = value
     .map((id) => options.find((o) => o.id === id))
     .filter((o): o is Option => o !== undefined);
@@ -23,13 +27,28 @@ export default function MultiPicker({ label, options, value, onChange, placehold
       {selected.length > 0 && (
         <div className="chips">
           {selected.map((o) => (
-            <span key={o.id} className="chip">
+            <span key={o.id} className={`chip${o.id === primaryId ? ' is-primary' : ''}`}>
+              {onPrimaryChange && (
+                <button
+                  type="button"
+                  className="chip-star"
+                  aria-pressed={o.id === primaryId}
+                  aria-label={o.id === primaryId ? `${o.label} is the ${primaryLabel} one; click to unmark` : `Make ${o.label} the ${primaryLabel} one`}
+                  title={o.id === primaryId ? `The ${primaryLabel} one` : `Make ${primaryLabel}`}
+                  onClick={() => onPrimaryChange(o.id === primaryId ? undefined : o.id)}
+                >
+                  {o.id === primaryId ? '★' : '☆'}
+                </button>
+              )}
               {o.label}
               <button
                 type="button"
                 className="chip-remove"
                 aria-label={`Remove ${o.label}`}
-                onClick={() => onChange(value.filter((id) => id !== o.id))}
+                onClick={() => {
+                  onChange(value.filter((id) => id !== o.id));
+                  if (o.id === primaryId) onPrimaryChange?.(undefined);
+                }}
               >
                 ×
               </button>
