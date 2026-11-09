@@ -1,7 +1,7 @@
 import type { Theme } from '../../types/theme';
 import { FONTS } from '../../themes/fonts';
 import { saveTheme } from '../../db/themes';
-import { usePreviewTheme } from '../themePreview';
+import { useThemeOverride } from '../themeOverride';
 import Field from '../form/Field';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
@@ -51,12 +51,12 @@ interface Props {
 
 /**
  * Edits one of your themes. Changes show on the whole page as you make them
- * (usePreviewTheme), and are saved to the library with Save, which updates
+ * (useThemeOverride), and are saved to the library with Save, which updates
  * every timeline that uses the theme.
  */
 export default function ThemeEditor({ theme, onDirtyChange, onDelete }: Props) {
   const { draft, patch, dirty, saving, submit, reset } = useDraft(theme, saveTheme, onDirtyChange);
-  usePreviewTheme(dirty ? draft : null);
+  useThemeOverride(dirty ? draft : null);
 
   // Small helpers to change one field inside a group
   const setColor = (key: keyof Theme['colors'], value: string) => patch({ colors: { ...draft.colors, [key]: value } });

@@ -1,8 +1,8 @@
 import { strToU8, zipSync } from 'fflate';
 import type { SiteConfig } from '../brand';
 import type { Timeline, WebsiteSettings } from '../types/timeline';
-import { getTheme } from '../db/themes';
 import { siteTheme } from '../themes';
+import { withThemeCopies } from '../db/timelines';
 import { slugify } from './ids';
 
 /*
@@ -84,9 +84,11 @@ export async function buildSiteFiles(timeline: Timeline, settings: WebsiteSettin
     .replace(/<head>/i, '<head>\n    <meta name="chronicle-site" content="site.json" />');
   files['index.html'] = strToU8(html);
 
-  // The theme goes in both files: the timeline carries it, and the site uses it from the first paint
-  const theme = timeline.themeDef ?? (await getTheme(timeline.theme)) ?? siteTheme();
-  files['timeline.json'] = strToU8(JSON.stringify({ ...timeline, themeDef: theme }, null, 2));
+  // The theme goes in both files: the timeline carries it (and its factions' themes),
+  // and the site uses it from the first paint
+  const full = await withThemeCopies(timeline);
+  const theme = full.themeDef ?? siteTheme();
+  files['timeline.json'] = strToU8(JSON.stringify({ ...full, themeDef: theme }, null, 2));
 
   const site: SiteConfig = {
     name,

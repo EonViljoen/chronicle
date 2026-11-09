@@ -516,3 +516,10 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 
 /* Text for screen readers only */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Fade colours when the theme changes (e.g. stepping between factions' events) */
+@media (prefers-reduced-motion: no-preference) {
+  body, .app-header, .stage, .event-panel, .card, .btn, .chip, .era-chip, .track-line {
+    transition: background-color 0.45s ease, color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
+  }
+}

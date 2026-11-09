@@ -104,3 +104,14 @@ export const indentLabel = (row: TreeRow) => `${'   '.repeat(row.depth)}${row
 /** The event's main faction id, if it's set and still one of its factions. */
 export const mainFactionOf = (event: { factionIds: string[]; mainFactionId?: string }) =>
   event.mainFactionId && event.factionIds.includes(event.mainFactionId) ? event.mainFactionId : undefined;
+
+/**
+ * The theme id a faction uses: its own, else the nearest parent's that has
+ * one. Undefined means "no faction theme": keep the timeline's.
+ */
+export function factionThemeId(id: string, factions: Faction[]): string | undefined {
+  // ancestry runs top level -> this faction, so search it backwards
+  return ancestry(id, factions)
+    .reverse()
+    .find((f) => f.themeId)?.themeId;
+}

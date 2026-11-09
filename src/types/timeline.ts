@@ -111,6 +111,12 @@ export interface Faction {
   color: string;
   /** The faction this one sits under. Unset = top level. */
   parentId?: string;
+  /**
+   * A theme (id) the page switches to when this faction is in focus: the
+   * selected event's main faction, or the only faction filtered on. Unset =
+   * use the nearest parent faction's theme, else the timeline's.
+   */
+  themeId?: string;
 }
 
 /** A location that events can happen at, e.g. a city or a star system. */
@@ -170,6 +176,8 @@ export interface Timeline {
    * timelines, so they look the same anywhere; stored timelines just keep the id.
    */
   themeDef?: Theme;
+  /** Copies of the factions' themes. Only in exported files and published timelines. */
+  themeDefs?: Theme[];
   /** Settings for "Export website", remembered for the next export. */
   website?: WebsiteSettings;
   events: TimelineEvent[];

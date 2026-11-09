@@ -99,20 +99,37 @@ export const copyToBrowser = (timeline: Timeline) => addCopy(timeline);
 /** Store a copy under a fresh id, so imports never overwrite existing timelines. */
 async function addCopy(source: Timeline, title = source.title): Promise<Timeline> {
   const now = Date.now();
-  // A file may bring its theme along: add it to the library and keep just the id
-  const { themeDef, ...rest } = source;
+  // A file may bring its themes along: add them to the library and keep just the ids.
+  // ensureTheme may save a clashing theme under a new id, so faction links are remapped.
+  const { themeDef, themeDefs, ...rest } = source;
   const theme = themeDef ? await ensureTheme(themeDef) : source.theme;
-  const copy: Timeline = { ...rest, theme, id: newId(), title, createdAt: now, updatedAt: now };
+  const newIds = new Map<string, string>();
+  for (const def of themeDefs ?? []) newIds.set(def.id, await ensureTheme(def));
+  const factions = rest.factions.map((f) => (f.themeId && newIds.has(f.themeId) ? { ...f, themeId: newIds.get(f.themeId) } : f));
+  const copy: Timeline = { ...rest, factions, theme, id: newId(), title, createdAt: now, updatedAt: now };
   await db.timelines.add(copy);
   return copy;
 }
 
 // ---------- Import / export ----------
 
-/** Download a timeline as a .json file, with a copy of its theme so it looks the same anywhere. */
-export async function exportTimeline(timeline: Timeline) {
+/**
+ * The timeline as it goes into a file: with copies of its theme and its
+ * factions' themes, so it looks the same in any browser or on a website.
+ */
+export async function withThemeCopies(timeline: Timeline): Promise<Timeline> {
   const themeDef = timeline.themeDef ?? (await getTheme(timeline.theme));
-  const json = JSON.stringify({ ...timeline, themeDef }, null, 2);
+  const ids = [...new Set(timeline.factions.map((f) => f.themeId).filter((id): id is string => !!id))];
+  const known = new Map((timeline.themeDefs ?? []).map((t) => [t.id, t]));
+  const themeDefs = (await Promise.all(ids.map(async (id) => known.get(id) ?? (await getTheme(id))))).filter(
+    (t): t is NonNullable<typeof t> => t !== undefined,
+  );
+  return { ...timeline, themeDef, themeDefs: themeDefs.length ? themeDefs : undefined };
+}
+
+/** Download a timeline as a .json file, with copies of its themes so it looks the same anywhere. */
+export async function exportTimeline(timeline: Timeline) {
+  const json = JSON.stringify(await withThemeCopies(timeline), null, 2);
   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
   const link = document.createElement('a');
   link.href = url;

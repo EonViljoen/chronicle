@@ -29,12 +29,13 @@ export async function copyTheme(theme: Theme, name = `${theme.name} (copy)`): Pr
   return copy;
 }
 
-/** Delete a theme. Timelines using it go back to the site default. */
+/** Delete a theme. Timelines using it go back to the site default; factions using it lose it. */
 export async function deleteTheme(id: string) {
   await db.transaction('rw', db.themes, db.timelines, async () => {
     await db.themes.delete(id);
     await db.timelines.toCollection().modify((t) => {
       if (t.theme === id) delete t.theme;
+      for (const f of t.factions) if (f.themeId === id) delete f.themeId;
     });
   });
 }

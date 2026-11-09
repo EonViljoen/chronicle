@@ -5,7 +5,7 @@ import type { Timeline } from '../types/timeline';
 import { resolveTheme, useTheme } from '../themes';
 import { useThemes } from '../db/themes';
 import type { Theme } from '../types/theme';
-import { ThemePreviewContext } from './themePreview';
+import { ThemeOverrideContext } from './themeOverride';
 import { brand } from '../brand';
 import { CanEditContext } from './canEdit';
 
@@ -21,10 +21,10 @@ export default function TimelineGate({ children }: { children: (timeline: Timeli
   const { id } = useParams();
   const entry = useTimeline(id);
   const library = useThemes();
-  // The theme editor's unsaved changes, shown instead of the saved theme
-  const [preview, setPreview] = useState<Theme | null>(null);
+  // A theme shown instead of the saved one (see themeOverride.ts)
+  const [override, setOverride] = useState<Theme | null>(null);
   // Hooks must run on every render, so these sit above the early returns
-  useTheme(preview ?? (entry ? resolveTheme(entry.timeline, library) : undefined));
+  useTheme(override ?? (entry ? resolveTheme(entry.timeline, library) : undefined));
 
   if (entry === undefined) return <p className="muted">Loading…</p>;
   if (entry === null) {
@@ -39,7 +39,7 @@ export default function TimelineGate({ children }: { children: (timeline: Timeli
   // React 19: a context object renders as its own provider
   return (
     <CanEditContext value={canEdit}>
-      <ThemePreviewContext value={setPreview}>{children(entry.timeline)}</ThemePreviewContext>
+      <ThemeOverrideContext value={setOverride}>{children(entry.timeline)}</ThemeOverrideContext>
     </CanEditContext>
   );
 }
