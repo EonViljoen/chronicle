@@ -1,0 +1,91 @@
+/* Design tokens. Change these to re-theme the whole app. */
+:root {
+  --bg: #121214;
+  --surface: #1b1b1f;
+  --surface-2: #24242a;
+  --border: #34343c;
+  --text: #e8e4da;
+  --muted: #9a958a;
+  --accent: #c9a227;
+  --accent-ink: #1a1505;
+  --danger: #d0453c;
+  --radius: 8px;
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.02em; }
+a { color: var(--accent); }
+
+/* Layout */
+.app-header {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.brand { font-family: var(--font-display); font-size: 1.3rem; text-decoration: none; color: var(--text); }
+.brand-mark { color: var(--accent); }
+.brand-sub { color: var(--muted); font-size: 0.85rem; }
+.app-main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  font: inherit; font-size: 0.9rem; text-decoration: none; cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn-danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+.link-btn { background: none; border: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+.btn:focus-visible, input:focus-visible, .link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+input {
+  padding: 7px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font: inherit;
+}
+
+/* Home */
+.home-intro p { color: var(--muted); max-width: 60ch; }
+.home-toolbar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; margin: 20px 0; }
+.create-form { display: flex; gap: 8px; flex: 1 1 320px; }
+.create-form input { flex: 1; min-width: 0; }
+.toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.error {
+  padding: 10px 14px; border: 1px solid var(--danger); border-radius: var(--radius);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.muted { color: var(--muted); }
+.empty { padding: 48px 16px; text-align: center; border: 1px dashed var(--border); border-radius: var(--radius); }
+
+/* Cards */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0 18px 18px; overflow: hidden;
+}
+.card-eras { display: flex; height: 6px; margin: 0 -18px 14px; background: var(--surface-2); }
+.card-eras span { flex: 1; }
+.card-title { margin: 0 0 6px; font-size: 1.2rem; }
+.card-title a { color: var(--text); text-decoration: none; }
+.card-title a:hover { color: var(--accent); }
+.card-desc { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
+.card-meta { margin: 0 0 14px; color: var(--muted); font-size: 0.8rem; }
+.card-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Placeholder pages */
+.page-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.plain-list { padding-left: 20px; }
+.plain-list li { margin: 4px 0; }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; }
