@@ -16,7 +16,7 @@ interface Props {
 }
 
 /** Selected items as removable chips, plus a dropdown to add more. */
-export default function MultiPicker({ label, options, value, onChange, placeholder, primaryId, onPrimaryChange, primaryLabel = 'main' }: Props) {
+export default function MultiPicker({ label, options, value, onChange, placeholder, primaryId, onPrimaryChange, primaryLabel = 'main one' }: Props) {
   const selected = value
     .map((id) => options.find((o) => o.id === id))
     .filter((o): o is Option => o !== undefined);
@@ -33,8 +33,8 @@ export default function MultiPicker({ label, options, value, onChange, placehold
                   type="button"
                   className="chip-star"
                   aria-pressed={o.id === primaryId}
-                  aria-label={o.id === primaryId ? `${o.label} is the ${primaryLabel} one; click to unmark` : `Make ${o.label} the ${primaryLabel} one`}
-                  title={o.id === primaryId ? `The ${primaryLabel} one` : `Make ${primaryLabel}`}
+                  aria-label={o.id === primaryId ? `${o.label} is the ${primaryLabel}; click to unmark` : `Make ${o.label} the ${primaryLabel}`}
+                  title={o.id === primaryId ? `The ${primaryLabel}` : `Make it the ${primaryLabel}`}
                   onClick={() => onPrimaryChange(o.id === primaryId ? undefined : o.id)}
                 >
                   {o.id === primaryId ? '★' : '☆'}

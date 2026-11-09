@@ -1,13 +1,14 @@
 import type { MapConfig, Timeline } from '../../types/timeline';
 import { calendarError, compareEvents } from '../../lib/dates';
 import CalendarSettings from './CalendarSettings';
+import FlatMapSettings from './FlatMapSettings';
 import { updateTimeline } from '../../db/timelines';
 import Field from '../form/Field';
 import NumberInput from '../form/NumberInput';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
 
-type Settings = Pick<Timeline, 'title' | 'description' | 'calendar' | 'map'>;
+type Settings = Pick<Timeline, 'title' | 'description' | 'calendar' | 'map' | 'flatMap'>;
 
 /** Preview dates for a timeline with no events yet. */
 const SAMPLE_KEYS: Record<Timeline['calendar']['type'], number[]> = {
@@ -30,6 +31,7 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
     description: timeline.description,
     calendar: timeline.calendar,
     map: timeline.map,
+    flatMap: timeline.flatMap,
   };
   const save = async (s: Settings) => {
     await updateTimeline(timeline.id, (t) => ({ ...t, ...s }));
@@ -59,9 +61,9 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
 
       <CalendarSettings value={draft.calendar} onChange={(calendar) => patch({ calendar })} sampleKeys={sampleKeys} />
 
-      <Field label="Map">
+      <Field label="3D starmap">
         <select value={map.type} onChange={(e) => patch({ map: e.target.value === 'galaxy3d' ? DEFAULT_GALAXY : { type: 'none' } })}>
-          <option value="none">No map</option>
+          <option value="none">None</option>
           <option value="galaxy3d">3D galaxy</option>
         </select>
       </Field>
@@ -80,6 +82,8 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
           </Field>
         </div>
       )}
+
+      <FlatMapSettings value={draft.flatMap} onChange={(flatMap) => patch({ flatMap })} />
 
       <FormActions isNew={false} dirty={dirty} valid={valid} saving={saving} onRevert={reset} />
     </form>

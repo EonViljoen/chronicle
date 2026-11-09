@@ -1,9 +1,9 @@
-import { Suspense } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Timeline } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
-import { GalaxyMap } from '../components/map/LazyGalaxyMap';
+import TimelineMap from '../components/map/TimelineMap';
+import { isOnMap, useMapKind } from '../components/map/mapKinds';
 import { compareEvents, formatDate } from '../lib/dates';
 
 export default function MapPage() {
@@ -15,8 +15,9 @@ function StarMap({ timeline }: { timeline: Timeline }) {
   const placeId = params.get('place');
   const select = (id: string | null) => setParams(id ? { place: id } : {}, { replace: true });
 
-  const map = timeline.map;
-  const placed = timeline.places.filter((p) => p.position).sort((a, b) => a.name.localeCompare(b.name));
+  const { kind, kinds, setKind } = useMapKind(timeline);
+  // The places on the map being shown
+  const placed = timeline.places.filter((p) => kind && isOnMap(p, kind)).sort((a, b) => a.name.localeCompare(b.name));
   const selected = placed.find((p) => p.id === placeId);
   const events = selected
     ? timeline.events.filter((e) => e.placeIds.includes(selected.id)).sort(compareEvents)
@@ -34,7 +35,7 @@ function StarMap({ timeline }: { timeline: Timeline }) {
         </div>
       </div>
 
-      {map.type !== 'galaxy3d' ? (
+      {!kind ? (
         <div className="empty">
           <p>This timeline doesn't have a map.</p>
           <EditOnly>
@@ -43,9 +44,7 @@ function StarMap({ timeline }: { timeline: Timeline }) {
         </div>
       ) : (
         <div className="map-stage">
-          <Suspense fallback={<p className="map-loading">Loading the map…</p>}>
-            <GalaxyMap config={map} places={timeline.places} selectedPlaceId={selected?.id ?? null} onSelectPlace={select} />
-          </Suspense>
+          <TimelineMap timeline={timeline} kind={kind} kinds={kinds} onKindChange={setKind} selectedPlaceId={selected?.id ?? null} onSelectPlace={select} />
 
           <aside className="map-panel" aria-live="polite">
             {selected ? (
@@ -73,7 +72,7 @@ function StarMap({ timeline }: { timeline: Timeline }) {
                 <h2 className="map-panel-title">Places</h2>
                 {placed.length === 0 ? (
                   <p className="muted">
-                    Nothing on the map yet. Add places in the editor and click the galaxy to position them.
+                    Nothing on this map yet. Add places in the editor and click the map to position them.
                   </p>
                 ) : (
                   <ul className="rows">

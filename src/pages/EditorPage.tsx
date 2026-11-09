@@ -3,6 +3,7 @@ import { Link, useBlocker, useSearchParams, type BlockerFunction } from 'react-r
 import type { Faction, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
+import { mapKinds } from '../components/map/mapKinds';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
 import ThemeTab from '../components/editor/ThemeTab';
@@ -126,7 +127,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
       <div className="page-head">
         <h1>{timeline.title}</h1>
         <div className="page-head-actions">
-          {timeline.map.type === 'galaxy3d' && <Link className="btn" to={`/t/${timeline.id}/map`}>Starmap</Link>}
+          {mapKinds(timeline).length > 0 && <Link className="btn" to={`/t/${timeline.id}/map`}>Map</Link>}
           <Link className="btn" to={`/t/${timeline.id}`}>View timeline</Link>
         </div>
       </div>

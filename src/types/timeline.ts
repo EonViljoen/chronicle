@@ -124,8 +124,10 @@ export interface Place {
   id: string;
   name: string;
   description: string;
-  /** Position on the map, or null if not placed yet. */
+  /** Position on the 3D starmap, or null if not placed yet. */
   position: [x: number, y: number, z: number] | null;
+  /** Position on the flat map image, as fractions of its width and height (0–1). */
+  pin?: [x: number, y: number] | null;
 }
 
 /** The map attached to a timeline. A discriminated union: check `type` first. */
@@ -138,6 +140,18 @@ export type MapConfig =
       coreColor: string;
       armColor: string;
     };
+
+/**
+ * A flat map: your own image (a drawn fantasy map, a galaxy chart…) that
+ * places are pinned on. A timeline can have one alongside the 3D starmap.
+ */
+export interface FlatMap {
+  /** The picture, as a data: URL (uploaded) or a web address. */
+  image: string;
+  /** The picture's size in pixels, for its shape before it loads. */
+  width: number;
+  height: number;
+}
 
 /** The 3D galaxy variant of MapConfig. */
 export type GalaxyConfig = Extract<MapConfig, { type: 'galaxy3d' }>;
@@ -169,6 +183,8 @@ export interface Timeline {
   factions: Faction[];
   places: Place[];
   map: MapConfig;
+  /** Optional flat image map, alongside (or instead of) the 3D one. */
+  flatMap?: FlatMap;
   /** The theme's id: a built-in preset or one from your library. Unset = the site's default. */
   theme?: string;
   /**

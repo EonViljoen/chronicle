@@ -1,6 +1,6 @@
 # Chronicle
 
-A timeline builder: create timelines of events, eras, categories and places, then browse them on an interactive horizontal timeline and a 3D starmap. Use it for real history, a fantasy world, a sci-fi saga or anything else with a past.
+A timeline builder: create timelines of events, eras, factions and places, then browse them on an interactive horizontal timeline, a 3D starmap and your own flat map image. Use it for real history, a fantasy world, a sci-fi saga or anything else with a past.
 
 ## Run it
 

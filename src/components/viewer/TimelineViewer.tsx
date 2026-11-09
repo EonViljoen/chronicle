@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents } from '../../lib/dates';
@@ -8,7 +8,8 @@ import { useThemes } from '../../db/themes';
 import { useThemeOverride } from '../themeOverride';
 import { matchesFilters, NO_FILTERS, type Filters } from '../../lib/filters';
 import { usePref } from '../../lib/prefs';
-import { GalaxyMap } from '../map/LazyGalaxyMap';
+import TimelineMap from '../map/TimelineMap';
+import { isOnMap, useMapKind } from '../map/mapKinds';
 import TimelineTrack from './TimelineTrack';
 import EventPanel from './EventPanel';
 import ViewerToolbar from './ViewerToolbar';
@@ -31,8 +32,9 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [showMap, setShowMap] = usePref('viewer.showMap', true);
 
-  const map = timeline.map;
-  const hasMap = map.type === 'galaxy3d' && timeline.places.some((p) => p.position);
+  // The 3D starmap and/or the flat map; shown when places are positioned on it
+  const { kind: mapKind, kinds: mapKinds, setKind: setMapKind } = useMapKind(timeline);
+  const hasMap = mapKinds.some((k) => timeline.places.some((p) => isOnMap(p, k)));
 
   // useMemo: only re-sort when the events actually change
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
@@ -140,7 +142,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const status = position !== -1 ? `${position + 1} / ${visible.length}` : `${visible.length} events`;
 
   // Which place the map focuses: the place filter, else the selected event's first placed place
-  const placedIds = new Set(timeline.places.filter((p) => p.position).map((p) => p.id));
+  const placedIds = new Set(timeline.places.filter((p) => mapKind && isOnMap(p, mapKind)).map((p) => p.id));
   const mapFocus = filters.placeId ?? selected?.placeIds.find((id) => placedIds.has(id)) ?? null;
 
   if (events.length === 0) {
@@ -204,19 +206,19 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         status={status}
       />
 
-      {hasMap && showMap && map.type === 'galaxy3d' ? (
+      {hasMap && showMap && mapKind ? (
         <div className="viewer-split">
           <div className="viewer-split-panel">{panel}</div>
           <div className="viewer-split-map">
-            <Suspense fallback={<p className="map-loading">Loading the map…</p>}>
-              <GalaxyMap
-                config={map}
-                places={timeline.places}
-                selectedPlaceId={mapFocus}
-                highlightIds={selected?.placeIds ?? []}
-                onSelectPlace={focusPlace}
-              />
-            </Suspense>
+            <TimelineMap
+              timeline={timeline}
+              kind={mapKind}
+              kinds={mapKinds}
+              onKindChange={setMapKind}
+              selectedPlaceId={mapFocus}
+              highlightIds={selected?.placeIds ?? []}
+              onSelectPlace={focusPlace}
+            />
           </div>
         </div>
       ) : (

@@ -250,7 +250,7 @@ You can't read `map.arms` until you've checked `map.type === 'galaxy3d'`. After 
 | `Record<K, V>` | An object with keys `K`, values `V` | `PRECISION_LABELS` in `DateInputs` |
 | `Omit<T, 'a'>` | All fields except those | `NumberInput`'s props |
 
-**Generics** are type parameters, like function parameters but for types. `upsert<T extends { id: string }>(list: T[], item: T): T[]` in [`mutations.ts`](../src/lib/mutations.ts) works for eras, categories, places and events: anything with an `id`. See [section 14](#14-reusable-components-generics-render-props-and-children) for a generic component.
+**Generics** are type parameters, like function parameters but for types. `upsert<T extends { id: string }>(list: T[], item: T): T[]` in [`mutations.ts`](../src/lib/mutations.ts) works for eras, factions, places and events: anything with an `id`. See [section 14](#14-reusable-components-generics-render-props-and-children) for a generic component.
 
 **Type-only imports.** `import type { Era } from '…'` imports a type, which disappears from the compiled JavaScript. The project's settings (`verbatimModuleSyntax`) insist you mark these.
 
@@ -364,7 +364,7 @@ The `{ event, index, … }` in the parameter list is **destructuring**: pulling 
   key={event.id}
   event={event}
   index={i}
-  color={colorById.get(event.categoryIds[0]) ?? FALLBACK_COLOR}
+  color={colorById.get(event.factionIds[0]) ?? FALLBACK_COLOR}
   selected={event.id === selectedId}
   dimmed={!isVisible(event)}
   onSelect={onSelect}
@@ -440,8 +440,8 @@ Inside one render, state is a constant. After `setBusy(true)`, the `busy` variab
 React decides whether something changed by comparing **references**: is this the same object as last time? So for objects and arrays, always build a new one. From [`ViewerToolbar.tsx`](../src/components/viewer/ViewerToolbar.tsx):
 
 ```tsx
-const addCategory = (id: string) => id && set({ categoryIds: [...filters.categoryIds, id] });
-const removeCategory = (id: string) => set({ categoryIds: filters.categoryIds.filter((c) => c !== id) });
+const addFaction = (id: string) => id && set({ factionIds: [...filters.factionIds, id] });
+const removeFaction = (id: string) => set({ factionIds: filters.factionIds.filter((c) => c !== id) });
 ```
 
 `[...ids, id]` and `filter` both return *new* arrays. If you wrote `ids.push(id)` instead, the array would be the same object, React would see "no change", and nothing would update. Section 19 applies the same rule to whole timelines.
@@ -899,13 +899,13 @@ export function useDraft<T>(original: T, onSave: (value: T) => Promise<void>, on
 }
 ```
 
-All five forms (era, category, place, event, settings) use it, so "edit a copy, know if it changed, save it, revert it" is written once. Each form gets **its own** state: hooks share logic, not data. Two components calling `useDraft` have two separate drafts.
+All five forms (era, faction, place, event, settings) use it, so "edit a copy, know if it changed, save it, revert it" is written once. Each form gets **its own** state: hooks share logic, not data. Two components calling `useDraft` have two separate drafts.
 
 ## 14. Reusable components: generics, render props and children
 
 ### A generic component: `CollectionTab<T>`
 
-The Eras, Categories, Places and Events tabs all look the same: a list on the left, a form on the right, New / Save / Delete. [`CollectionTab.tsx`](../src/components/editor/CollectionTab.tsx) is written once, for any item type `T` with an `id`:
+The Eras, Factions, Places and Events tabs all look the same: a list on the left, a form on the right, New / Save / Delete. [`CollectionTab.tsx`](../src/components/editor/CollectionTab.tsx) is written once, for any item type `T` with an `id`:
 
 ```tsx
 interface Props<T extends { id: string }> {
@@ -939,7 +939,7 @@ export default function CollectionTab<T extends { id: string }>({ … }: Props<T
 />
 ```
 
-TypeScript checks everything matches: `saveEra` must accept an `Era`, `renderRow` gets an `Era`, and so on. Try passing `saveCategory` to the eras tab and the compiler stops you.
+TypeScript checks everything matches: `saveEra` must accept an `Era`, `renderRow` gets an `Era`, and so on. Try passing `saveFaction` to the eras tab and the compiler stops you.
 
 Two things worth noticing:
 
@@ -1156,7 +1156,7 @@ db.version(1).stores({
 - `stores` declares tables. The string lists the **primary key first** (`id`), then fields to **index** for sorting or searching. Other fields (`events`, `eras`…) are stored but not indexed.
 - `version(1)` matters later: to change the schema, add `db.version(2).stores({...})` and Dexie upgrades existing databases.
 
-Each timeline is **one document** with its events, eras, categories and places nested inside. That keeps saving, exporting and importing simple: a timeline is a single object, and a `.json` file is that object.
+Each timeline is **one document** with its events, eras, factions and places nested inside. That keeps saving, exporting and importing simple: a timeline is a single object, and a `.json` file is that object.
 
 ### Reading: live queries
 
@@ -1231,7 +1231,7 @@ So the styling all lives in one stylesheet, and a theme just flips its switches.
 
 Applying the theme is a **side effect**: it changes `<html>`, outside anything React renders. So `useTheme` (called by `TimelineGate`) does it in a `useEffect` and puts the site default back in the cleanup, when you leave the timeline. The hook is called *above* `TimelineGate`'s early returns: hooks must run on every render, in the same order.
 
-**Live preview** needs the theme editor, deep inside the editor page, to override what `TimelineGate` applies. Two components both calling `useTheme` would fight (child effects run before parent effects, so the parent would win on mount). Instead `TimelineGate` keeps a `preview` state and passes its setter down through a second Context, `ThemePreviewContext` ([`themePreview.ts`](../src/components/themePreview.ts)). The editor calls `usePreviewTheme(draft)`; `TimelineGate` applies `preview ?? savedTheme`. One owner, no fight: the same "lift state up" idea as everywhere else, with Context doing the lifting across many levels.
+**Live preview** needs the theme editor, deep inside the editor page, to override what `TimelineGate` applies. Two components both calling `useTheme` would fight (child effects run before parent effects, so the parent would win on mount). Instead `TimelineGate` keeps a `preview` state and passes its setter down through a second Context, `ThemeOverrideContext` ([`themeOverride.ts`](../src/components/themeOverride.ts)). The editor calls `useThemeOverride(draft)`; `TimelineGate` applies `preview ?? savedTheme`. One owner, no fight: the same "lift state up" idea as everywhere else, with Context doing the lifting across many levels.
 
 **Themes travel with timelines.** Exporting a timeline adds a full copy of its theme (`themeDef`). Importing calls `ensureTheme`, which reuses an identical theme, saves a new one, or saves a copy if a *different* theme already has that id, so an import never overwrites your work. [`normalizeTheme`](../src/themes/normalize.ts) fills in anything a file is missing from the default theme, so older or hand-written files still work.
 
@@ -1252,6 +1252,25 @@ Two details make the site work on any host, in any folder:
 - **Relative paths.** `base: './'` makes the built `index.html` load `./assets/…` instead of `/assets/…`, so the site works at `example.com/` or `example.com/my-site/`. Chronicle's own `index.html` adds `<base href="/">` so its deep links (`/t/x/edit`) still find the assets; the export removes that tag.
 - **Hash links.** A static host only has `index.html`. A link like `/t/x` would 404 when reloaded. With `createHashRouter` the route lives after `#` (`#/t/x`), which the browser never sends to the server. [`App.tsx`](../src/App.tsx) picks the hash router only for exported sites.
 
+### Faction themes and main factions
+
+Each event can mark one of its factions as its **main faction** (`mainFactionId`, the ★ in the event form). It sets the node's colour, and it's what the theme follows.
+
+A faction can pick a theme (`themeId`). `TimelineViewer` works out a **focus theme** on every render: the selected event's main faction's theme, or, with nothing selected, the theme of a filter on exactly one faction. `factionThemeId` in [`lib/factions.ts`](../src/lib/factions.ts) walks up the faction tree, so a sub-faction without a theme uses its parent's.
+
+The viewer hands that theme to `useThemeOverride`, the same Context the theme editor uses for its live preview. `TimelineGate` still owns the one place where a theme is applied; it just shows `override ?? savedTheme`. That's the payoff of having built the override as a general mechanism: a second feature reused it without any changes to `TimelineGate`.
+
+### Two maps
+
+A timeline can have the 3D starmap and a **flat map**: your own picture, stored in the timeline as a `data:` URL. Places get a second position, `pin`, as fractions of the picture's size (0–1), so pins stay put however big the map is drawn. [`FlatMap.tsx`](../src/components/map/FlatMap.tsx) is a good small study in direct DOM work from React:
+
+- **`ResizeObserver`** in an effect refits the picture whenever its box changes size (the window `resize` event misses layout changes).
+- **Pointer events** with `setPointerCapture` handle dragging with mouse, pen or finger alike. A drag of a few pixels still counts as a click, so placing a pin isn't fiddly.
+- **One transformed layer**: the picture and its pins move together with a single CSS `translate(...) scale(...)`. Each pin sits in a zero-size anchor scaled by `1 / scale`, so labels stay readable at any zoom.
+- The wheel listener is added by hand with `{ passive: false }`, because React's `onWheel` can't call `preventDefault()` to stop the page scrolling.
+
+[`TimelineMap.tsx`](../src/components/map/TimelineMap.tsx) shows whichever map is chosen, with a switch when both exist; the choice is remembered with `usePref`.
+
 ## 19. Pure update functions and immutability
 
 [`lib/mutations.ts`](../src/lib/mutations.ts) holds every change the editor can make, as **pure functions**: a timeline goes in, a new timeline comes out, and nothing is modified in place.
@@ -1264,7 +1283,7 @@ export function upsert<T extends { id: string }>(list: T[], item: T): T[] {
 export const saveEra = (t: Timeline, era: Era): Timeline => ({ ...t, eras: upsert(t.eras, era) });
 ```
 
-`{ ...t, eras: … }` copies the timeline's fields into a new object and replaces `eras`. The events, categories and places arrays are reused, not copied, because they didn't change. That's called **structural sharing**: cheap, and anything that didn't change keeps its identity.
+`{ ...t, eras: … }` copies the timeline's fields into a new object and replaces `eras`. The events, factions and places arrays are reused, not copied, because they didn't change. That's called **structural sharing**: cheap, and anything that didn't change keeps its identity.
 
 Why work this way?
 
@@ -1277,10 +1296,10 @@ Why work this way?
 Deleting something has to clean up anything that points at it:
 
 ```ts
-export const removeCategory = (t: Timeline, id: string): Timeline => ({
+export const removeFaction = (t: Timeline, id: string): Timeline => ({
   ...t,
-  categories: t.categories.filter((c) => c.id !== id),
-  events: t.events.map((e) => ({ ...e, categoryIds: without(e.categoryIds, id) })),
+  factions: t.factions.filter((c) => c.id !== id),
+  events: t.events.map((e) => ({ ...e, factionIds: without(e.factionIds, id) })),
 });
 ```
 
@@ -1323,7 +1342,7 @@ An era is a `sortKey` range. `eraFor(sortKey, eras)` finds the one a date falls 
 
 ```ts
 export function matchesFilters(event: TimelineEvent, f: Filters, calendar: Calendar): boolean {
-  if (f.categoryIds.length > 0 && !event.categoryIds.some((id) => f.categoryIds.includes(id))) return false;
+  if (f.factionIds.length > 0 && !event.factionIds.some((id) => f.factionIds.includes(id))) return false;
   if (f.placeId && !event.placeIds.includes(f.placeId)) return false;
   const q = f.query.trim().toLowerCase();
   if (q && ![event.title, event.summary, event.body, formatDate(event.date, calendar)].some((text) => text.toLowerCase().includes(q))) {
@@ -1333,15 +1352,15 @@ export function matchesFilters(event: TimelineEvent, f: Filters, calendar: Calen
 }
 ```
 
-### Nested categories
+### Nested factions
 
-Categories can sit inside each other ("Imperium › Space Marines › Ultramarines"), to any depth. They're still stored as a **flat list**; each category just has an optional `parentId`. [`lib/categories.ts`](../src/lib/categories.ts) builds the tree when it's needed:
+Factions can sit inside each other ("Imperium › Space Marines › Ultramarines"), to any depth. They're still stored as a **flat list**; each faction just has an optional `parentId`. [`lib/factions.ts`](../src/lib/factions.ts) builds the tree when it's needed:
 
-- `categoryTree` returns every category in display order with its depth, using a small **recursive** function: `visit(category)` adds the category, then calls `visit` on each of its children. The editor's list and the viewer's dropdown use the depth for indenting.
-- `withDescendants(id)` collects a category and everything under it. The viewer uses it so that **filtering by a parent includes its children**: before filtering, `TimelineViewer` expands the picked ids (`expandCategories`), so `matchesFilters` above didn't need to change at all.
-- Deleting a category moves its children up to its parent (`removeCategory` in `mutations.ts`), and the category form won't let you pick a category's own descendant as its parent, which would create a loop. The helpers also cope with loops in hand-edited files rather than recursing forever.
+- `factionTree` returns every faction in display order with its depth, using a small **recursive** function: `visit(faction)` adds the faction, then calls `visit` on each of its children. The editor's list and the viewer's dropdown use the depth for indenting.
+- `withDescendants(id)` collects a faction and everything under it. The viewer uses it so that **filtering by a parent includes its children**: before filtering, `TimelineViewer` expands the picked ids (`expandFactions`), so `matchesFilters` above didn't need to change at all.
+- Deleting a faction moves its children up to its parent (`removeFaction` in `mutations.ts`), and the faction form won't let you pick a faction's own descendant as its parent, which would create a loop. The helpers also cope with loops in hand-edited files rather than recursing forever.
 
-Why a flat list with parent links, not nested objects? Moving a category is then a one-field change, and the existing save/delete/upsert functions work unchanged.
+Why a flat list with parent links, not nested objects? Moving a faction is then a one-field change, and the existing save/delete/upsert functions work unchanged.
 
 Filtered-out events aren't removed from the timeline, just **dimmed**. Keeping every node in place means the line doesn't jump around as you type. The arrows skip dimmed events because `neighbourOf` only considers events where `isVisible` is true.
 
