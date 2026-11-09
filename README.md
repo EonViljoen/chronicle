@@ -1,8 +1,6 @@
 # Chronicle
 
-A timeline builder: create timelines of events, eras, categories and places, then browse them on an interactive horizontal timeline (and, later, a 3D starmap).
-
-The bundled demo is an unofficial, non-commercial **Warhammer 40,000** fan timeline. Warhammer 40,000 is a trademark of Games Workshop; this project is not affiliated with or endorsed by them.
+A timeline builder: create timelines of events, eras, categories and places, then browse them on an interactive horizontal timeline and a 3D starmap. Use it for real history, a fantasy world, a sci-fi saga or anything else with a past.
 
 ## Run it
 
@@ -14,6 +12,13 @@ npm run dev
 ## How data is stored
 
 Everything is saved in your browser (IndexedDB). There are no accounts and no server. Use **Export** to save a timeline as a `.json` file for backup or sharing, and **Import file…** to load one.
+
+## Building your own site on Chronicle
+
+A site can reuse this code with its own name, look and content, without editing Chronicle's files (so pulling in Chronicle updates stays painless):
+
+- **Branding:** set `VITE_BRAND_NAME`, `VITE_BRAND_TAGLINE`, `VITE_DEFAULT_THEME`, `VITE_SEED_URL` and `VITE_DEMO_URL` in a `.env` file. See `src/brand.ts`.
+- **Themes:** add a folder under `src/themes/` with an `index.ts` and a stylesheet. It's picked up automatically. See `src/themes/README.md`.
 
 ## Stack
 

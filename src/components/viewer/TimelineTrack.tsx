@@ -21,7 +21,7 @@ const FALLBACK_COLOR = '#c9a227';
 
 /**
  * The horizontal line. Nodes are evenly spaced (index × gap) rather than to
- * scale, because the 40k timeline has gaps of millions of years.
+ * scale, because some timelines have gaps of millions of years.
  * Positioning is done in CSS from --i and --n; see `.track` in index.css.
  */
 export default function TimelineTrack({ events, eras, categories, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {

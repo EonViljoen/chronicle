@@ -3,6 +3,8 @@ import { db } from './db';
 import { assertTimeline } from '../lib/validate';
 import { SCHEMA_VERSION, type Timeline } from '../types/timeline';
 import { slugify } from '../lib/ids';
+import { readPref, writePref } from '../lib/prefs';
+import { brand } from '../brand';
 
 /*
  * Everything the UI needs to read and write timelines.
@@ -111,11 +113,22 @@ export async function importTimelineFile(file: File): Promise<Timeline> {
   return addCopy(data);
 }
 
-/** Load a bundled demo from /public/demos. */
-export async function loadDemo(name: string): Promise<Timeline> {
-  const res = await fetch(`${import.meta.env.BASE_URL}demos/${name}.json`);
-  if (!res.ok) throw new Error(`Couldn't load demo "${name}"`);
-  const data: unknown = await res.json();
-  assertTimeline(data);
-  return addCopy(data);
+/**
+ * If the site sets a seed timeline (brand.seedUrl), add it on the visitor's
+ * first visit so they land on content. Remembered per browser, so deleting
+ * the seeded timeline doesn't bring it back.
+ */
+export async function seedOnFirstVisit(): Promise<void> {
+  if (!brand.seedUrl || readPref('seeded', false)) return;
+  writePref('seeded', true); // set first, so a second call can't seed twice
+  try {
+    const res = await fetch(brand.seedUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: unknown = await res.json();
+    assertTimeline(data);
+    await addCopy(data);
+  } catch (e) {
+    writePref('seeded', false); // try again next visit
+    console.error(`Couldn't load the seed timeline from ${brand.seedUrl}`, e);
+  }
 }

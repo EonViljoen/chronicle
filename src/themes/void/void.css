@@ -1,0 +1,19 @@
+/* Void: sci-fi. Only overrides design tokens from index.css. */
+:root[data-theme='void'] {
+  --bg: #070b12;
+  --surface: #0d1420;
+  --surface-2: #142033;
+  --border: #1f3350;
+  --text: #dbe7f5;
+  --muted: #7d93ae;
+  --accent: #39d0ff;
+  --accent-ink: #021018;
+  --danger: #ff5a6e;
+  --radius: 2px;
+  --font-display: 'Orbitron', system-ui, sans-serif;
+  --font-body: 'Exo 2', system-ui, sans-serif;
+  color-scheme: dark;
+}
+:root[data-theme='void'] body {
+  background: radial-gradient(ellipse at top, #0f1a2c, var(--bg) 60%) fixed;
+}

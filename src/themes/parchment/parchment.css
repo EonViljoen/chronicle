@@ -1,0 +1,23 @@
+/* Parchment: a light theme. Only overrides design tokens from index.css. */
+:root[data-theme='parchment'] {
+  --bg: #e9dfc7;
+  --surface: #f3ead4;
+  --surface-2: #e2d5b6;
+  --border: #c2ae86;
+  --text: #2b2116;
+  --muted: #6e5d45;
+  --accent: #8a2f1d;
+  --accent-ink: #f8f1e0;
+  --danger: #a32618;
+  --radius: 3px;
+  --font-display: 'IM Fell English SC', Georgia, serif;
+  --font-body: 'IM Fell English', Georgia, serif;
+  color-scheme: light;
+}
+:root[data-theme='parchment'] body {
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(110, 80, 40, 0.18)),
+    var(--bg);
+  background-attachment: fixed;
+}
+:root[data-theme='parchment'] body { font-size: 1.05rem; }

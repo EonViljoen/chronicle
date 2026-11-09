@@ -1,9 +1,9 @@
 /**
  * The data model for a timeline.
  *
- * Nothing in here is Warhammer-specific: 40k is just one timeline that uses
- * the "millennium" date kind and a 3D galaxy map. Everything a user creates
- * in the editor ends up as one of these shapes.
+ * Nothing in here is tied to one setting: a history, a fantasy world or a
+ * sci-fi saga all fit the same shapes. Everything a user creates in the
+ * editor ends up as one of these.
  */
 
 /** Bump this when the shape changes in a way old exports can't satisfy. */
@@ -38,14 +38,14 @@ export interface Era {
   end: number;
 }
 
-/** A tag with a colour. In the 40k demo these are factions. */
+/** A tag with a colour, e.g. factions, characters or themes. */
 export interface Category {
   id: string;
   name: string;
   color: string;
 }
 
-/** A location that events can happen at. In the 40k demo these are star systems. */
+/** A location that events can happen at, e.g. a city or a star system. */
 export interface Place {
   id: string;
   name: string;
@@ -94,6 +94,8 @@ export interface Timeline {
   categories: Category[];
   places: Place[];
   map: MapConfig;
+  /** A theme id (see src/themes). Unset = the site's default theme. */
+  theme?: string;
   events: TimelineEvent[];
   createdAt: number;
   updatedAt: number;

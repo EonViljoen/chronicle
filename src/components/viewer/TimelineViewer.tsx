@@ -182,7 +182,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         <div className="viewer-split">
           <div className="viewer-split-panel">{panel}</div>
           <div className="viewer-split-map">
-            <Suspense fallback={<p className="map-loading">Charting the galaxy…</p>}>
+            <Suspense fallback={<p className="map-loading">Loading the map…</p>}>
               <GalaxyMap
                 config={map}
                 places={timeline.places}

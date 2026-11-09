@@ -38,7 +38,7 @@ function StarMap({ timeline }: { timeline: Timeline }) {
         </div>
       ) : (
         <div className="map-stage">
-          <Suspense fallback={<p className="map-loading">Charting the galaxy…</p>}>
+          <Suspense fallback={<p className="map-loading">Loading the map…</p>}>
             <GalaxyMap config={map} places={timeline.places} selectedPlaceId={selected?.id ?? null} onSelectPlace={select} />
           </Suspense>
 

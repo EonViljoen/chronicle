@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createTimeline, importTimelineFile, loadDemo, useTimelines } from '../db/timelines';
+import { createTimeline, importTimelineFile, useTimelines } from '../db/timelines';
+import { brand } from '../brand';
 import TimelineCard from '../components/TimelineCard';
 
 export default function HomePage() {
@@ -75,9 +76,12 @@ export default function HomePage() {
             hidden
             onChange={(e) => handleImport(e.target.files?.[0])}
           />
-          <button className="btn" disabled={busy} onClick={() => run(async () => void (await loadDemo('wh40k')))}>
-            Load Warhammer 40k demo
-          </button>
+          {/* A plain link: the demo is a separate site showing the app in use */}
+          {brand.demoUrl && (
+            <a className="btn" href={brand.demoUrl} target="_blank" rel="noreferrer">
+              View demo ↗
+            </a>
+          )}
         </div>
       </section>
 
@@ -93,7 +97,10 @@ export default function HomePage() {
       ) : timelines.length === 0 ? (
         <div className="empty">
           <p>No timelines yet.</p>
-          <p className="muted">Create one above, import a file, or load the Warhammer 40k demo to see how it works.</p>
+          <p className="muted">
+            Create one above or import a file.
+            {brand.demoUrl && <> Not sure where to start? <a href={brand.demoUrl} target="_blank" rel="noreferrer">See a finished timeline</a>.</>}
+          </p>
         </div>
       ) : (
         <div className="card-grid">

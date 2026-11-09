@@ -1,0 +1,44 @@
+/**
+ * Branding: the app's name and the few things a site built on Chronicle
+ * might want to change.
+ *
+ * The defaults are Chronicle's. A site built from this code (for example a
+ * fan timeline) overrides them with a `.env` file instead of editing this
+ * file, so pulling in Chronicle updates never conflicts:
+ *
+ *   VITE_BRAND_NAME=My Timeline
+ *   VITE_BRAND_TAGLINE=a fan chronicle
+ *   VITE_DEFAULT_THEME=parchment
+ *   VITE_SEED_URL=/seed/my-timeline.json
+ *   VITE_DEMO_URL=
+ *
+ * Vite exposes variables that start with VITE_ on `import.meta.env`, and bakes
+ * them in at build time. An empty value counts as "not set".
+ */
+const env = import.meta.env;
+
+/** Reads a VITE_ variable, treating empty as unset. */
+function read(name: string): string | undefined {
+  const value = env[name] as string | undefined;
+  return value?.trim() ? value.trim() : undefined;
+}
+
+export const brand = {
+  /** Shown in the header and the browser tab. */
+  name: read('VITE_BRAND_NAME') ?? 'Chronicle',
+  tagline: read('VITE_BRAND_TAGLINE') ?? 'timeline builder',
+  /** The theme used outside a timeline (home page) and for timelines without one. */
+  defaultTheme: read('VITE_DEFAULT_THEME') ?? 'default',
+  /**
+   * A timeline JSON file loaded on a visitor's first visit, so a site can open
+   * with content already in it. Unset for Chronicle itself.
+   */
+  seedUrl: read('VITE_SEED_URL'),
+  /**
+   * Where the "View demo" button goes: a live site showing Chronicle in use.
+   * Until the demo is deployed, development builds point at the demo's local
+   * dev server and production builds hide the button. Setting the variable
+   * to nothing (`VITE_DEMO_URL=`) hides it everywhere.
+   */
+  demoUrl: 'VITE_DEMO_URL' in env ? read('VITE_DEMO_URL') : env.DEV ? 'http://localhost:5181' : undefined,
+};

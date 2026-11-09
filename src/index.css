@@ -106,7 +106,7 @@ input {
   color: var(--text); font: inherit; font-size: 0.8rem; white-space: nowrap;
 }
 .era-chip:hover:not(:disabled) { background: color-mix(in srgb, var(--era-color) 30%, transparent); }
-.era-chip.is-current { background: var(--era-color); border-color: var(--era-color); font-weight: 600; }
+.era-chip.is-current { background: color-mix(in srgb, var(--era-color) 45%, var(--surface)); border-color: var(--era-color); font-weight: 600; }
 .era-chip:disabled { opacity: 0.35; cursor: default; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }

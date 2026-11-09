@@ -2,15 +2,19 @@ import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTimeline } from '../db/timelines';
 import type { Timeline } from '../types/timeline';
+import { useTheme } from '../themes';
 
 /*
  * Loads the timeline named in the URL and handles the loading / not-found
  * states, so pages only deal with a timeline that exists.
  * `children` is a function ("render prop") that receives the loaded timeline.
+ * It also applies the timeline's theme while any of its pages are open.
  */
 export default function TimelineGate({ children }: { children: (timeline: Timeline) => ReactNode }) {
   const { id } = useParams();
   const timeline = useTimeline(id);
+  // Hooks must run on every render, so this sits above the early returns
+  useTheme(timeline?.theme);
 
   if (timeline === undefined) return <p className="muted">Loading…</p>;
   if (timeline === null) {

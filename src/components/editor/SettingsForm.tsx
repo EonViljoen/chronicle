@@ -4,8 +4,10 @@ import Field from '../form/Field';
 import NumberInput from '../form/NumberInput';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
+import { themes } from '../../themes';
+import { brand } from '../../brand';
 
-type Settings = Pick<Timeline, 'title' | 'description' | 'dateFormat' | 'map'>;
+type Settings = Pick<Timeline, 'title' | 'description' | 'dateFormat' | 'map' | 'theme'>;
 
 const DEFAULT_GALAXY: MapConfig = { type: 'galaxy3d', arms: 4, radius: 100, coreColor: '#ffd9a0', armColor: '#7aa6ff' };
 
@@ -20,6 +22,7 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
     description: timeline.description,
     dateFormat: timeline.dateFormat,
     map: timeline.map,
+    theme: timeline.theme,
   };
   const save = async (s: Settings) => {
     await updateTimeline(timeline.id, (t) => ({ ...t, ...s }));
@@ -46,6 +49,16 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
           <option value="year">Years (1066, -500)</option>
           <option value="millennium">Millennia, 40k style (005.M31)</option>
           <option value="freeform">Free text with manual ordering</option>
+        </select>
+      </Field>
+
+      <Field label="Theme" hint={themes.find((t) => t.id === draft.theme)?.description ?? 'Uses the site default until you pick one.'}>
+        {/* '' in the select means "no theme set": stored as undefined */}
+        <select value={draft.theme ?? ''} onChange={(e) => patch({ theme: e.target.value || undefined })}>
+          <option value="">Site default ({themes.find((t) => t.id === brand.defaultTheme)?.name ?? 'Chronicle'})</option>
+          {themes.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
         </select>
       </Field>
 
