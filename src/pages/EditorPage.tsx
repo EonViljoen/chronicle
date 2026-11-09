@@ -13,6 +13,7 @@ import PlaceForm from '../components/editor/PlaceForm';
 import EventForm from '../components/editor/EventForm';
 import { compareEvents, defaultSortKey, formatDate, formatKey } from '../lib/dates';
 import { eraFor } from '../lib/eras';
+import { categoryTree } from '../lib/categories';
 import {
   countUsage,
   removeCategory,
@@ -100,7 +101,10 @@ function Editor({ timeline }: { timeline: Timeline }) {
   // ----- Sorted lists -----
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
   const eras = useMemo(() => [...timeline.eras].sort((a, b) => a.start - b.start), [timeline.eras]);
-  const categories = useMemo(() => [...timeline.categories].sort((a, b) => a.name.localeCompare(b.name)), [timeline.categories]);
+  // Categories in tree order: each one followed by its sub-categories
+  const categoryRows = useMemo(() => categoryTree(timeline.categories), [timeline.categories]);
+  const categories = useMemo(() => categoryRows.map((r) => r.category), [categoryRows]);
+  const depthOf = (id: string) => categoryRows.find((r) => r.category.id === id)?.depth ?? 0;
   const places = useMemo(() => [...timeline.places].sort((a, b) => a.name.localeCompare(b.name)), [timeline.places]);
 
   const counts: Record<Tab, number | null> = {
@@ -194,17 +198,19 @@ function Editor({ timeline }: { timeline: Timeline }) {
           noun="category"
           blank={() => ({ id: '', name: '', color: '#c9a227' })}
           nameOf={(c) => c.name}
+          matches={(c, q) => c.name.toLowerCase().includes(q)}
           renderRow={(c) => (
             <>
-              <span className="swatch" style={{ background: c.color }} />
+              {/* Sub-categories are indented under their parent */}
+              <span className="swatch" style={{ background: c.color, marginLeft: depthOf(c.id) * 16 }} />
               <span className="row-main">{c.name}</span>
               <span className="row-meta">{countUsage(timeline, 'categoryIds', c.id)}</span>
             </>
           )}
           save={saveCategory}
           remove={removeCategory}
-          deleteWarning={(c) => usageWarning(countUsage(timeline, 'categoryIds', c.id))}
-          renderForm={(p) => <CategoryForm {...p} />}
+          deleteWarning={(c) => categoryDeleteWarning(timeline, c)}
+          renderForm={(p) => <CategoryForm {...p} categories={timeline.categories} />}
         />
       )}
 
@@ -230,6 +236,18 @@ function Editor({ timeline }: { timeline: Timeline }) {
       )}
     </div>
   );
+}
+
+/** What deleting a category affects: events lose the tag; sub-categories move up a level. */
+function categoryDeleteWarning(timeline: Timeline, category: Category): string | undefined {
+  const children = timeline.categories.filter((c) => c.parentId === category.id).length;
+  const parent = timeline.categories.find((c) => c.id === category.parentId);
+  const lines = [
+    usageWarning(countUsage(timeline, 'categoryIds', category.id)),
+    children > 0 &&
+      `Its ${children} sub-categor${children === 1 ? 'y moves' : 'ies move'} ${parent ? `up to ${parent.name}` : 'to the top level'}.`,
+  ].filter(Boolean);
+  return lines.length ? lines.join('\n') : undefined;
 }
 
 const usageWarning = (n: number) => (n > 0 ? `It's used by ${n} event${n === 1 ? '' : 's'} and will be removed from them.` : undefined);

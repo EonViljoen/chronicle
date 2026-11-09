@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
 import { formatDate } from '../../lib/dates';
+import { categoryPath } from '../../lib/categories';
 import { EditOnly } from '../EditOnly';
 
 interface Props {
@@ -44,7 +45,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
       {(categories.length > 0 || places.length > 0) && (
         <div className="chips">
           {categories.map((c) => (
-            <span key={c.id} className="chip" style={{ borderColor: c.color }}>
+            <span key={c.id} className="chip" style={{ borderColor: c.color }} title={categoryPath(c.id, timeline.categories)}>
               <span className="swatch" style={{ background: c.color }} /> {c.name}
             </span>
           ))}

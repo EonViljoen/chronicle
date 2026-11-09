@@ -14,7 +14,7 @@ export const hasFilters = (f: Filters) => f.query.trim() !== '' || f.categoryIds
 
 /**
  * Does an event pass every active filter?
- * - categories: any of the picked ones
+ * - categories: any of the picked ones (the caller adds their sub-categories)
  * - place: happens at that place
  * - search: text appears in the title, summary, details or date
  */

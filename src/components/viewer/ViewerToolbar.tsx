@@ -1,5 +1,6 @@
 import type { Category, Place } from '../../types/timeline';
 import { hasFilters, NO_FILTERS, type Filters } from '../../lib/filters';
+import { categoryPath, categoryTree, expandCategories, indentLabel } from '../../lib/categories';
 
 interface Props {
   filters: Filters;
@@ -15,15 +16,23 @@ interface Props {
   onToggleMap: () => void;
 }
 
-/** Search, category filter, place filter and the map toggle. */
+/**
+ * Search, category filter, place filter and the map toggle.
+ * Categories are picked from a dropdown (the whole tree, indented); each
+ * picked one shows as a chip with × to remove it.
+ */
 export default function ViewerToolbar({ filters, onChange, categories, places, visibleCount, totalCount, onSearchEnter, showMap, onToggleMap }: Props) {
   const place = places.find((p) => p.id === filters.placeId);
   const set = (changes: Partial<Filters>) => onChange({ ...filters, ...changes });
 
-  function toggleCategory(id: string) {
-    const ids = filters.categoryIds;
-    set({ categoryIds: ids.includes(id) ? ids.filter((c) => c !== id) : [...ids, id] });
-  }
+  const picked = filters.categoryIds
+    .map((id) => categories.find((c) => c.id === id))
+    .filter((c): c is Category => c !== undefined);
+  // Hide what's already picked, and what's already covered by a picked parent
+  const covered = new Set(expandCategories(filters.categoryIds, categories));
+  const pickable = categoryTree(categories).filter((row) => !covered.has(row.category.id));
+  const addCategory = (id: string) => id && set({ categoryIds: [...filters.categoryIds, id] });
+  const removeCategory = (id: string) => set({ categoryIds: filters.categoryIds.filter((c) => c !== id) });
 
   return (
     <div className="viewer-toolbar">
@@ -44,6 +53,15 @@ export default function ViewerToolbar({ filters, onChange, categories, places, v
             {visibleCount} of {totalCount} events
           </span>
         )}
+        {categories.length > 0 && pickable.length > 0 && (
+          // value="" keeps the dropdown on its prompt after each pick
+          <select className="category-filter" value="" aria-label="Filter by category" onChange={(e) => addCategory(e.target.value)}>
+            <option value="">Filter by category…</option>
+            {pickable.map((row) => (
+              <option key={row.category.id} value={row.category.id}>{indentLabel(row)}</option>
+            ))}
+          </select>
+        )}
         {showMap !== null && (
           <button className="btn map-toggle" aria-pressed={showMap} onClick={onToggleMap}>
             {showMap ? 'Hide map' : 'Show map'}
@@ -51,7 +69,7 @@ export default function ViewerToolbar({ filters, onChange, categories, places, v
         )}
       </div>
 
-      {(categories.length > 0 || place) && (
+      {(picked.length > 0 || place) && (
         <div className="filter-bar" role="group" aria-label="Filters">
           {place && (
             <span className="chip chip-place-filter">
@@ -59,16 +77,11 @@ export default function ViewerToolbar({ filters, onChange, categories, places, v
               <button className="chip-remove" aria-label={`Stop filtering by ${place.name}`} onClick={() => set({ placeId: null })}>×</button>
             </span>
           )}
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              className={`chip chip-toggle${filters.categoryIds.includes(c.id) ? ' is-on' : ''}`}
-              style={{ borderColor: c.color }}
-              aria-pressed={filters.categoryIds.includes(c.id)}
-              onClick={() => toggleCategory(c.id)}
-            >
+          {picked.map((c) => (
+            <span key={c.id} className="chip" style={{ borderColor: c.color }} title={categoryPath(c.id, categories)}>
               <span className="swatch" style={{ background: c.color }} /> {c.name}
-            </button>
+              <button className="chip-remove" aria-label={`Stop filtering by ${c.name}`} onClick={() => removeCategory(c.id)}>×</button>
+            </span>
           ))}
           {hasFilters(filters) && (
             <button className="link-btn muted" onClick={() => onChange(NO_FILTERS)}>Clear all</button>

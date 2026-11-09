@@ -99,11 +99,17 @@ export interface Era {
   end: number;
 }
 
-/** A tag with a colour, e.g. factions, characters or themes. */
+/**
+ * A tag with a colour, e.g. factions, characters or themes. Categories nest:
+ * a category with a `parentId` sits under that category, to any depth
+ * ("Imperium › Space Marines › Ultramarines"). See lib/categories.ts.
+ */
 export interface Category {
   id: string;
   name: string;
   color: string;
+  /** The category this one sits under. Unset = top level. */
+  parentId?: string;
 }
 
 /** A location that events can happen at, e.g. a city or a star system. */

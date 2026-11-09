@@ -24,11 +24,17 @@ export const saveCategory = (t: Timeline, category: Category): Timeline => ({
   ...t,
   categories: upsert(t.categories, category),
 });
-export const removeCategory = (t: Timeline, id: string): Timeline => ({
-  ...t,
-  categories: t.categories.filter((c) => c.id !== id),
-  events: t.events.map((e) => ({ ...e, categoryIds: without(e.categoryIds, id) })),
-});
+/** Deletes a category. Its sub-categories move up to its parent, so they aren't lost. */
+export function removeCategory(t: Timeline, id: string): Timeline {
+  const parentId = t.categories.find((c) => c.id === id)?.parentId;
+  return {
+    ...t,
+    categories: t.categories
+      .filter((c) => c.id !== id)
+      .map((c) => (c.parentId === id ? { ...c, parentId } : c)),
+    events: t.events.map((e) => ({ ...e, categoryIds: without(e.categoryIds, id) })),
+  };
+}
 
 export const savePlace = (t: Timeline, place: Place): Timeline => ({ ...t, places: upsert(t.places, place) });
 export const removePlace = (t: Timeline, id: string): Timeline => ({

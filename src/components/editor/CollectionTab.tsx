@@ -52,6 +52,8 @@ export default function CollectionTab<T extends { id: string }>({
   deleteWarning,
   renderForm,
 }: Props<T>) {
+  // "category" -> "categories", "event" -> "events"
+  const plural = noun.endsWith('y') ? `${noun.slice(0, -1)}ies` : `${noun}s`;
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   // Lazy initial state: blank() runs once, not on every render
@@ -92,11 +94,11 @@ export default function CollectionTab<T extends { id: string }>({
         <div className="collection-list-head">
           <button className="btn btn-primary" onClick={() => onSelectItem('new')}>+ New {noun}</button>
           {matches && items.length > 5 && (
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${noun}s`} aria-label={`Search ${noun}s`} />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${plural}`} aria-label={`Search ${plural}`} />
           )}
         </div>
         {items.length === 0 ? (
-          <p className="muted collection-empty">No {noun}s yet.</p>
+          <p className="muted collection-empty">No {plural} yet.</p>
         ) : (
           <ul className="rows">
             {visible.map((item) => (
@@ -114,7 +116,7 @@ export default function CollectionTab<T extends { id: string }>({
       <section className="collection-form">
         {error && <p className="error" role="alert">{error}</p>}
         {itemId && (
-          <button className="link-btn back-link" onClick={() => onSelectItem(null)}>← All {noun}s</button>
+          <button className="link-btn back-link" onClick={() => onSelectItem(null)}>← All {plural}</button>
         )}
         {selected ? (
           // The key makes React build a fresh form (fresh draft state) per item

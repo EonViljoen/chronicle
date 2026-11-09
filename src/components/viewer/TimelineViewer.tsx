@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
+import { expandCategories } from '../../lib/categories';
 import { matchesFilters, NO_FILTERS, type Filters } from '../../lib/filters';
 import { usePref } from '../../lib/prefs';
 import { GalaxyMap } from '../map/LazyGalaxyMap';
@@ -36,7 +37,13 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
   const calendar = timeline.calendar;
-  const isVisible = useCallback((e: TimelineEvent) => matchesFilters(e, filters, calendar), [filters, calendar]);
+  // Picking a category also matches everything under it, so expand the
+  // picked ids before filtering (the filter itself stays a simple "any of")
+  const matchFilters = useMemo(
+    () => ({ ...filters, categoryIds: expandCategories(filters.categoryIds, timeline.categories) }),
+    [filters, timeline.categories],
+  );
+  const isVisible = useCallback((e: TimelineEvent) => matchesFilters(e, matchFilters, calendar), [matchFilters, calendar]);
   const visible = useMemo(() => events.filter(isVisible), [events, isVisible]);
 
   const select = setSelectedId;

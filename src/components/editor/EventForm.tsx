@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents, formatDate } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
+import { categoryPath, categoryTree } from '../../lib/categories';
 import Field from '../form/Field';
 import MultiPicker from '../form/MultiPicker';
 import MarkdownField from '../form/MarkdownField';
@@ -40,11 +41,6 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
     .sort(compareEvents)
     .map((e) => ({ id: e.id, label: `${formatDate(e.date, timeline.calendar)} · ${e.title}` }));
 
-  function toggleCategory(id: string) {
-    const ids = draft.categoryIds;
-    patch({ categoryIds: ids.includes(id) ? ids.filter((c) => c !== id) : [...ids, id] });
-  }
-
   return (
     <form className="form" onSubmit={(e) => submit(e, clean)}>
       <div className="form-title-row">
@@ -63,21 +59,26 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
         <input value={draft.summary} maxLength={160} onChange={(e) => patch({ summary: e.target.value })} />
       </Field>
 
-      <Field label="Categories" group hint={timeline.categories.length === 0 ? 'Add categories in the Categories tab' : 'The first one picked sets the node colour'}>
-        <div className="chips">
-          {timeline.categories.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`chip chip-toggle${draft.categoryIds.includes(c.id) ? ' is-on' : ''}`}
-              style={{ borderColor: c.color }}
-              aria-pressed={draft.categoryIds.includes(c.id)}
-              onClick={() => toggleCategory(c.id)}
-            >
-              <span className="swatch" style={{ background: c.color }} /> {c.name}
-            </button>
-          ))}
-        </div>
+      <Field
+        label="Categories"
+        group
+        hint={
+          timeline.categories.length === 0
+            ? 'Add categories in the Categories tab'
+            : 'Pick the most specific one: it also counts under its parents. The first one sets the node colour.'
+        }
+      >
+        <MultiPicker
+          label="Add a category"
+          placeholder="Add a category…"
+          // Full paths, so two "Veterans" under different parents can be told apart
+          options={categoryTree(timeline.categories).map(({ category }) => ({
+            id: category.id,
+            label: categoryPath(category.id, timeline.categories),
+          }))}
+          value={draft.categoryIds}
+          onChange={(categoryIds) => patch({ categoryIds })}
+        />
       </Field>
 
       <MarkdownField label="Details" value={draft.body} onChange={(body) => patch({ body })} />

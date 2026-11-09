@@ -440,13 +440,11 @@ Inside one render, state is a constant. After `setBusy(true)`, the `busy` variab
 React decides whether something changed by comparing **references**: is this the same object as last time? So for objects and arrays, always build a new one. From [`ViewerToolbar.tsx`](../src/components/viewer/ViewerToolbar.tsx):
 
 ```tsx
-function toggleCategory(id: string) {
-  const ids = filters.categoryIds;
-  set({ categoryIds: ids.includes(id) ? ids.filter((c) => c !== id) : [...ids, id] });
-}
+const addCategory = (id: string) => id && set({ categoryIds: [...filters.categoryIds, id] });
+const removeCategory = (id: string) => set({ categoryIds: filters.categoryIds.filter((c) => c !== id) });
 ```
 
-`filter` and `[...ids, id]` both return *new* arrays. If you wrote `ids.push(id)` instead, the array would be the same object, React would see "no change", and nothing would update. Section 19 applies the same rule to whole timelines.
+`[...ids, id]` and `filter` both return *new* arrays. If you wrote `ids.push(id)` instead, the array would be the same object, React would see "no change", and nothing would update. Section 19 applies the same rule to whole timelines.
 
 ### Functional updates: when the next value depends on the last
 
@@ -1334,6 +1332,16 @@ export function matchesFilters(event: TimelineEvent, f: Filters, calendar: Calen
   return true;
 }
 ```
+
+### Nested categories
+
+Categories can sit inside each other ("Imperium › Space Marines › Ultramarines"), to any depth. They're still stored as a **flat list**; each category just has an optional `parentId`. [`lib/categories.ts`](../src/lib/categories.ts) builds the tree when it's needed:
+
+- `categoryTree` returns every category in display order with its depth, using a small **recursive** function: `visit(category)` adds the category, then calls `visit` on each of its children. The editor's list and the viewer's dropdown use the depth for indenting.
+- `withDescendants(id)` collects a category and everything under it. The viewer uses it so that **filtering by a parent includes its children**: before filtering, `TimelineViewer` expands the picked ids (`expandCategories`), so `matchesFilters` above didn't need to change at all.
+- Deleting a category moves its children up to its parent (`removeCategory` in `mutations.ts`), and the category form won't let you pick a category's own descendant as its parent, which would create a loop. The helpers also cope with loops in hand-edited files rather than recursing forever.
+
+Why a flat list with parent links, not nested objects? Moving a category is then a one-field change, and the existing save/delete/upsert functions work unchanged.
 
 Filtered-out events aren't removed from the timeline, just **dimmed**. Keeping every node in place means the line doesn't jump around as you type. The arrows skip dimmed events because `neighbourOf` only considers events where `isVisible` is true.
 
