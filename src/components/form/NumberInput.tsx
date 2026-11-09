@@ -7,14 +7,16 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 
   max?: number;
   /** Allow clearing the field (reports `undefined`). */
   allowEmpty?: boolean;
+  /** Whole numbers only (default). Set false to allow decimals. */
+  integer?: boolean;
 };
 
 /**
- * A whole-number input that keeps what you type as text, so half-typed
+ * A number input (whole numbers by default) that keeps what you type as text, so half-typed
  * values like "" or "-" don't get turned into 0 while you type. It only
  * reports valid numbers to the parent; invalid text gets a red border.
  */
-export default function NumberInput({ value, onChange, min, max, allowEmpty, className, ...rest }: Props) {
+export default function NumberInput({ value, onChange, min, max, allowEmpty, integer = true, className, ...rest }: Props) {
   const toText = (v: number | undefined) => (v === undefined ? '' : String(v));
   const [text, setText] = useState(toText(value));
   const [synced, setSynced] = useState(value);
@@ -31,7 +33,7 @@ export default function NumberInput({ value, onChange, min, max, allowEmpty, cla
     const t = raw.trim();
     if (t === '') return allowEmpty ? { ok: true, value: undefined } : { ok: false };
     const n = Number(t);
-    if (!Number.isInteger(n)) return { ok: false };
+    if (integer ? !Number.isInteger(n) : !Number.isFinite(n)) return { ok: false };
     if ((min !== undefined && n < min) || (max !== undefined && n > max)) return { ok: false };
     return { ok: true, value: n };
   }
@@ -43,7 +45,7 @@ export default function NumberInput({ value, onChange, min, max, allowEmpty, cla
       {...rest}
       className={['num', className].filter(Boolean).join(' ')}
       type="text"
-      inputMode="numeric"
+      inputMode={integer ? 'numeric' : 'decimal'}
       value={text}
       aria-invalid={!valid || undefined}
       onChange={(e) => {
