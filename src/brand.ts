@@ -12,6 +12,8 @@
  *   VITE_BRAND_FOOTER=Unofficial fan project.
  *   VITE_DEFAULT_THEME=parchment
  *   VITE_SEED_URL=/seed/my-timeline.json
+ *   VITE_PUBLISHED=/published/my-timeline.json
+ *   VITE_READ_ONLY=true
  *   VITE_DEMO_URL=
  *
  * Vite exposes variables that start with VITE_ on `import.meta.env`, and bakes
@@ -40,6 +42,18 @@ export const brand = {
    * with content already in it. Unset for Chronicle itself.
    */
   seedUrl: read('VITE_SEED_URL'),
+  /**
+   * Timeline files the site publishes: shown read-only to every visitor and
+   * fetched fresh on each visit, so replacing a file updates the site.
+   * Comma-separated URLs. A file's name becomes its address:
+   * /published/my-timeline.json is shown at /t/my-timeline.
+   */
+  published: (read('VITE_PUBLISHED') ?? '')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean),
+  /** Hide everything for creating and editing: the site only shows its published timelines. */
+  readOnly: read('VITE_READ_ONLY') === 'true',
   /**
    * Where the "View demo" button goes: a live site showing Chronicle in use.
    * Until the demo is deployed, development builds point at the demo's local

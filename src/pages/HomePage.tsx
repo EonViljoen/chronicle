@@ -1,11 +1,13 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { createTimeline, importTimelineFile, useTimelines } from '../db/timelines';
 import { brand } from '../brand';
+import { usePublished } from '../db/published';
 import TimelineCard from '../components/TimelineCard';
 
 export default function HomePage() {
   const timelines = useTimelines();
+  const published = usePublished();
   const navigate = useNavigate();
 
   // useState: values that, when changed, re-render the component.
@@ -48,6 +50,42 @@ export default function HomePage() {
     if (fileInput.current) fileInput.current.value = ''; // allow re-importing the same file
   }
 
+  // ----- Published timelines (see db/published.ts) -----
+  const publishedTimelines = published?.timelines ?? [];
+  const errorBanner = error && (
+    <p className="error" role="alert">
+      {error} <button className="link-btn" onClick={() => setError(null)}>Dismiss</button>
+    </p>
+  );
+  const publishedSection = published && (publishedTimelines.length > 0 || published.errors.length > 0) && (
+    <section className="home-section">
+      {!brand.readOnly && <h2 className="home-section-title">Published by this site</h2>}
+      {published.errors.map((message) => (
+        <p key={message} className="error" role="alert">{message}</p>
+      ))}
+      <div className="card-grid">
+        {publishedTimelines.map((t) => (
+          <TimelineCard key={t.id} timeline={t} published onError={setError} />
+        ))}
+      </div>
+    </section>
+  );
+
+  // ----- A read-only site only shows what it publishes -----
+  if (brand.readOnly) {
+    // Hooks are all above: early returns must come after every hook call
+    if (publishedTimelines.length === 1) return <Navigate to={`/t/${publishedTimelines[0].id}`} replace />;
+    return (
+      <div className="home">
+        <section className="home-intro">
+          <h1>{brand.name}</h1>
+        </section>
+        {errorBanner}
+        {published === undefined ? <p className="muted">Loading…</p> : publishedSection || <div className="empty"><p>Nothing has been published yet.</p></div>}
+      </div>
+    );
+  }
+
   return (
     <div className="home">
       <section className="home-intro">
@@ -85,11 +123,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {error && (
-        <p className="error" role="alert">
-          {error} <button className="link-btn" onClick={() => setError(null)}>Dismiss</button>
-        </p>
-      )}
+      {errorBanner}
 
       {/* Three render states: loading, empty, list */}
       {timelines === undefined ? (
@@ -110,6 +144,8 @@ export default function HomePage() {
           ))}
         </div>
       )}
+
+      {publishedSection}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import TimelineGate from '../components/TimelineGate';
+import { EditOnly } from '../components/EditOnly';
 import TimelineViewer from '../components/viewer/TimelineViewer';
 
 export default function ViewerPage() {
@@ -14,8 +15,10 @@ export default function ViewerPage() {
             </div>
             <div className="page-head-actions">
               {timeline.map.type === 'galaxy3d' && <Link className="btn" to={`/t/${timeline.id}/map`}>Starmap</Link>}
-              <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=new`}>+ Add event</Link>
-              <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+              <EditOnly>
+                <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=new`}>+ Add event</Link>
+                <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+              </EditOnly>
             </div>
           </div>
           <TimelineViewer timeline={timeline} />

@@ -6,6 +6,7 @@ import { SCHEMA_VERSION, type Timeline } from '../types/timeline';
 import { slugify } from '../lib/ids';
 import { readPref, writePref } from '../lib/prefs';
 import { brand } from '../brand';
+import { usePublished } from './published';
 
 /*
  * Everything the UI needs to read and write timelines.
@@ -24,9 +25,19 @@ export function useTimelines() {
   return useLiveQuery(() => db.timelines.orderBy('updatedAt').reverse().toArray());
 }
 
-/** One timeline. `undefined` = still loading, `null` = doesn't exist. */
-export function useTimeline(id: string | undefined) {
-  return useLiveQuery(async () => (id ? ((await db.timelines.get(id)) ?? null) : null), [id]);
+/**
+ * One timeline, from the site's published files or this browser.
+ * `undefined` = still loading, `null` = doesn't exist. `published` timelines
+ * are read-only.
+ */
+export function useTimeline(id: string | undefined): { timeline: Timeline; published: boolean } | null | undefined {
+  const published = usePublished();
+  const local = useLiveQuery(async () => (id ? ((await db.timelines.get(id)) ?? null) : null), [id]);
+
+  const match = published?.timelines.find((t) => t.id === id);
+  if (match) return { timeline: match, published: true };
+  if (published === undefined || local === undefined) return undefined; // wait for both before saying "not found"
+  return local ? { timeline: local, published: false } : null;
 }
 
 // ---------- Writing ----------
@@ -80,6 +91,9 @@ export async function duplicateTimeline(id: string) {
   if (!original) throw new Error('Timeline not found');
   return addCopy(original, `${original.title} (copy)`);
 }
+
+/** Save an editable copy of a published timeline in this browser. */
+export const copyToBrowser = (timeline: Timeline) => addCopy(timeline);
 
 /** Store a copy under a fresh id, so imports never overwrite existing timelines. */
 async function addCopy(source: Timeline, title = source.title): Promise<Timeline> {

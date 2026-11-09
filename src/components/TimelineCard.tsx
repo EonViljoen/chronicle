@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Timeline } from '../types/timeline';
-import { deleteTimeline, duplicateTimeline, exportTimeline } from '../db/timelines';
+import { copyToBrowser, deleteTimeline, duplicateTimeline, exportTimeline } from '../db/timelines';
+import { brand } from '../brand';
 
 /*
  * Props are the inputs to a component. This one gets a whole timeline and
@@ -9,10 +10,13 @@ import { deleteTimeline, duplicateTimeline, exportTimeline } from '../db/timelin
 interface Props {
   timeline: Timeline;
   onError: (message: string) => void;
+  /** Published by the site: view, export or copy, but not edit. */
+  published?: boolean;
 }
 
-export default function TimelineCard({ timeline, onError }: Props) {
+export default function TimelineCard({ timeline, onError, published = false }: Props) {
   const handleDuplicate = () => duplicateTimeline(timeline.id).catch((e: Error) => onError(e.message));
+  const handleCopy = () => copyToBrowser(timeline).catch((e: Error) => onError(e.message));
 
   const handleDelete = () => {
     if (window.confirm(`Delete "${timeline.title}"? Export it first if you want a backup.`)) {
@@ -35,16 +39,26 @@ export default function TimelineCard({ timeline, onError }: Props) {
       {timeline.description && <p className="card-desc">{timeline.description}</p>}
 
       <p className="card-meta">
-        {timeline.events.length} events · {timeline.eras.length} eras · edited{' '}
+        {timeline.events.length} events · {timeline.eras.length} eras · {published ? 'updated' : 'edited'}{' '}
         {new Date(timeline.updatedAt).toLocaleDateString()}
       </p>
 
       <div className="card-actions">
         <Link className="btn btn-primary" to={`/t/${timeline.id}`}>View</Link>
-        <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
-        <button className="btn" onClick={() => exportTimeline(timeline)}>Export</button>
-        <button className="btn" onClick={handleDuplicate}>Duplicate</button>
-        <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+        {published ? (
+          <>
+            <button className="btn" onClick={() => exportTimeline(timeline)}>Export</button>
+            {/* An editable copy only makes sense where people can edit */}
+            {!brand.readOnly && <button className="btn" onClick={handleCopy}>Make an editable copy</button>}
+          </>
+        ) : (
+          <>
+            <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+            <button className="btn" onClick={() => exportTimeline(timeline)}>Export</button>
+            <button className="btn" onClick={handleDuplicate}>Duplicate</button>
+            <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+          </>
+        )}
       </div>
     </article>
   );

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Timeline } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
+import { EditOnly } from '../components/EditOnly';
 import { GalaxyMap } from '../components/map/LazyGalaxyMap';
 import { compareEvents, formatDate } from '../lib/dates';
 
@@ -27,14 +28,18 @@ function StarMap({ timeline }: { timeline: Timeline }) {
         <h1>{timeline.title}</h1>
         <div className="page-head-actions">
           <Link className="btn" to={`/t/${timeline.id}`}>Timeline</Link>
-          <Link className="btn" to={`/t/${timeline.id}/edit?tab=places`}>Edit places</Link>
+          <EditOnly>
+            <Link className="btn" to={`/t/${timeline.id}/edit?tab=places`}>Edit places</Link>
+          </EditOnly>
         </div>
       </div>
 
       {map.type !== 'galaxy3d' ? (
         <div className="empty">
           <p>This timeline doesn't have a map.</p>
-          <Link className="btn" to={`/t/${timeline.id}/edit?tab=settings`}>Turn one on in Settings</Link>
+          <EditOnly>
+            <Link className="btn" to={`/t/${timeline.id}/edit?tab=settings`}>Turn one on in Settings</Link>
+          </EditOnly>
         </div>
       ) : (
         <div className="map-stage">

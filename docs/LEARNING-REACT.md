@@ -1026,11 +1026,34 @@ When you're lost in a React app, ask "where does this value live, and who change
 | Text being typed in a number box | **React state** in `NumberInput` | Keystrokes | So half-typed values like `-` survive |
 | Camera position | **three.js** (inside drei's controls) | Mouse, and `setLookAt` in an effect | Lives outside React entirely |
 
-### Why no Context, Redux or Zustand?
+### One Context, and no Redux or Zustand
 
 **Context** (`createContext` + `useContext`) passes a value to deeply nested components without threading it through every layer of props. Libraries like Redux and Zustand are global stores for state many distant components share.
 
-This app doesn't need either. The only state shared by distant components is the timeline data, and Dexie's live queries already act like a global store: any component can call `useTimeline(id)` and they all update together. Everything else is either owned by one component, or passed down one or two levels. Prop drilling becomes painful at four or five levels with many props; when you feel that pain, that's the moment to reach for Context.
+The app has exactly one Context, and it's a good example of when to use it. **Published** timelines (files the site serves, see [`db/published.ts`](../src/db/published.ts)) and read-only sites must hide every Edit link. Those links are scattered: the page header, the info box (three levels down in the viewer), the map page. Passing a `canEdit` prop through `TimelineViewer` just so `EventPanel` can read it would be noise. So [`canEdit.ts`](../src/components/canEdit.ts) creates a context:
+
+```ts
+export const CanEditContext = createContext(true);   // true = the default outside any provider
+export const useCanEdit = () => useContext(CanEditContext);
+```
+
+`TimelineGate`, which already knows whether the timeline is published, provides it once around the whole page:
+
+```tsx
+return <CanEditContext value={canEdit}>{children(entry.timeline)}</CanEditContext>;
+```
+
+(In React 19 the context itself is the provider; older code writes `<CanEditContext.Provider value={…}>`.) Any component inside can now call `useCanEdit()`. Most use the small [`EditOnly`](../src/components/EditOnly.tsx) wrapper, which renders its children only when editing is allowed:
+
+```tsx
+<EditOnly>
+  <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+</EditOnly>
+```
+
+Why a wrapper component instead of calling `useCanEdit()` in `ViewerPage`? Because `ViewerPage`'s header is built inside `TimelineGate`'s render-prop function, which runs *while TimelineGate renders*, above the provider it returns. A hook called there would read the default value. `EditOnly` is rendered *inside* the provider, so it reads the real one. This is a common Context gotcha: a component can only see providers above it in the tree.
+
+Why not a global store? The only other state distant components share is the timeline data, and Dexie's live queries already act like one: any component can call `useTimeline(id)` and they all update together. Everything else is owned by one component or passed down a level or two.
 
 ---
 

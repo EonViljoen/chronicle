@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
 import { formatDate } from '../../lib/dates';
+import { EditOnly } from '../EditOnly';
 
 interface Props {
   timeline: Timeline;
@@ -33,7 +34,9 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
           <h2 className="event-panel-title">{event.title}</h2>
         </div>
         <div className="event-panel-actions">
-          <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=${event.id}`}>Edit</Link>
+          <EditOnly>
+            <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=${event.id}`}>Edit</Link>
+          </EditOnly>
           <button className="btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>

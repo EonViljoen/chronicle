@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useBlocker, useSearchParams, type BlockerFunction } from 'react-router-dom';
 import type { Category, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
+import { EditOnly } from '../components/EditOnly';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
 import EraForm from '../components/editor/EraForm';
@@ -26,7 +27,24 @@ const TABS = ['events', 'eras', 'categories', 'places', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
-  return <TimelineGate>{(timeline) => <Editor timeline={timeline} />}</TimelineGate>;
+  return (
+    <TimelineGate>
+      {(timeline) => (
+        <EditOnly fallback={<ReadOnlyNotice id={timeline.id} />}>
+          <Editor timeline={timeline} />
+        </EditOnly>
+      )}
+    </TimelineGate>
+  );
+}
+
+function ReadOnlyNotice({ id }: { id: string }) {
+  return (
+    <div className="empty">
+      <p>This timeline is published by the site and can't be edited here.</p>
+      <Link className="btn" to={`/t/${id}`}>View it</Link>
+    </div>
+  );
 }
 
 function Editor({ timeline }: { timeline: Timeline }) {
