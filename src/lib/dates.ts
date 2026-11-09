@@ -11,6 +11,8 @@ import type { DateKind, DatePrecision, EventDate, TimelineEvent } from '../types
  */
 
 const pad3 = (n: number) => String(n).padStart(3, '0');
+/** 60000000 -> "60M" */
+const compact = new Intl.NumberFormat('en', { notation: 'compact' });
 
 /** 40k style date. Leave `year` out when only the millennium is known ("M31"). */
 export function millenniumDate(millennium: number, year?: number): EventDate {
@@ -40,7 +42,7 @@ export function freeformDate(display: string, sortKey: number, precision: DatePr
 /** Turn a sortKey back into a label, e.g. for era start/end markers. */
 export function formatSortKey(sortKey: number, kind: DateKind): string {
   if (kind === 'millennium') {
-    if (sortKey < 0) return `${Math.abs(sortKey).toLocaleString()} yrs before M1`;
+    if (sortKey < 0) return `${compact.format(Math.abs(sortKey))} yrs before M1`;
     const millennium = Math.floor(sortKey / 1000) + 1;
     const year = sortKey - (millennium - 1) * 1000;
     return `${pad3(year)}.M${millennium}`;

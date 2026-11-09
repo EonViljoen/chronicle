@@ -1,0 +1,112 @@
+import { Link } from 'react-router-dom';
+import type { Timeline, TimelineEvent } from '../../types/timeline';
+import { compareEvents } from '../../lib/dates';
+import { eraFor } from '../../lib/eras';
+import Field from '../form/Field';
+import MultiPicker from '../form/MultiPicker';
+import MarkdownField from '../form/MarkdownField';
+import { DateInput } from '../form/DateInputs';
+import FormActions from './FormActions';
+import { useDraft } from './useDraft';
+import type { FormProps } from './CollectionTab';
+
+/** Trim text fields and drop empty source lines before saving. */
+const clean = (e: TimelineEvent): TimelineEvent => ({
+  ...e,
+  title: e.title.trim(),
+  summary: e.summary.trim(),
+  body: e.body.trim(),
+  imageUrl: e.imageUrl?.trim() || undefined,
+  date: { ...e.date, display: e.date.display.trim() },
+  sources: e.sources.map((s) => s.trim()).filter(Boolean),
+});
+
+export default function EventForm({ original, isNew, onSave, onDelete, onDirtyChange, timeline }: FormProps<TimelineEvent> & { timeline: Timeline }) {
+  const { draft, patch, dirty, saving, submit, reset } = useDraft(original, onSave, onDirtyChange);
+
+  const errors = {
+    title: draft.title.trim() ? undefined : 'Give the event a title',
+    date: draft.date.display.trim() ? undefined : 'Give the date a label',
+  };
+  const valid = !errors.title && !errors.date;
+  const era = eraFor(draft.date.sortKey, timeline.eras);
+
+  const otherEvents = [...timeline.events]
+    .filter((e) => e.id !== original.id)
+    .sort(compareEvents)
+    .map((e) => ({ id: e.id, label: `${e.date.display} · ${e.title}` }));
+
+  function toggleCategory(id: string) {
+    const ids = draft.categoryIds;
+    patch({ categoryIds: ids.includes(id) ? ids.filter((c) => c !== id) : [...ids, id] });
+  }
+
+  return (
+    <form className="form" onSubmit={(e) => submit(e, clean)}>
+      <div className="form-title-row">
+        <h2 className="form-title">{isNew ? 'New event' : original.title}</h2>
+        {!isNew && <Link className="btn" to={`/t/${timeline.id}?event=${original.id}`}>View on timeline</Link>}
+      </div>
+
+      <Field label="Title" error={dirty ? errors.title : undefined}>
+        <input value={draft.title} onChange={(e) => patch({ title: e.target.value })} autoFocus={isNew} />
+      </Field>
+
+      <DateInput value={draft.date} onChange={(date) => patch({ date })} error={dirty ? errors.date : undefined} />
+      <p className="field-note">{era ? <>Falls in <strong>{era.name}</strong></> : 'Not inside any era'}</p>
+
+      <Field label="Summary" hint="One line, shown when hovering the node">
+        <input value={draft.summary} maxLength={160} onChange={(e) => patch({ summary: e.target.value })} />
+      </Field>
+
+      <Field label="Categories" group hint={timeline.categories.length === 0 ? 'Add categories in the Categories tab' : 'The first one picked sets the node colour'}>
+        <div className="chips">
+          {timeline.categories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`chip chip-toggle${draft.categoryIds.includes(c.id) ? ' is-on' : ''}`}
+              style={{ borderColor: c.color }}
+              aria-pressed={draft.categoryIds.includes(c.id)}
+              onClick={() => toggleCategory(c.id)}
+            >
+              <span className="swatch" style={{ background: c.color }} /> {c.name}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <MarkdownField label="Details" value={draft.body} onChange={(body) => patch({ body })} />
+
+      <Field label="Places" group hint={timeline.places.length === 0 ? 'Add places in the Places tab' : undefined}>
+        <MultiPicker
+          label="Add a place"
+          placeholder="Add a place…"
+          options={timeline.places.map((p) => ({ id: p.id, label: p.name }))}
+          value={draft.placeIds}
+          onChange={(placeIds) => patch({ placeIds })}
+        />
+      </Field>
+
+      <Field label="Related events" group hint="Links are two-way: the other event will link back here">
+        <MultiPicker
+          label="Add a related event"
+          placeholder="Add a related event…"
+          options={otherEvents}
+          value={draft.relatedIds}
+          onChange={(relatedIds) => patch({ relatedIds })}
+        />
+      </Field>
+
+      <Field label="Sources" hint="One per line, e.g. a book title">
+        <textarea rows={3} value={draft.sources.join('\n')} onChange={(e) => patch({ sources: e.target.value.split('\n') })} />
+      </Field>
+
+      <Field label="Image URL" hint="Optional. Shown in the info box">
+        <input type="url" value={draft.imageUrl ?? ''} placeholder="https://…" onChange={(e) => patch({ imageUrl: e.target.value })} />
+      </Field>
+
+      <FormActions isNew={isNew} dirty={dirty} valid={valid} saving={saving} onRevert={reset} onDelete={onDelete} />
+    </form>
+  );
+}

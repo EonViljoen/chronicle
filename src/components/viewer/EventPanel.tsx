@@ -33,7 +33,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
           <h2 className="event-panel-title">{event.title}</h2>
         </div>
         <div className="event-panel-actions">
-          <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+          <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=${event.id}`}>Edit</Link>
           <button className="btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>

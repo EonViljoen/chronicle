@@ -23,6 +23,6 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). Planned: three
 
 1. ✅ Data model, storage, import/export, home screen
 2. ✅ Timeline viewer: nodes, info box, arrow navigation, era bands, deep links
-3. Editor: forms for eras, categories, events, places
+3. ✅ Editor: forms for eras, categories, events, places
 4. 3D starmap with clickable places
 5. Link timeline and map, filters, search, polish

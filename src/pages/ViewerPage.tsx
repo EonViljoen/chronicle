@@ -12,7 +12,10 @@ export default function ViewerPage() {
               <h1>{timeline.title}</h1>
               {timeline.description && <p className="muted page-desc">{timeline.description}</p>}
             </div>
-            <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+            <div className="page-head-actions">
+              <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=new`}>+ Add event</Link>
+              <Link className="btn" to={`/t/${timeline.id}/edit`}>Edit</Link>
+            </div>
           </div>
           <TimelineViewer timeline={timeline} />
         </div>

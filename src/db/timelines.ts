@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
 import { assertTimeline } from '../lib/validate';
 import { SCHEMA_VERSION, type Timeline } from '../types/timeline';
+import { slugify } from '../lib/ids';
 
 /*
  * Everything the UI needs to read and write timelines.
@@ -51,6 +52,20 @@ export async function createTimeline(title: string): Promise<Timeline> {
 
 export async function saveTimeline(timeline: Timeline) {
   await db.timelines.put({ ...timeline, updatedAt: Date.now() });
+}
+
+/**
+ * Apply a change to the latest stored copy of a timeline.
+ * `recipe` gets the current timeline and returns the updated one (see
+ * lib/mutations.ts). Running it inside a transaction means two quick saves
+ * can't overwrite each other with stale data.
+ */
+export async function updateTimeline(id: string, recipe: (timeline: Timeline) => Timeline) {
+  await db.transaction('rw', db.timelines, async () => {
+    const current = await db.timelines.get(id);
+    if (!current) throw new Error('Timeline not found');
+    await db.timelines.put({ ...recipe(current), id, updatedAt: Date.now() });
+  });
 }
 
 export async function deleteTimeline(id: string) {
@@ -103,8 +118,4 @@ export async function loadDemo(name: string): Promise<Timeline> {
   const data: unknown = await res.json();
   assertTimeline(data);
   return addCopy(data);
-}
-
-function slugify(text: string) {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
