@@ -9,6 +9,10 @@ npm install
 npm run dev
 ```
 
+## Sample timeline
+
+`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, a named-ages calendar, eras, the 3D starmap and a flat map). Load it with **Import file…** on the home page.
+
 ## How data is stored
 
 Everything is saved in your browser (IndexedDB). There are no accounts and no server. Use **Export** to save a timeline as a `.json` file for backup or sharing, and **Import file…** to load one.

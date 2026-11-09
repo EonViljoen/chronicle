@@ -1,0 +1,474 @@
+{
+  "id": "test-timeline",
+  "schemaVersion": 3,
+  "title": "Test: The Shattered Realms",
+  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras, both maps. The setting is made up.",
+  "calendar": {
+    "type": "ages",
+    "format": "{age} {year}",
+    "ages": [
+      {
+        "name": "Age of Embers",
+        "short": "E.A.",
+        "length": 500
+      },
+      {
+        "name": "Age of Crowns",
+        "short": "C.A.",
+        "length": 800
+      },
+      {
+        "name": "Age of Stars",
+        "short": "S.A.",
+        "length": 1000
+      }
+    ]
+  },
+  "eras": [
+    {
+      "id": "kindling",
+      "name": "The Kindling",
+      "color": "#a8862d",
+      "start": 1,
+      "end": 500
+    },
+    {
+      "id": "crown-wars",
+      "name": "The Crown Wars",
+      "color": "#8a1f1f",
+      "start": 501,
+      "end": 900
+    },
+    {
+      "id": "long-peace",
+      "name": "The Long Peace",
+      "color": "#4a6a8a",
+      "start": 901,
+      "end": 1300
+    },
+    {
+      "id": "skyfall",
+      "name": "The Skyfall",
+      "color": "#3b5b7a",
+      "start": 1301,
+      "end": 2400
+    }
+  ],
+  "factions": [
+    {
+      "id": "concord",
+      "name": "The Concord",
+      "color": "#c9a227",
+      "themeId": "parchment"
+    },
+    {
+      "id": "wardens",
+      "name": "Wardens of the Vale",
+      "color": "#4f8a3c",
+      "parentId": "concord"
+    },
+    {
+      "id": "lantern",
+      "name": "Lantern Keepers",
+      "color": "#e0b850",
+      "parentId": "wardens"
+    },
+    {
+      "id": "ashen",
+      "name": "Ashen Order",
+      "color": "#8c8c8c",
+      "parentId": "concord"
+    },
+    {
+      "id": "crown",
+      "name": "The Hollow Crown",
+      "color": "#8e1b1b",
+      "themeId": "gothic"
+    },
+    {
+      "id": "thornguard",
+      "name": "Thornguard",
+      "color": "#6b2a5a",
+      "parentId": "crown"
+    },
+    {
+      "id": "exiles",
+      "name": "Star-Exiles",
+      "color": "#39d0ff",
+      "themeId": "void"
+    },
+    {
+      "id": "freeholds",
+      "name": "The Freeholds",
+      "color": "#b0703a"
+    }
+  ],
+  "places": [
+    {
+      "id": "brightvale",
+      "name": "Brightvale",
+      "description": "Capital of the Concord, on the river Lume.",
+      "position": [
+        -38,
+        0,
+        22
+      ],
+      "pin": [
+        0.23,
+        0.4
+      ]
+    },
+    {
+      "id": "emberfall",
+      "name": "Emberfall",
+      "description": "Where the first fire was kindled.",
+      "position": [
+        -55,
+        2,
+        -10
+      ],
+      "pin": [
+        0.17,
+        0.55
+      ]
+    },
+    {
+      "id": "hollowhold",
+      "name": "Hollowhold",
+      "description": "Seat of the Hollow Crown, carved into the Reach.",
+      "position": [
+        30,
+        -1,
+        -35
+      ],
+      "pin": [
+        0.66,
+        0.27
+      ]
+    },
+    {
+      "id": "thornwatch",
+      "name": "Thornwatch",
+      "description": "Island fortress of the Thornguard.",
+      "position": [
+        45,
+        0,
+        40
+      ],
+      "pin": [
+        0.67,
+        0.75
+      ]
+    },
+    {
+      "id": "glass-sea",
+      "name": "The Glass Sea",
+      "description": "A sea that froze clear in a single night.",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "pin": [
+        0.49,
+        0.5
+      ]
+    },
+    {
+      "id": "skyfall",
+      "name": "Skyfall Crater",
+      "description": "Where the exile ships came down.",
+      "position": [
+        75,
+        6,
+        10
+      ],
+      "pin": [
+        0.9,
+        0.68
+      ]
+    }
+  ],
+  "map": {
+    "type": "galaxy3d",
+    "arms": 3,
+    "radius": 100,
+    "coreColor": "#ffe2b0",
+    "armColor": "#8fb4ff"
+  },
+  "flatMap": {
+    "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjEwMDAiIHZpZXdCb3g9IjAgMCAxNjAwIDEwMDAiPgo8ZGVmcz4KPHJhZGlhbEdyYWRpZW50IGlkPSJwYXBlciIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNzUlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNlY2RmYmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNjOWI0OGEiLz48L3JhZGlhbEdyYWRpZW50Pgo8cGF0dGVybiBpZD0id2F2ZXMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTAgcTEwIC04IDIwIDAgdDIwIDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTNhOCIgc3Ryb2tlLXdpZHRoPSIxLjIiIG9wYWNpdHk9IjAuNSIvPjwvcGF0dGVybj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSIxMDAwIiBmaWxsPSJ1cmwoI3BhcGVyKSIvPgo8cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSIxMDAwIiBmaWxsPSJ1cmwoI3dhdmVzKSIvPgo8ZyBmaWxsPSIjYjliMDdhIiBzdHJva2U9IiM1YjRhMmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xODAgMjYwIEMyNjAgMTYwIDQzMCAxNDAgNTYwIDE5MCBDNjkwIDI0MCA3NjAgMzMwIDc0MCA0NTAgQzcyMCA1NjAgNjQwIDY0MCA1MjAgNjkwIEM0MDAgNzQwIDI2MCA3MjAgMjAwIDYyMCBDMTQwIDUyMCAxMTAgMzYwIDE4MCAyNjAgWiIvPgo8cGF0aCBkPSJNODIwIDE4MCBDOTMwIDExMCAxMTEwIDEyMCAxMjIwIDIwMCBDMTMzMCAyODAgMTM2MCA0MDAgMTMwMCA1MDAgQzEyNDAgNjAwIDExMTAgNjIwIDEwMTAgNTgwIEM5MTAgNTQwIDgzMCA0NjAgODAwIDM2MCBDNzgwIDI5MCA3NjAgMjMwIDgyMCAxODAgWiIvPgo8cGF0aCBkPSJNOTAwIDY2MCBDOTkwIDYyMCAxMTMwIDY0MCAxMjAwIDcxMCBDMTI3MCA3ODAgMTI1MCA4NzAgMTE1MCA5MDAgQzEwNTAgOTMwIDkzMCA5MDAgODgwIDgzMCBDODMwIDc2MCA4NDAgNjkwIDkwMCA2NjAgWiIvPgo8cGF0aCBkPSJNMTM4MCA2NDAgQzE0MzAgNjEwIDE0OTAgNjMwIDE1MDAgNjgwIEMxNTEwIDczMCAxNDcwIDc3MCAxNDIwIDc2MCBDMTM3MCA3NTAgMTM0MCA2ODAgMTM4MCA2NDAgWiIvPgo8L2c+CjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVmOGE5OSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiPgo8cGF0aCBkPSJNMzMwIDI2MCBDMzYwIDM0MCAzMzAgNDIwIDM4MCA1MDAgQzQyMCA1NjAgNDcwIDYwMCA1MjAgNjkwIi8+CjxwYXRoIGQ9Ik0xMDQwIDIyMCBDMTA2MCAzMDAgMTAyMCAzODAgMTA4MCA0NTAgQzExMjAgNTAwIDExNTAgNTQwIDExODAgNTgwIi8+CjwvZz4KPGcgZmlsbD0iIzdhNmE0YSIgb3BhY2l0eT0iMC44Ij4KPHBhdGggZD0iTTU2MCAzMDAgbDI1IC00NSBsMjUgNDUgWiIvPjxwYXRoIGQ9Ik02MDAgMzIwIGwyMiAtNDAgbDIyIDQwIFoiLz48cGF0aCBkPSJNNjMwIDI5MCBsMjUgLTQ1IGwyNSA0NSBaIi8+CjxwYXRoIGQ9Ik0xMTUwIDMwMCBsMjUgLTQ1IGwyNSA0NSBaIi8+PHBhdGggZD0iTTExOTAgMzIwIGwyMiAtNDAgbDIyIDQwIFoiLz4KPC9nPgo8ZyBmaWxsPSIjM2Y1YTNhIiBvcGFjaXR5PSIwLjU1Ij4KPGNpcmNsZSBjeD0iMjYwIiBjeT0iNDgwIiByPSIxNiIvPjxjaXJjbGUgY3g9IjI5MCIgY3k9IjUwMCIgcj0iMTQiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSI1MjAiIHI9IjEzIi8+PGNpcmNsZSBjeD0iOTMwIiBjeT0iNDIwIiByPSIxNSIvPjxjaXJjbGUgY3g9Ijk2MCIgY3k9IjQ0MCIgcj0iMTMiLz4KPC9nPgo8ZyBmb250LWZhbWlseT0iR2VvcmdpYSwgc2VyaWYiIGZpbGw9IiMzYjJjMTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgo8dGV4dCB4PSI4MDAiIHk9IjcwIiBmb250LXNpemU9IjU0IiBsZXR0ZXItc3BhY2luZz0iNiI+VEhFIFNIQVRURVJFRCBSRUFMTVM8L3RleHQ+Cjx0ZXh0IHg9IjQ1MCIgeT0iNTYwIiBmb250LXNpemU9IjM0IiBmb250LXN0eWxlPSJpdGFsaWMiPlZhbGUgb2YgQ29uY29yZDwvdGV4dD4KPHRleHQgeD0iMTA2MCIgeT0iMzUwIiBmb250LXNpemU9IjM0IiBmb250LXN0eWxlPSJpdGFsaWMiPkhvbGxvdyBSZWFjaDwvdGV4dD4KPHRleHQgeD0iMTA2MCIgeT0iNzkwIiBmb250LXNpemU9IjI4IiBmb250LXN0eWxlPSJpdGFsaWMiPklzbGUgb2YgVGhvcm5zPC90ZXh0Pgo8dGV4dCB4PSI3ODAiIHk9IjU2MCIgZm9udC1zaXplPSIyNiIgZmlsbD0iIzNkNWI2MiIgZm9udC1zdHlsZT0iaXRhbGljIj5UaGUgR2xhc3MgU2VhPC90ZXh0Pgo8L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NDAgMTQwKSIgc3Ryb2tlPSIjM2IyYzE1IiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiPjxjaXJjbGUgcj0iNjAiLz48cGF0aCBkPSJNMCAtODAgTDEyIDAgTDAgODAgTC0xMiAwIFoiIGZpbGw9IiMzYjJjMTUiLz48cGF0aCBkPSJNLTgwIDAgTDAgLTEwIEw4MCAwIEwwIDEwIFoiLz48L2c+CjxyZWN0IHg9IjEyIiB5PSIxMiIgd2lkdGg9IjE1NzYiIGhlaWdodD0iOTc2IiBmaWxsPSJub25lIiBzdHJva2U9IiM1YjRhMmMiIHN0cm9rZS13aWR0aD0iNiIvPgo8L3N2Zz4=",
+    "width": 1600,
+    "height": 1000
+  },
+  "theme": "default",
+  "website": {
+    "name": "The Shattered Realms",
+    "tagline": "a sample Chronicle",
+    "mark": "✦",
+    "footer": "A made-up setting, for trying out Chronicle."
+  },
+  "events": [
+    {
+      "id": "first-fire",
+      "title": "The First Fire",
+      "summary": "Wanderers kindle a fire that never goes out.",
+      "body": "Long before anyone counted years, wanderers lit a fire at **Emberfall**. Every later age is counted from its light.\n\nThis entry uses a *free-text date*.",
+      "date": {
+        "sortKey": -200,
+        "precision": "circa",
+        "label": "Before the reckoning"
+      },
+      "factionIds": [
+        "freeholds"
+      ],
+      "placeIds": [
+        "emberfall"
+      ],
+      "relatedIds": [],
+      "sources": [
+        "The Ember Chronicle, book I"
+      ],
+      "mainFactionId": "freeholds"
+    },
+    {
+      "id": "vale-founded",
+      "title": "Founding of Brightvale",
+      "summary": "The first walls rise beside the river Lume.",
+      "body": "Settlers from Emberfall build a walled town on the Lume. It becomes **Brightvale**, later the Concord's capital.",
+      "date": {
+        "sortKey": 12,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "freeholds",
+        "wardens"
+      ],
+      "placeIds": [
+        "brightvale"
+      ],
+      "relatedIds": [
+        "concord-sworn"
+      ],
+      "sources": [],
+      "mainFactionId": "wardens"
+    },
+    {
+      "id": "ashen-rite",
+      "title": "The Ashen Rite",
+      "summary": "An order forms to guard the First Fire.",
+      "body": "Keepers of the flame swear the *Ashen Rite*. The exact year is lost; the chroniclers agree on the decade.",
+      "date": {
+        "sortKey": 240,
+        "precision": "decade"
+      },
+      "factionIds": [
+        "ashen"
+      ],
+      "placeIds": [
+        "emberfall"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "ashen"
+    },
+    {
+      "id": "concord-sworn",
+      "title": "The Concord Is Sworn",
+      "summary": "Five towns swear one oath.",
+      "body": "Brightvale and four towns of the Vale bind themselves into **the Concord**.\n\n- Common law\n- Common defence\n- A shared council",
+      "date": {
+        "sortKey": 488,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "concord",
+        "wardens",
+        "ashen"
+      ],
+      "placeIds": [
+        "brightvale"
+      ],
+      "relatedIds": [
+        "vale-founded",
+        "crown-rises"
+      ],
+      "sources": [],
+      "mainFactionId": "concord"
+    },
+    {
+      "id": "crown-rises",
+      "title": "The Hollow Crown Rises",
+      "summary": "A pretender claims the Reach.",
+      "body": "Across the water, the warlord **Maren Hollow** crowns herself in a hall carved from the cliffs. The Age of Crowns begins.",
+      "date": {
+        "sortKey": 503,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown"
+      ],
+      "placeIds": [
+        "hollowhold"
+      ],
+      "relatedIds": [
+        "concord-sworn",
+        "crown-wars"
+      ],
+      "sources": [],
+      "mainFactionId": "crown"
+    },
+    {
+      "id": "crown-wars",
+      "title": "The Crown Wars",
+      "summary": "Forty years of war across the Glass Sea.",
+      "body": "Concord and Crown fight over the sea lanes. Fleets of both sides are lost on **the Glass Sea**.",
+      "date": {
+        "sortKey": 640,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown",
+        "wardens",
+        "concord"
+      ],
+      "placeIds": [
+        "glass-sea",
+        "hollowhold",
+        "brightvale"
+      ],
+      "relatedIds": [
+        "crown-rises",
+        "glass-night"
+      ],
+      "sources": [],
+      "mainFactionId": "crown"
+    },
+    {
+      "id": "glass-night",
+      "title": "The Glass Night",
+      "summary": "The sea freezes clear in a single night.",
+      "body": "Both fleets are caught as the sea turns to glass. The war ends with no victor.",
+      "date": {
+        "sortKey": 681,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown",
+        "concord"
+      ],
+      "placeIds": [
+        "glass-sea"
+      ],
+      "relatedIds": [
+        "crown-wars"
+      ],
+      "sources": [
+        "Accounts of the survivors"
+      ]
+    },
+    {
+      "id": "thorn-oath",
+      "title": "Oath of the Thornguard",
+      "summary": "The Crown's last loyalists withdraw to Thornwatch.",
+      "body": "The remnant of the Hollow Crown's guard takes the island of Thornwatch and swears to hold it.",
+      "date": {
+        "sortKey": 902,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "thornguard"
+      ],
+      "placeIds": [
+        "thornwatch"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "thornguard"
+    },
+    {
+      "id": "lanterns",
+      "title": "The Lantern Keepers",
+      "summary": "The Wardens light watchfires along the coast.",
+      "body": "A branch of the Wardens takes up the coastal fires: the *Lantern Keepers*.\n\nThis is a sub-sub-faction: Concord › Wardens › Lantern Keepers. Filtering by the Concord includes it.",
+      "date": {
+        "sortKey": 1140,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "lantern"
+      ],
+      "placeIds": [
+        "brightvale"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "lantern"
+    },
+    {
+      "id": "skyfall",
+      "title": "Skyfall",
+      "summary": "Ships fall from the sky.",
+      "body": "Burning vessels come down beyond the eastern isles. Their crews call themselves the **Star-Exiles**. The Age of Stars begins.",
+      "date": {
+        "sortKey": 1301,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "exiles"
+      ],
+      "placeIds": [
+        "skyfall"
+      ],
+      "relatedIds": [
+        "first-contact"
+      ],
+      "sources": [],
+      "mainFactionId": "exiles"
+    },
+    {
+      "id": "first-contact",
+      "title": "First Contact at Brightvale",
+      "summary": "Exile envoys reach the Concord's council.",
+      "body": "The Star-Exiles send envoys to Brightvale. The council argues for a year.",
+      "date": {
+        "sortKey": 1309,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "exiles",
+        "concord"
+      ],
+      "placeIds": [
+        "brightvale",
+        "skyfall"
+      ],
+      "relatedIds": [
+        "skyfall"
+      ],
+      "sources": [],
+      "mainFactionId": "exiles"
+    },
+    {
+      "id": "age-of-stars",
+      "title": "The Exiles' Long Voyage",
+      "summary": "Only the age is known.",
+      "body": "The Exiles' own records of their voyage are undated: the chroniclers place it *somewhere in the Age of Stars*.\n\nThis date only gives the age (precision \"period\").",
+      "date": {
+        "sortKey": 1301,
+        "precision": "period"
+      },
+      "factionIds": [
+        "exiles"
+      ],
+      "placeIds": [
+        "skyfall"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "exiles"
+    }
+  ],
+  "createdAt": 0,
+  "updatedAt": 0
+}
