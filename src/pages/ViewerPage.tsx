@@ -10,8 +10,7 @@ export default function ViewerPage() {
       {(timeline) => (
         <div className="page">
           <div className="page-head">
-            <div>
-              <h1>{timeline.title}</h1>
+            <div className="page-head-main">
               {timeline.description && <p className="muted page-desc">{timeline.description}</p>}
             </div>
             <div className="page-head-actions">

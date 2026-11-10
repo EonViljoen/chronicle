@@ -48,7 +48,7 @@ a { color: var(--accent); }
 .brand { font-family: var(--font-heading); font-size: 1.3rem; text-decoration: none; color: var(--text); }
 .brand-mark { color: var(--accent); }
 .brand-sub { color: var(--muted); font-size: 0.85rem; }
-.app-main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+.app-main { max-width: 1700px; margin: 0 auto; padding: 30px 16px 64px; }
 .app-footer { max-width: 1100px; margin: 0 auto; padding: 16px 16px 32px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; }
 
 /* Buttons */
@@ -142,14 +142,23 @@ input {
 
 /* Placeholder pages */
 .page-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+/* The text side grows into the free space; the actions keep their own size on the right */
+.page-head-main { flex: 1 1 320px; min-width: 0; }
+.page-head-actions { flex: none; }
 .plain-list { padding-left: 20px; }
 .plain-list li { margin: 4px 0; }
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; }
 
 /* ===== Viewer ===== */
-.page-desc { margin: -8px 0 0; max-width: 70ch; font-size: 0.9rem; }
+.page-desc { margin: 0; font-size: 1.2rem; }
+/* A rule under the description, like the header's, but only 70% as wide.
+   Drawn as its own little box (::after) so the text keeps the full width. */
+.page-desc::after {
+  content: ''; display: block; width: 70%; margin-top: 8px;
+  border-bottom: 1px solid var(--border); margin: 8px 2% 0;
+}
 
-.viewer { --gap: 170px; display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.viewer { --gap: 170px; display: flex; flex-direction: column; gap: 14px; margin-top: 64px; }
 @media (max-width: 640px) { .viewer { --gap: 130px; } }
 
 /* Era jump bar and filters */
