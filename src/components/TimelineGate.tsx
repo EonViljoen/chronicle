@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { recordOpened } from '../lib/recent';
 import { Link, useParams } from 'react-router-dom';
 import { useTimeline } from '../db/timelines';
 import type { Timeline } from '../types/timeline';
@@ -25,13 +26,18 @@ export default function TimelineGate({ children }: { children: (timeline: Timeli
   const [override, setOverride] = useState<Theme | null>(null);
   // Hooks must run on every render, so these sit above the early returns
   useTheme(override ?? (entry ? resolveTheme(entry.timeline, library) : undefined));
+  // Remember it for the timelines page's "Pick up where you left off"
+  const openedId = entry?.timeline.id;
+  useEffect(() => {
+    if (openedId) recordOpened(openedId);
+  }, [openedId]);
 
   if (entry === undefined) return <p className="muted">Loading…</p>;
   if (entry === null) {
     return (
       <div className="empty">
         <p>That timeline doesn't exist in this browser.</p>
-        <Link className="btn" to="/">Back to the timelines</Link>
+        <Link className="btn" to="/timelines">Back to the timelines</Link>
       </div>
     );
   }

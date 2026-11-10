@@ -3,6 +3,7 @@ import { createBrowserRouter, createHashRouter, RouterProvider } from 'react-rou
 import { brand } from './brand';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
+import TimelinesPage from './pages/TimelinesPage';
 import ViewerPage from './pages/ViewerPage';
 import EditorPage from './pages/EditorPage';
 import MapPage from './pages/MapPage';
@@ -17,6 +18,7 @@ const routes = [
     element: <Layout />,
     children: [
       { path: '/', element: <HomePage /> },
+      { path: '/timelines', element: <TimelinesPage /> },
       { path: '/t/:id', element: <ViewerPage /> },
       { path: '/t/:id/edit', element: <EditorPage /> },
       { path: '/t/:id/map', element: <MapPage /> },
