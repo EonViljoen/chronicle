@@ -28,11 +28,11 @@ export default function TimelineCard({ timeline, onError, published = false }: P
   return (
     <article className="card">
       {/* Era colours as a strip, a quick visual fingerprint of the timeline */}
-      <div className="card-eras" aria-hidden="true">
+      {/* <div className="card-eras" aria-hidden="true">
         {timeline.eras.map((era) => (
           <span key={era.id} style={{ background: era.color }} />
         ))}
-      </div>
+      </div> */}
 
       <h2 className="card-title">
         <Link to={`/t/${timeline.id}`}>{timeline.title}</Link>

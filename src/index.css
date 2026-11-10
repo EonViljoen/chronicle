@@ -30,6 +30,7 @@ body {
   font-family: var(--font-body);
   font-size: var(--font-size);
   line-height: 1.5;
+  overflow-x: clip;
 }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.02em; }
 h1 { font-family: var(--font-heading); }
@@ -88,7 +89,7 @@ input {
 }
 .card-eras { display: flex; height: 6px; margin: 0 -18px 14px; background: var(--surface-2); }
 .card-eras span { flex: 1; }
-.card-title { margin: 0 0 6px; font-size: 1.2rem; }
+.card-title { margin: 12px 0 6px; font-size: 1.2rem; }
 .card-title a { color: var(--text); text-decoration: none; }
 .card-title a:hover { color: var(--accent); }
 .card-desc { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
@@ -133,7 +134,7 @@ input {
 .chip-place { color: var(--muted); }
 
 /* Stage: the scrolling track with an arrow on each side */
-.stage { position: relative; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.stage { position: relative; background: var(--surface); overflow: hidden; width: 100vw; margin-left: calc(50% - 50vw);}
 .track-scroller { overflow-x: auto; scrollbar-width: thin; }
 .track-row { display: flex; width: 100%; }
 /* Spacers let the first and last node scroll to the centre */
