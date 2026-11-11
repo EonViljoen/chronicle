@@ -142,20 +142,22 @@ input {
 
 /* Placeholder pages */
 .page-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-/* The text side grows into the free space; the actions keep their own size on the right */
-.page-head-main { flex: 1 1 320px; min-width: 0; }
-.page-head-actions { flex: none; }
+/* The description takes a whole row (100%), which pushes the actions onto the
+   next row; margin-left: auto then uses up the free space on their left, so they sit on the right */
+.page-head-main { flex: 1 1 100%; min-width: 0; }
+.page-head-actions { flex: none; margin-left: auto; }
 .plain-list { padding-left: 20px; }
 .plain-list li { margin: 4px 0; }
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; }
 
 /* ===== Viewer ===== */
-.page-desc { margin: 0; font-size: 1.2rem; }
+.page-desc { margin: 0; font-size: 1.2rem; text-align: center; }
 /* A rule under the description, like the header's, but only 70% as wide.
-   Drawn as its own little box (::after) so the text keeps the full width. */
+   Drawn as its own little box (::after) so the text keeps the full width.
+   Auto left/right margins centre it (text-align only centres the text). */
 .page-desc::after {
-  content: ''; display: block; width: 70%; margin-top: 8px;
-  border-bottom: 1px solid var(--border); margin: 8px 2% 0;
+  content: ''; display: block; width: 70%; margin: 8px auto 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .viewer { --gap: 170px; display: flex; flex-direction: column; gap: 14px; margin-top: 64px; }
