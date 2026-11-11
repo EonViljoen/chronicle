@@ -48,7 +48,9 @@ a { color: var(--accent); }
 .brand { font-family: var(--font-heading); font-size: 1.3rem; text-decoration: none; color: var(--text); }
 .brand-mark { color: var(--accent); }
 .brand-sub { color: var(--muted); font-size: 0.85rem; }
-.app-main { max-width: 1700px; margin: 0 auto; padding: 30px 16px 64px; }
+/* position + isolation: a box for the era glow to fill, and its own layer
+   stack, so the glow's z-index: -1 puts it behind the page but above the body */
+.app-main { max-width: 1700px; margin: 0 auto; padding: 30px 16px 64px; position: relative; isolation: isolate; }
 .app-footer { max-width: 1100px; margin: 0 auto; padding: 16px 16px 32px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; }
 
 /* Buttons */
@@ -169,10 +171,11 @@ input {
 .era-chip {
   flex: 0 0 auto; padding: 5px 12px; border-radius: calc(var(--radius) * 2.5); cursor: pointer;
   border: 1px solid color-mix(in srgb, var(--era-color) 60%, var(--border));
-  background: color-mix(in srgb, var(--era-color) 14%, transparent);
+  /* Mixed with the surface (not see-through), so the chips stay solid over the era glow */
+  background: color-mix(in srgb, var(--era-color) 14%, var(--surface));
   color: var(--text); font: inherit; font-size: 0.8rem; white-space: nowrap;
 }
-.era-chip:hover:not(:disabled) { background: color-mix(in srgb, var(--era-color) 30%, transparent); }
+.era-chip:hover:not(:disabled) { background: color-mix(in srgb, var(--era-color) 30%, var(--surface)); }
 .era-chip.is-current { background: color-mix(in srgb, var(--era-color) 45%, var(--surface)); border-color: var(--era-color); font-weight: 600; }
 .era-chip:disabled { opacity: 0.35; cursor: default; }
 
@@ -188,8 +191,74 @@ input {
 .chip-toggle:hover, .chip-link:hover { opacity: 1; border-color: var(--accent); }
 .chip-place { color: var(--muted); }
 
-/* Stage: the scrolling track with an arrow on each side */
-.stage { position: relative; background: var(--surface); overflow: hidden; width: 100vw; margin-left: calc(50% - 50vw);}
+/* ----- Era glow: the era on show, as a radial wash behind the viewer page -----
+   .viewer isn't positioned, so this is placed against .app-main: its full
+   height, and the full window width like the stage. z-index -1 sits it
+   behind every control (see .app-main). Registering --glow-color as a colour
+   (@property) lets it fade smoothly between eras; gradients can't transition. */
+@property --glow-color { syntax: '<color>'; inherits: false; initial-value: transparent; }
+/* The shape comes from the theme (Edit → Theme → Era glow): apply.ts sets
+   --glow-width, --glow-height… as plain numbers, and the units are added
+   here. On the page a width step is 1vw and a height step 1px; the editor's
+   preview swaps in smaller units to draw the same glow in miniature. */
+.era-glow {
+  --glow-unit-w: 1vw;
+  --glow-unit-h: 1px;
+  --glow-color: var(--era-glow-color, transparent);
+  position: absolute; top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw;
+  z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse calc(var(--glow-width, 70) * var(--glow-unit-w)) calc(var(--glow-height, 520) * var(--glow-unit-h))
+        at calc(var(--glow-x, 50) * 1%) calc(var(--glow-y, 420) * var(--glow-unit-h)),
+      color-mix(in srgb, var(--glow-color) calc(var(--glow-strength, 42) * 1%), transparent),
+      color-mix(in srgb, var(--glow-color) calc(var(--glow-strength, 42) * 0.3%), transparent) calc(var(--glow-spread, 60) * 1%),
+      transparent);
+}
+/* Colour source: the era (default), or the theme's accent or highlight colour */
+:root[data-glow-color='accent'] .era-glow { --glow-color: var(--accent); }
+:root[data-glow-color='highlight'] .era-glow { --glow-color: var(--highlight); }
+@media (prefers-reduced-motion: no-preference) { .era-glow { transition: --glow-color 0.6s ease; } }
+
+/* The theme editor's preview: a miniature page, 1440px wide by 900px tall.
+   cqw is 1% of the preview's width, so 100cqw stands for 1440 page pixels. */
+.glow-preview {
+  position: relative; container-type: inline-size; aspect-ratio: 1440 / 900; overflow: hidden; width: min(100%, 520px);
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg);
+}
+.glow-preview .era-glow { --glow-unit-w: 1cqw; --glow-unit-h: calc(100cqw / 1440); left: 0; width: 100%; z-index: 0; }
+/* It follows the theme being edited, not the page's own theme */
+.glow-preview[data-glow-color='era'] .era-glow { --glow-color: var(--era-glow-color); }
+.glow-preview[data-glow-color='accent'] .era-glow { --glow-color: var(--accent); }
+.glow-preview[data-glow-color='highlight'] .era-glow { --glow-color: var(--highlight); }
+/* Where the timeline stage sits on a real page, for reference */
+.glow-preview-stage {
+  position: absolute; left: 0; right: 0; top: calc(100cqw * 380 / 1440); height: calc(100cqw * 210 / 1440);
+  border-block: 1px dashed color-mix(in srgb, var(--text) 30%, transparent);
+  display: grid; place-items: center; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.glow-swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.glow-swatch { width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; }
+.glow-swatch.is-on { border-color: var(--text); }
+
+/* Lifting the controls off the glow: a soft drop shadow on boxes, and a
+   halo in the theme's own background colour behind loose text (so it works
+   on light themes too) */
+.viewer-page {
+  --lift: 0 1px 2px rgb(0 0 0 / 0.25), 0 4px 14px rgb(0 0 0 / 0.22);
+  --halo: 0 1px 2px color-mix(in srgb, var(--bg) 90%, transparent), 0 0 14px color-mix(in srgb, var(--bg) 70%, transparent);
+}
+/* (.chip.is-on keeps its own inset ring, so it's left out) */
+.viewer-page :is(.btn, .era-chip, .chip:not(.is-on), input, select, .event-panel, .viewer-split-map) { box-shadow: var(--lift); }
+.viewer-page :is(.page-desc, .era-band-label, .node-date, .node-title, .stage-arrow, .viewer-hint) { text-shadow: var(--halo); }
+.viewer-page .viewer-hint { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+
+/* Stage: the scrolling track with an arrow on each side. See-through, so the glow shows */
+.stage {
+  position: relative; overflow: hidden; width: 100vw; margin-left: calc(50% - 50vw);
+  background: color-mix(in srgb, var(--surface) 35%, transparent);
+  border-block: 1px solid color-mix(in srgb, var(--era-color) 45%, var(--border));
+}
 /* Side padding keeps the first and last node clear of the arrows */
 .track-scroller { overflow-x: auto; scrollbar-width: thin; padding: 0 56px; }
 @media (max-width: 640px) { .track-scroller { padding: 0 40px; } }
@@ -208,10 +277,8 @@ input {
 }
 
 /* The era's colour wash behind the whole stage, with its name centred on top */
-.era-band {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--era-color) 26%, transparent), color-mix(in srgb, var(--era-color) 6%, transparent));
-}
+/* Holds the era's name; the colour itself now comes from .era-glow */
+.era-band { position: absolute; inset: 0; }
 .era-band-label {
   position: absolute; top: 10px; left: 64px; right: 64px; text-align: center;
   font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase;
@@ -255,8 +322,8 @@ input {
   border: 0; color: var(--text); font-size: 2.4rem; line-height: 1; cursor: pointer;
   transition: opacity 0.2s, color 0.2s;
 }
-.stage-arrow-left { left: 0; background: linear-gradient(90deg, var(--surface) 30%, transparent); }
-.stage-arrow-right { right: 0; background: linear-gradient(270deg, var(--surface) 30%, transparent); }
+.stage-arrow-left { left: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--surface) 75%, transparent) 30%, transparent); }
+.stage-arrow-right { right: 0; background: linear-gradient(270deg, color-mix(in srgb, var(--surface) 75%, transparent) 30%, transparent); }
 .stage-arrow:hover:not(:disabled) { color: var(--accent); }
 .stage-arrow:disabled { opacity: 0.2; cursor: default; }
 .stage-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
@@ -532,6 +599,8 @@ a.chip { text-decoration: none; }
 .theme-tab-head, .theme-current { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
 .theme-tab-head p { margin: 4px 0 0; }
 .theme-current h3 { margin: 0; }
+.theme-group-title { margin: 8px 0 -6px; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.theme-empty { margin: 0; }
 .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .theme-card {
   display: flex; flex-direction: column; gap: 6px; padding: 6px; text-align: left;

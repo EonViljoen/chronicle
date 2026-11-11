@@ -5,6 +5,7 @@ import { compareEvents } from '../../lib/dates';
 import { eraFor, eraSegments } from '../../lib/eras';
 import { expandFactions, factionThemeId, mainFactionOf } from '../../lib/factions';
 import { useThemes } from '../../db/themes';
+import { normalizeTheme } from '../../themes';
 import { useThemeOverride } from '../themeOverride';
 import { matchesFilters, NO_FILTERS, type Filters } from '../../lib/filters';
 import { usePref } from '../../lib/prefs';
@@ -158,7 +159,9 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const themeOf = (factionId: string | undefined) => {
     const id = factionId ? factionThemeId(factionId, timeline.factions) : undefined;
     // A published timeline brings its own copies (themeDefs); otherwise use this browser's library
-    return id ? ([...(timeline.themeDefs ?? []), ...library].find((t) => t.id === id) ?? null) : null;
+    const found = id ? [...(timeline.themeDefs ?? []), ...library].find((t) => t.id === id) : undefined;
+    // Copies in files may be from an older version: fill in any missing options
+    return found ? normalizeTheme(found) : null;
   };
   const focusTheme =
     themeOf(selected ? mainFactionOf(selected) : undefined) ??
@@ -193,6 +196,9 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
 
   return (
     <div className="viewer">
+      {/* The era on show, as a soft glow behind the whole page (positioned against .app-main in CSS) */}
+      <div className="era-glow" aria-hidden="true" style={{ '--era-glow-color': shown?.era?.color ?? 'transparent' } as CSSProperties} />
+
       {timeline.eras.length > 0 && (
         <nav className="era-bar" aria-label="Jump to era">
           {timeline.eras.map((era) => (

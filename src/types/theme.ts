@@ -54,6 +54,25 @@ export interface Theme {
     /** A large decorated first letter in event details */
     dropCap: boolean;
   };
+  /** The radial wash of colour behind the timeline page (see .era-glow in index.css) */
+  glow: ThemeGlow;
+}
+
+export interface ThemeGlow {
+  /** Where the colour comes from: the era on show, or one of the theme's own colours */
+  color: 'era' | 'accent' | 'highlight';
+  /** Strength at the centre, in percent. 0 turns the glow off. */
+  strength: number;
+  /** How far it reaches sideways from the centre, in percent of the window width */
+  width: number;
+  /** How far it reaches up and down from the centre, in pixels */
+  height: number;
+  /** Centre, across the page in percent (50 = middle) */
+  x: number;
+  /** Centre, down from the top of the page in pixels */
+  y: number;
+  /** How far out the colour holds before fading, in percent: low = a tight core, high = a broad wash */
+  spread: number;
 }
 
 export type NodeShape = 'circle' | 'diamond' | 'square';

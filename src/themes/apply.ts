@@ -20,6 +20,22 @@ function brightness(hex: string): number {
 /** CSS string for content: "✠" with quotes and backslashes escaped. */
 const cssString = (s: string) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 
+/**
+ * The glow's numbers as CSS variables, without units: index.css multiplies
+ * them by a unit (--glow-unit-w, --glow-unit-h), so the theme editor's small
+ * preview can draw the same glow at a smaller scale.
+ */
+export function glowVars(glow: Theme['glow']): Record<string, string> {
+  return {
+    '--glow-strength': String(glow.strength),
+    '--glow-width': String(glow.width),
+    '--glow-height': String(glow.height),
+    '--glow-x': String(glow.x),
+    '--glow-y': String(glow.y),
+    '--glow-spread': String(glow.spread),
+  };
+}
+
 export function applyTheme(theme: Theme) {
   const root = document.documentElement;
   const { colors, fonts, shape, ornaments } = theme;
@@ -41,6 +57,7 @@ export function applyTheme(theme: Theme) {
     '--font-body': fontStack(fonts.body),
     '--font-size': `${fonts.size}%`,
     '--glyph': cssString(ornaments.glyph),
+    ...glowVars(theme.glow),
   };
   for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value);
 
@@ -55,6 +72,7 @@ export function applyTheme(theme: Theme) {
     buttons: ornaments.buttons,
     glyph: ornaments.glyph ? 'on' : 'off',
     dropCap: ornaments.dropCap ? 'on' : 'off',
+    glowColor: theme.glow.color,
   });
 
   loadFonts([fonts.heading, fonts.display, fonts.body]);

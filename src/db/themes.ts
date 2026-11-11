@@ -11,7 +11,8 @@ import { slugify } from '../lib/ids';
 
 /** Every theme: presets first, then yours by name. Yours appear once loaded. */
 export function useThemes(): Theme[] {
-  const saved = useLiveQuery(() => db.themes.orderBy('name').toArray());
+  // normalizeTheme fills in options added since a theme was saved (e.g. the era glow)
+  const saved = useLiveQuery(async () => (await db.themes.orderBy('name').toArray()).map(normalizeTheme));
   return [...PRESETS, ...(saved ?? [])];
 }
 

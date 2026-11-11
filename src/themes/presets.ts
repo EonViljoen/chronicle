@@ -1,4 +1,7 @@
-import type { Theme } from '../types/theme';
+import type { Theme, ThemeGlow } from '../types/theme';
+
+/** The era glow every built-in theme starts with: the era's colour, centred on the timeline. */
+export const DEFAULT_GLOW: ThemeGlow = { color: 'era', strength: 42, width: 70, height: 520, x: 50, y: 420, spread: 60 };
 
 /*
  * Built-in themes. They can't be edited, only copied, so they stay a known
@@ -15,6 +18,7 @@ export const PRESETS: Theme[] = [
     fonts: { heading: 'Cinzel', display: 'Cinzel', body: 'Inter', size: 100 },
     shape: { radius: 8, node: 'circle' },
     ornaments: { background: 'plain', headerRule: 'line', frame: 'none', buttons: 'plain', glyph: '', dropCap: false },
+    glow: DEFAULT_GLOW,
   },
   {
     id: 'parchment',
@@ -26,6 +30,7 @@ export const PRESETS: Theme[] = [
     fonts: { heading: 'IM Fell English SC', display: 'IM Fell English SC', body: 'IM Fell English', size: 105 },
     shape: { radius: 3, node: 'circle' },
     ornaments: { background: 'vignette', headerRule: 'line', frame: 'none', buttons: 'plain', glyph: '', dropCap: true },
+    glow: DEFAULT_GLOW,
   },
   {
     id: 'void',
@@ -37,6 +42,7 @@ export const PRESETS: Theme[] = [
     fonts: { heading: 'Orbitron', display: 'Orbitron', body: 'Exo 2', size: 100 },
     shape: { radius: 2, node: 'square' },
     ornaments: { background: 'vignette', headerRule: 'line', frame: 'none', buttons: 'plain', glyph: '', dropCap: false },
+    glow: DEFAULT_GLOW,
   },
   {
     id: 'gothic',
@@ -48,8 +54,27 @@ export const PRESETS: Theme[] = [
     fonts: { heading: 'UnifrakturMaguntia', display: 'Cinzel', body: 'EB Garamond', size: 108 },
     shape: { radius: 2, node: 'diamond' },
     ornaments: { background: 'texture', headerRule: 'double', frame: 'engraved', buttons: 'engraved', glyph: '✠', dropCap: true },
+    glow: DEFAULT_GLOW,
   },
 ];
 
 export const DEFAULT_THEME = PRESETS[0];
+
+/**
+ * The starting point for a new theme based on nothing ("None" in Create
+ * custom theme): plain greys, one clean font, no ornaments. Not a preset,
+ * so it isn't listed or usable on its own.
+ */
+export const BLANK_THEME: Theme = {
+  id: 'blank',
+  name: 'New theme',
+  colors: {
+    bg: '#16171a', surface: '#1f2024', surface2: '#2a2b30', border: '#3a3b42', text: '#e6e6e6',
+    muted: '#9a9ba3', accent: '#7aa2f7', accentInk: '#0b1220', highlight: '#7aa2f7', danger: '#e05d5d',
+  },
+  fonts: { heading: 'Inter', display: 'Inter', body: 'Inter', size: 100 },
+  shape: { radius: 6, node: 'circle' },
+  ornaments: { background: 'plain', headerRule: 'line', frame: 'none', buttons: 'plain', glyph: '', dropCap: false },
+  glow: DEFAULT_GLOW,
+};
 export const isPreset = (id: string) => PRESETS.some((p) => p.id === id);

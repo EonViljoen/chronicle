@@ -37,5 +37,14 @@ export function normalizeTheme(raw: unknown): Theme {
   t.fonts.size = Math.min(130, Math.max(80, t.fonts.size));
   t.shape.radius = Math.min(24, Math.max(0, t.shape.radius));
   t.ornaments.glyph = t.ornaments.glyph.slice(0, 4);
+  // Glow: a known colour source, numbers kept to what the editor's sliders allow
+  const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
+  if (!['era', 'accent', 'highlight'].includes(t.glow.color)) t.glow.color = 'era';
+  t.glow.strength = clamp(t.glow.strength, 0, 80);
+  t.glow.width = clamp(t.glow.width, 10, 150);
+  t.glow.height = clamp(t.glow.height, 100, 1400);
+  t.glow.x = clamp(t.glow.x, 0, 100);
+  t.glow.y = clamp(t.glow.y, 0, 1400);
+  t.glow.spread = clamp(t.glow.spread, 10, 95);
   return t;
 }
