@@ -1,5 +1,5 @@
 import type { Calendar, TimelineEvent } from '../types/timeline';
-import { formatDate } from './dates';
+import { formatSpan } from './dates';
 
 /** What the viewer is currently filtering by. */
 export interface Filters {
@@ -22,7 +22,7 @@ export function matchesFilters(event: TimelineEvent, f: Filters, calendar: Calen
   if (f.factionIds.length > 0 && !event.factionIds.some((id) => f.factionIds.includes(id))) return false;
   if (f.placeId && !event.placeIds.includes(f.placeId)) return false;
   const q = f.query.trim().toLowerCase();
-  if (q && ![event.title, event.summary, event.body, formatDate(event.date, calendar)].some((text) => text.toLowerCase().includes(q))) {
+  if (q && ![event.title, event.summary, event.body, formatSpan(event, calendar)].some((text) => text.toLowerCase().includes(q))) {
     return false;
   }
   return true;

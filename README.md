@@ -11,7 +11,7 @@ npm run dev
 
 ## Sample timeline
 
-`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, characters with feats and life dates, `[[links]]` in text, a named-ages calendar, eras, the 3D starmap and four nested flat maps: The Shattered Realms › Brightvale, and Starmap › The Hollow Reach › Hollowhold Keep). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, an event with no faction, one with no place, a very long title, a character with only a birth date, an independent character with no dates, and a deliberately broken `[[link]]`. Load it with **Import file…** on the timelines page.
+`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, characters with feats and life dates, `[[links]]` in text, a named-ages calendar, eras, the 3D starmap and four nested flat maps: The Shattered Realms › Brightvale, and Starmap › The Hollow Reach › Hollowhold Keep). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, events with end dates (one running into the next era, one outlasting its era), an event with no faction, one with no place, a very long title, a character with only a birth date, an independent character with no dates, and a deliberately broken `[[link]]`. Load it with **Import file…** on the timelines page.
 
 ## How data is stored
 
@@ -44,6 +44,7 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 7. ✅ Themes as data (theme editor, presets), website export, nested factions with themes, main factions, flat image map
 8. ✅ One era at a time with an era glow, landing page, Calendar tab, multiple flat maps nested like factions, Maps and Starmap tabs
 9. ✅ Characters, character / place / faction pages, `[[links]]` in text
+10. ✅ Era overview strip, lanes per faction, events that span time
 
 ## To do
 
@@ -58,7 +59,9 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
   - A planet map type alongside the starmap and flat maps, nestable like any map (opened from a place on its parent map).
   - Settings for its look: a surface picture wrapped round the sphere (or a generated one), colours from the theme, atmosphere, rings, maybe clouds.
   - Places pinned by latitude and longitude, by clicking the globe; it turns to face the selected place.
-- [ ] **Era overview strip.** The stage shows one era at a time, so add a thin bar above it with every era, each sized by how many events it has, marking the era on show. Click an era to jump to it; it shows the whole timeline at a glance.
+- [x] **Era overview strip.** A thin bar above the stage with every era, each as wide as its number of events (empty eras show as slivers), marking the era on show and the selected event. Click an era to jump to it. It replaced the row of era buttons.
+- [x] **Lanes per faction.** **Lanes by faction** in the viewer's toolbar gives each top-level faction its own row, so parallel stories sit side by side; every event keeps its column, so what happened at the same point lines up. An event sits in its main faction's lane, with a faint dot in the lanes of other factions it involves. Remembered per browser.
+- [x] **Events that span time.** An event can have an end date (a war, a reign): it shows as "C.A. 140 – C.A. 350" and is drawn as a bar under the stage, reaching the last event before it ended. A span that began in an earlier era comes in from the left; one that outlasts the era runs off the right.
 - [ ] **Back up everything.** Export every timeline and theme in one file, and restore from it (choosing to replace or keep copies when ids clash). A safety net while everything lives in the browser, and a way to move to another browser or computer.
 - [ ] **Type check script and tests.** Add `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`; plain `tsc -p .` checks nothing, because `tsconfig.json` only lists references) and unit tests (Vitest) for the pure functions in `lib/`: dates, eras, factions, maps, mutations and above all `upgrade.ts`, since upgrades rewrite people's saved data.
 - [ ] **Accounts and cloud saving (Supabase).** Optional sign-in, so your timelines and themes are saved online and follow you between devices. One service does both the sign-in and the storage.

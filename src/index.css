@@ -168,19 +168,29 @@ input {
 .viewer { --gap: 170px; display: flex; flex-direction: column; gap: 14px; margin-top: 64px; }
 @media (max-width: 640px) { .viewer { --gap: 130px; } }
 
-/* Era jump bar and filters */
-.era-bar, .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
-.filter-bar { flex-wrap: wrap; align-items: center; }
-.era-chip {
-  flex: 0 0 auto; padding: 5px 12px; border-radius: calc(var(--radius) * 2.5); cursor: pointer;
-  border: 1px solid color-mix(in srgb, var(--era-color) 60%, var(--border));
-  /* Mixed with the surface (not see-through), so the chips stay solid over the era glow */
-  background: color-mix(in srgb, var(--era-color) 14%, var(--surface));
-  color: var(--text); font: inherit; font-size: 0.8rem; white-space: nowrap;
+/* Filters */
+.filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; flex-wrap: wrap; align-items: center; }
+
+/* Era overview strip: every era, each as wide as its number of events */
+.era-strip { display: flex; gap: 3px; height: 30px; }
+.era-piece {
+  position: relative; flex: 1 1 0; min-width: 6px; padding: 0 8px; overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--era-color) 55%, var(--border)); border-radius: 4px; cursor: pointer;
+  /* Mixed with the surface (not see-through), so it stays solid over the era glow */
+  background: color-mix(in srgb, var(--era-color) 22%, var(--surface));
+  color: var(--text); font: inherit; font-size: 0.75rem; text-align: left;
 }
-.era-chip:hover:not(:disabled) { background: color-mix(in srgb, var(--era-color) 30%, var(--surface)); }
-.era-chip.is-current { background: color-mix(in srgb, var(--era-color) 45%, var(--surface)); border-color: var(--era-color); font-weight: 600; }
-.era-chip:disabled { opacity: 0.35; cursor: default; }
+.era-piece-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.era-piece:hover:not(:disabled) { background: color-mix(in srgb, var(--era-color) 38%, var(--surface)); }
+.era-piece.is-current { background: color-mix(in srgb, var(--era-color) 55%, var(--surface)); border-color: var(--era-color); font-weight: 600; }
+.era-piece.is-no-era { border-style: dashed; }
+/* An era with no events: a sliver, so the gap still shows */
+.era-piece.is-empty { flex: 0 0 8px; padding: 0; opacity: 0.6; }
+.era-piece.is-empty .era-piece-name { display: none; }
+.era-piece:disabled { cursor: default; }
+.era-piece:disabled:not(.is-empty) { opacity: 0.35; }
+.era-piece-marker { position: absolute; bottom: 0; width: 2px; height: 8px; margin-left: -1px; background: var(--text); }
+.era-piece:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
@@ -252,7 +262,7 @@ input {
   --halo: 0 1px 2px color-mix(in srgb, var(--bg) 90%, transparent), 0 0 14px color-mix(in srgb, var(--bg) 70%, transparent);
 }
 /* (.chip.is-on keeps its own inset ring, so it's left out) */
-.viewer-page :is(.btn, .era-chip, .chip:not(.is-on), input, select, .event-panel, .viewer-split-map) { box-shadow: var(--lift); }
+.viewer-page :is(.btn, .era-piece, .chip:not(.is-on), input, select, .event-panel, .viewer-split-map) { box-shadow: var(--lift); }
 .viewer-page :is(.page-desc, .era-band-label, .node-date, .node-title, .stage-arrow, .viewer-hint) { text-shadow: var(--halo); }
 .viewer-page .viewer-hint { background: color-mix(in srgb, var(--surface) 70%, transparent); }
 
@@ -485,6 +495,9 @@ a.chip { text-decoration: none; }
 .toolbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .viewer-search { flex: 1 1 220px; max-width: 360px; }
 .filter-count { color: var(--muted); font-size: 0.85rem; }
+.view-toggle { margin-left: auto; }
+.view-toggle[aria-pressed='true'] { border-color: var(--accent); }
+.view-toggle + .map-toggle { margin-left: 0; }
 .map-toggle { margin-left: auto; }
 .map-toggle[aria-pressed='true'] { border-color: var(--accent); }
 .chip-place-filter { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
@@ -569,7 +582,7 @@ a.chip { text-decoration: none; }
 :root[data-frame='engraved'] .event-panel-section h3 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 
 /* Engraved buttons: small caps in the display font */
-:root[data-buttons='engraved'] :is(.btn, .tab, .era-chip) {
+:root[data-buttons='engraved'] :is(.btn, .tab) {
   font-family: var(--font-display); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
 }
 :root[data-buttons='engraved'] .btn { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 75%, var(--text) 5%), var(--surface-2)); }
@@ -655,7 +668,7 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 
 /* Fade colours when the theme changes (e.g. stepping between factions' events) */
 @media (prefers-reduced-motion: no-preference) {
-  body, .app-header, .stage, .event-panel, .card, .btn, .chip, .era-chip, .track-line {
+  body, .app-header, .stage, .event-panel, .card, .btn, .chip, .era-piece, .track-line {
     transition: background-color 0.45s ease, color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
   }
 }
@@ -849,3 +862,52 @@ a.life-dot:hover { background: var(--accent); }
 .character-card:hover { border-color: var(--accent); }
 .character-card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .character-card-text .muted { font-size: 0.8rem; }
+
+/* ===== Spans: events with an end date, drawn as bars under the titles ===== */
+.span-bar {
+  /* overflow: clip (not hidden) so the label can stay in view while the track scrolls */
+  position: absolute; z-index: 1; height: 16px; padding: 0 8px; overflow: clip;
+  border: 1px solid var(--node-color); border-radius: 8px; cursor: pointer;
+  background: color-mix(in srgb, var(--node-color) 42%, var(--surface));
+  color: var(--text); font: inherit; font-size: 0.68rem; line-height: 14px; text-align: left;
+  transition: opacity 0.2s, background 0.2s;
+}
+.span-bar-label {
+  /* Sticks just inside the left arrow when the bar's start has scrolled away
+     (measured from inside the scroller's padding, which already clears the arrow) */
+  position: sticky; left: 6px; display: inline-block; max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Started in an earlier era / carries on into a later one: open, arrowed ends */
+.span-bar.is-from-before { border-left-style: dashed; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.span-bar.is-from-before .span-bar-label::before { content: '← '; }
+.span-bar.goes-on { border-right-style: dashed; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.span-bar.goes-on .span-bar-label::after { content: ' →'; }
+.span-bar:hover, .span-bar.is-selected { background: color-mix(in srgb, var(--node-color) 70%, var(--surface)); }
+.span-bar.is-selected { box-shadow: 0 0 10px color-mix(in srgb, var(--node-color) 60%, transparent); }
+.span-bar.is-dimmed { opacity: 0.2; }
+.span-bar:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* In lanes: a thick stretch of the lane's own line (more rows step down from it) */
+.span-bar.is-thin { z-index: 0; height: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--node-color); opacity: 0.75; }
+.span-bar.is-thin.is-dimmed { opacity: 0.15; }
+/* A span's node gets a short tail, hinting at the bar */
+.node.is-span .node-dot { box-shadow: 6px 0 0 -3px var(--node-color); }
+
+/* ===== Lanes: one row per top-level faction ===== */
+.lane { position: absolute; left: 0; right: 0; height: 112px; border-bottom: 1px dashed color-mix(in srgb, var(--lane-color) 30%, transparent); }
+.lane-label {
+  position: absolute; top: 4px; left: 4px; z-index: 1; padding-left: 8px;
+  border-left: 3px solid var(--lane-color); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--lane-color) 55%, var(--text));
+}
+.lane-line { background: linear-gradient(90deg, transparent, var(--lane-color) 4%, var(--lane-color) 96%, transparent); opacity: 0.45; }
+/* Compact nodes for lanes: smaller date, dot and title */
+.node.is-compact { gap: 4px; }
+.node.is-compact .node-date { font-size: 0.72rem; }
+.node.is-compact .node-dot { width: 14px; height: 14px; margin-top: 0; border-width: 2px; }
+.node.is-compact .node-title { font-size: 0.74rem; }
+.lane-ghost {
+  position: absolute; left: calc((var(--i) + 0.5) * 100% / var(--n)); width: 8px; height: 8px; margin: -3px 0 0 -4px;
+  border: 1px solid var(--node-color); border-radius: 50%; background: var(--bg); opacity: 0.6; pointer-events: auto;
+}
+.lane-ghost.is-dimmed { opacity: 0.15; }

@@ -190,6 +190,12 @@ export function formatDate(date: EventDate, calendar: Calendar): string {
   return date.precision === 'exact' || date.precision === 'period' ? text : `c. ${text}`;
 }
 
+/** "C.A. 140" for a moment, "C.A. 140 – C.A. 180" for an event with an end date. */
+export function formatSpan(event: Pick<TimelineEvent, 'date' | 'endDate'>, calendar: Calendar): string {
+  const start = formatDate(event.date, calendar);
+  return event.endDate ? `${start} – ${formatDate(event.endDate, calendar)}` : start;
+}
+
 /** Sort comparator: by date, then title so ties are stable. */
 export function compareEvents(a: TimelineEvent, b: TimelineEvent): number {
   return a.date.sortKey - b.date.sortKey || a.title.localeCompare(b.title);

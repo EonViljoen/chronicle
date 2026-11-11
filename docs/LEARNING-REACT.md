@@ -182,6 +182,7 @@ wh40k-timeline/
     │   ├── maps.ts             The starmap and flat maps as one list; the map tree
     │   ├── mutations.ts        Timeline -> new Timeline update functions
     │   ├── prefs.ts            Preferences in localStorage (usePref)
+    │   ├── stage.ts            Stage layout: span bars, faction lanes, the era strip
     │   ├── upgrade.ts          Upgrading timelines saved by older versions
     │   └── validate.ts         Checking imported JSON files
     ├── themes/                 Theme presets, fonts, and applying a theme to the page

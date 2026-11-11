@@ -5,7 +5,7 @@ import { EditOnly } from '../components/EditOnly';
 import TimelineMap from '../components/map/TimelineMap';
 import RichText from '../components/RichText';
 import { allMaps, childMapAt, isPlacedOn, mapTree, masterMapId } from '../lib/maps';
-import { compareEvents, formatDate } from '../lib/dates';
+import { compareEvents, formatSpan } from '../lib/dates';
 
 export default function MapPage() {
   return <TimelineGate>{(timeline) => <MapView timeline={timeline} />}</TimelineGate>;
@@ -95,7 +95,7 @@ function MapView({ timeline }: { timeline: Timeline }) {
                     {events.map((e) => (
                       <li key={e.id}>
                         <Link to={`/t/${timeline.id}?event=${e.id}`}>
-                          <span className="map-event-date">{formatDate(e.date, timeline.calendar)}</span> {e.title}
+                          <span className="map-event-date">{formatSpan(e, timeline.calendar)}</span> {e.title}
                         </Link>
                       </li>
                     ))}

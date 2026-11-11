@@ -20,6 +20,7 @@ const clean = (e: TimelineEvent): TimelineEvent => ({
   body: e.body.trim(),
   imageUrl: e.imageUrl?.trim() || undefined,
   date: e.date.label === undefined ? e.date : { ...e.date, label: e.date.label.trim() },
+  endDate: e.endDate && (e.endDate.label === undefined ? e.endDate : { ...e.endDate, label: e.endDate.label.trim() }),
   sources: e.sources.map((s) => s.trim()).filter(Boolean),
   // Only keep a main faction that's still one of the event's factions
   mainFactionId: e.mainFactionId && e.factionIds.includes(e.mainFactionId) ? e.mainFactionId : undefined,
@@ -35,8 +36,15 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
       (draft.date.label !== undefined || timeline.calendar.type === 'freeform') && !draft.date.label?.trim()
         ? 'Give the date a label'
         : undefined,
+    endDate: !draft.endDate
+      ? undefined
+      : (draft.endDate.label !== undefined || timeline.calendar.type === 'freeform') && !draft.endDate.label?.trim()
+        ? 'Give the date a label'
+        : draft.endDate.sortKey < draft.date.sortKey
+          ? 'This is before it started'
+          : undefined,
   };
-  const valid = !errors.title && !errors.date;
+  const valid = !errors.title && !errors.date && !errors.endDate;
   const era = eraFor(draft.date.sortKey, timeline.eras);
   // Characters in the event who weren't alive at its date: allowed, but worth a second look
   const notAlive = timeline.characters
@@ -62,6 +70,19 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
 
       <DateInput value={draft.date} calendar={timeline.calendar} onChange={(date) => patch({ date })} error={dirty ? errors.date : undefined} />
       <p className="field-note">{era ? <>Falls in <strong>{era.name}</strong></> : 'Not inside any era'}</p>
+
+      {/* An end date makes it a span (a war, a reign), drawn as a bar */}
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={!!draft.endDate}
+          onChange={(e) => patch({ endDate: e.target.checked ? { ...draft.date, precision: draft.date.precision === 'period' ? 'exact' : draft.date.precision } : undefined })}
+        />
+        Lasted a while (has an end date)
+      </label>
+      {draft.endDate && (
+        <DateInput label="Ended" value={draft.endDate} calendar={timeline.calendar} onChange={(endDate) => patch({ endDate })} error={dirty ? errors.endDate : undefined} />
+      )}
 
       <Field label="Summary" hint="One line, shown when hovering the node">
         <input value={draft.summary} maxLength={160} onChange={(e) => patch({ summary: e.target.value })} />

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { useSearchParams } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents } from '../../lib/dates';
-import { eraFor, eraSegments } from '../../lib/eras';
+import { eraSegments } from '../../lib/eras';
 import { expandFactions, mainFactionOf } from '../../lib/factions';
 import { useFactionTheme } from '../useFactionTheme';
 import { useThemeOverride } from '../themeOverride';
@@ -13,6 +13,8 @@ import { allMaps, isPlacedOn, mapTree, masterMapId } from '../../lib/maps';
 import TimelineTrack from './TimelineTrack';
 import EventPanel from './EventPanel';
 import ViewerToolbar from './ViewerToolbar';
+import EraStrip from './EraStrip';
+import { stripItems } from '../../lib/stage';
 
 /**
  * Owns the viewer's state and passes it down:
@@ -31,6 +33,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const [selectedId, setSelectedId] = useState<string | null>(() => params.get('event'));
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [showMap, setShowMap] = usePref('viewer.showMap', true);
+  const [lanes, setLanes] = usePref('viewer.lanes', false);
 
   // useMemo: only re-sort when the events actually change
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
@@ -85,6 +88,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   if (selectedSegment !== -1 && selectedSegment !== lastSegment) setLastSegment(selectedSegment);
   const shownSegment = selectedSegment !== -1 ? selectedSegment : Math.min(lastSegment, Math.max(segments.length - 1, 0));
   const shown = segments[shownSegment];
+  const shownEvents = useMemo(() => (shown ? events.slice(shown.startIndex, shown.endIndex + 1) : []), [shown, events]);
 
   // Mirror the selection into the URL. The guard stops a loop: setParams
   // changes `params`, which re-runs this effect.
@@ -159,16 +163,18 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
     if (first) select(first.id);
   }
 
-  function jumpToEra(eraId: string) {
-    const era = timeline.eras.find((e) => e.id === eraId);
-    const first = visible.find((e) => eraFor(e.date.sortKey, era ? [era] : []));
+  /** Jump to the first visible event of a run (a piece of the era strip). */
+  function jumpToSegment(index: number) {
+    const s = segments[index];
+    const first = s && events.slice(s.startIndex, s.endIndex + 1).find(isVisible);
     if (first) select(first.id);
   }
-
-  // Eras with no visible events can't be jumped to
-  const erasWithEvents = new Set(visible.map((e) => eraFor(e.date.sortKey, timeline.eras)?.id));
-  // The chip for the era on the stage is highlighted
-  const currentEra = shown?.era;
+  const canJump = (index: number) => {
+    const s = segments[index];
+    return !!s && events.slice(s.startIndex, s.endIndex + 1).some(isVisible);
+  };
+  // Where the selected event sits within the run on show, for the strip's tick
+  const marker = shown && selectedSegment === shownSegment ? (selectedIndex - shown.startIndex + 0.5) / (shown.endIndex - shown.startIndex + 1) : null;
 
   // ----- Faction themes -----
   // The selected event's main faction sets the theme; with nothing selected
@@ -211,21 +217,13 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
       {/* The era on show, as a soft glow behind the whole page (positioned against .app-main in CSS) */}
       <div className="era-glow" aria-hidden="true" style={{ '--era-glow-color': shown?.era?.color ?? 'transparent' } as CSSProperties} />
 
-      {timeline.eras.length > 0 && (
-        <nav className="era-bar" aria-label="Jump to era">
-          {timeline.eras.map((era) => (
-            <button
-              key={era.id}
-              className={`era-chip${currentEra?.id === era.id ? ' is-current' : ''}`}
-              style={{ '--era-color': era.color } as CSSProperties}
-              disabled={!erasWithEvents.has(era.id)}
-              onClick={() => jumpToEra(era.id)}
-            >
-              {era.name}
-            </button>
-          ))}
-        </nav>
-      )}
+      <EraStrip
+        items={stripItems(segments, events, timeline.eras)}
+        shownSegment={shownSegment}
+        marker={marker}
+        canJump={canJump}
+        onJump={jumpToSegment}
+      />
 
       <ViewerToolbar
         filters={filters}
@@ -237,10 +235,14 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         onSearchEnter={nextMatch}
         showMap={hasMap ? showMap : null}
         onToggleMap={() => setShowMap(!showMap)}
+        lanes={timeline.factions.length > 0 ? lanes : null}
+        onToggleLanes={() => setLanes(!lanes)}
       />
 
       <TimelineTrack
-        events={shown ? events.slice(shown.startIndex, shown.endIndex + 1) : []}
+        events={shownEvents}
+        allEvents={events}
+        lanes={lanes && timeline.factions.length > 0}
         era={shown?.era}
         eraKey={shownSegment}
         calendar={calendar}

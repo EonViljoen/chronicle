@@ -14,6 +14,9 @@ interface Props {
   /** null when the timeline has no map. */
   showMap: boolean | null;
   onToggleMap: () => void;
+  /** Lanes per faction on or off; null hides the button (no factions). */
+  lanes: boolean | null;
+  onToggleLanes: () => void;
 }
 
 /**
@@ -21,7 +24,7 @@ interface Props {
  * Factions are picked from a dropdown (the whole tree, indented); each
  * picked one shows as a chip with × to remove it.
  */
-export default function ViewerToolbar({ filters, onChange, factions, places, visibleCount, totalCount, onSearchEnter, showMap, onToggleMap }: Props) {
+export default function ViewerToolbar({ filters, onChange, factions, places, visibleCount, totalCount, onSearchEnter, showMap, onToggleMap, lanes, onToggleLanes }: Props) {
   const place = places.find((p) => p.id === filters.placeId);
   const set = (changes: Partial<Filters>) => onChange({ ...filters, ...changes });
 
@@ -61,6 +64,11 @@ export default function ViewerToolbar({ filters, onChange, factions, places, vis
               <option key={row.faction.id} value={row.faction.id}>{indentLabel(row)}</option>
             ))}
           </select>
+        )}
+        {lanes !== null && (
+          <button className="btn view-toggle" aria-pressed={lanes} onClick={onToggleLanes} title="One row per top-level faction">
+            {lanes ? 'Single line' : 'Lanes by faction'}
+          </button>
         )}
         {showMap !== null && (
           <button className="btn map-toggle" aria-pressed={showMap} onClick={onToggleMap}>

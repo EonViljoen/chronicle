@@ -17,7 +17,7 @@ import FactionForm from '../components/editor/FactionForm';
 import PlaceForm from '../components/editor/PlaceForm';
 import MapsPanel from '../components/editor/MapsPanel';
 import EventForm from '../components/editor/EventForm';
-import { compareEvents, defaultSortKey, formatDate, formatKey } from '../lib/dates';
+import { compareEvents, defaultSortKey, formatKey, formatSpan } from '../lib/dates';
 import { eraFor } from '../lib/eras';
 import { factionTree } from '../lib/factions';
 import {
@@ -146,7 +146,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
 
   const shared = { timeline, itemId, onSelectItem: selectItem, onDirtyChange: setDirty };
   const fmt = (key: number) => formatKey(key, timeline.calendar);
-  const dateOf = (e: TimelineEvent) => formatDate(e.date, timeline.calendar);
+  const dateOf = (e: TimelineEvent) => formatSpan(e, timeline.calendar);
 
   return (
     <div className="page editor">

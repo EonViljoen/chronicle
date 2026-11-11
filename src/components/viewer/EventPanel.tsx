@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
-import { formatDate } from '../../lib/dates';
+import { formatDate, formatSpan } from '../../lib/dates';
 import { mainFactionOf } from '../../lib/factions';
 import { EditOnly } from '../EditOnly';
 import RichText from '../RichText';
@@ -35,7 +35,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
       <header className="event-panel-head">
         <div>
           <p className="event-panel-date">
-            {formatDate(event.date, timeline.calendar)}
+            {formatSpan(event, timeline.calendar)}
             {era && <span className="muted"> · {era.name}</span>}
           </p>
           <h2 className="event-panel-title">{event.title}</h2>

@@ -215,6 +215,12 @@ export interface TimelineEvent {
   body: string;
   imageUrl?: string;
   date: EventDate;
+  /**
+   * Optional: when it ended, for something that lasted (a war, a reign).
+   * Drawn as a bar from the event to the last event before this date.
+   * The event belongs to the era of its start date.
+   */
+  endDate?: EventDate;
   factionIds: string[];
   /** The faction at the heart of the event (one of factionIds). Sets the node colour and, if it has one, the theme. */
   mainFactionId?: string;

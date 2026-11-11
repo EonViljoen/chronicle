@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
-import { compareEvents, formatDate } from '../../lib/dates';
+import { compareEvents, formatSpan } from '../../lib/dates';
 
 /** One line in a history: an event, or a marker such as "Born". */
 export interface ChronologyEntry {
@@ -21,7 +21,7 @@ export function eventEntries(events: TimelineEvent[], timeline: Timeline, note?:
   return [...events].sort(compareEvents).map((e) => ({
     key: e.id,
     sortKey: e.date.sortKey,
-    date: formatDate(e.date, timeline.calendar),
+    date: formatSpan(e, timeline.calendar),
     title: e.title,
     note: note ? note(e) : e.summary || undefined,
     to: `/t/${timeline.id}?event=${encodeURIComponent(e.id)}`,

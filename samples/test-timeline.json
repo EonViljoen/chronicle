@@ -2,7 +2,7 @@
   "id": "test-timeline",
   "schemaVersion": 5,
   "title": "Test: The Shattered Realms",
-  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, the 3D starmap and nested flat maps (galaxy, region, city). The setting is made up.",
+  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, events that span time (one running into the next era), the 3D starmap and nested flat maps (galaxy, region, city). The setting is made up.",
   "calendar": {
     "type": "ages",
     "format": "{age} {year}",
@@ -541,6 +541,10 @@
         "sortKey": 503,
         "precision": "exact"
       },
+      "endDate": {
+        "sortKey": 731,
+        "precision": "exact"
+      },
       "factionIds": [
         "crown"
       ],
@@ -565,6 +569,10 @@
       "date": {
         "sortKey": 640,
         "precision": "exact"
+      },
+      "endDate": {
+        "sortKey": 850,
+        "precision": "decade"
       },
       "factionIds": [
         "crown",
@@ -621,6 +629,10 @@
         "sortKey": 902,
         "precision": "exact"
       },
+      "endDate": {
+        "sortKey": 1150,
+        "precision": "circa"
+      },
       "factionIds": [
         "thornguard"
       ],
@@ -641,6 +653,10 @@
       "body": "A branch of the Wardens takes up the coastal fires: the *Lantern Keepers*.\n\nThis is a sub-sub-faction: Concord › Wardens › Lantern Keepers. Filtering by the Concord includes it.",
       "date": {
         "sortKey": 1250,
+        "precision": "exact"
+      },
+      "endDate": {
+        "sortKey": 1290,
         "precision": "exact"
       },
       "factionIds": [
@@ -761,6 +777,10 @@
         "sortKey": 330,
         "precision": "decade"
       },
+      "endDate": {
+        "sortKey": 512,
+        "precision": "decade"
+      },
       "factionIds": [],
       "placeIds": [],
       "relatedIds": [],
@@ -870,6 +890,10 @@
       "date": {
         "sortKey": 650,
         "precision": "decade"
+      },
+      "endDate": {
+        "sortKey": 662,
+        "precision": "exact"
       },
       "factionIds": [
         "crown",
@@ -1070,6 +1094,10 @@
       "body": "Exile ships begin regular voyages between the stars.",
       "date": {
         "sortKey": 1650,
+        "precision": "century"
+      },
+      "endDate": {
+        "sortKey": 1990,
         "precision": "century"
       },
       "factionIds": [

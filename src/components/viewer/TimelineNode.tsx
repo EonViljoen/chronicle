@@ -6,6 +6,8 @@ interface Props {
   /** The date as the timeline's calendar shows it. */
   dateLabel: string;
   index: number;
+  /** Set in the lanes view: how far down the track the node sits, in px. */
+  top?: number;
   color: string;
   selected: boolean;
   dimmed: boolean;
@@ -18,9 +20,9 @@ interface Props {
  * In React 19 `ref` is a normal prop, so the parent can grab this button
  * to scroll it into view.
  */
-export default function TimelineNode({ event, dateLabel, index, color, selected, dimmed, onSelect, ref }: Props) {
+export default function TimelineNode({ event, dateLabel, index, top, color, selected, dimmed, onSelect, ref }: Props) {
   const approximate = event.date.precision !== 'exact' && event.date.precision !== 'period';
-  const classes = ['node', selected && 'is-selected', dimmed && 'is-dimmed', approximate && 'is-approx']
+  const classes = ['node', selected && 'is-selected', dimmed && 'is-dimmed', approximate && 'is-approx', top !== undefined && 'is-compact', event.endDate && 'is-span']
     .filter(Boolean)
     .join(' ');
 
@@ -29,7 +31,7 @@ export default function TimelineNode({ event, dateLabel, index, color, selected,
       ref={ref}
       className={classes}
       // CSS custom properties: the stylesheet positions the node with --i
-      style={{ '--i': index, '--node-color': color } as CSSProperties}
+      style={{ '--i': index, '--node-color': color, top } as CSSProperties}
       onClick={() => onSelect(event.id)}
       aria-pressed={selected}
       title={event.summary || event.title}
