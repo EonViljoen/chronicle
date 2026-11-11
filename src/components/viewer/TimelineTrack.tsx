@@ -41,11 +41,15 @@ const LANE_NODE = 20;
 /** Room above the first lane for the era's name. */
 const LANES_TOP = 30;
 
-/** Where a bar starts and how wide it is, as CSS lengths. A bar at least shows as a short stub. */
+/**
+ * Where a bar starts and how wide it is, as CSS lengths. A span that ends
+ * before the next event still gets half a column, so it reads as a bar
+ * (and stops short of the next event) rather than a dot.
+ */
 function barBox(bar: SpanBar, n: number) {
   const start = bar.from === -1 ? '0%' : `${((bar.from + 0.5) * 100) / n}%`;
   const end = bar.to === n ? '100%' : `${((bar.to + 0.5) * 100) / n}%`;
-  return { left: start, width: `max(calc(${end} - ${start}), 16px)` };
+  return { left: start, width: `max(calc(${end} - ${start}), ${50 / n}%)` };
 }
 
 /**
@@ -69,7 +73,7 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
   const laneIndex = (id: string | undefined) => laneList.findIndex((l) => l.id === id);
   const n = events.length;
   const barRows = bars.reduce((rows, b) => Math.max(rows, b.row + 1), 0);
-  const height = lanes ? LANES_TOP + laneList.length * LANE_HEIGHT : barRows ? BARS_TOP + barRows * BAR_ROW + 12 : TRACK_HEIGHT;
+  const height = lanes ? LANES_TOP + laneList.length * LANE_HEIGHT : barRows ? BARS_TOP + barRows * BAR_ROW + 30 : TRACK_HEIGHT; // +30 keeps the "3 / 14" counter clear of the bars
 
   // useEffect runs after render. Whenever the selection changes, bring that
   // node into view (only matters when the era is too long to fit).

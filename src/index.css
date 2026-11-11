@@ -890,8 +890,6 @@ a.life-dot:hover { background: var(--accent); }
 /* In lanes: a thick stretch of the lane's own line (more rows step down from it) */
 .span-bar.is-thin { z-index: 0; height: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--node-color); opacity: 0.75; }
 .span-bar.is-thin.is-dimmed { opacity: 0.15; }
-/* A span's node gets a short tail, hinting at the bar */
-.node.is-span .node-dot { box-shadow: 6px 0 0 -3px var(--node-color); }
 
 /* ===== Lanes: one row per top-level faction ===== */
 .lane { position: absolute; left: 0; right: 0; height: 112px; border-bottom: 1px dashed color-mix(in srgb, var(--lane-color) 30%, transparent); }

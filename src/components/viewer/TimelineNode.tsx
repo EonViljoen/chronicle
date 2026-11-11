@@ -22,7 +22,7 @@ interface Props {
  */
 export default function TimelineNode({ event, dateLabel, index, top, color, selected, dimmed, onSelect, ref }: Props) {
   const approximate = event.date.precision !== 'exact' && event.date.precision !== 'period';
-  const classes = ['node', selected && 'is-selected', dimmed && 'is-dimmed', approximate && 'is-approx', top !== undefined && 'is-compact', event.endDate && 'is-span']
+  const classes = ['node', selected && 'is-selected', dimmed && 'is-dimmed', approximate && 'is-approx', top !== undefined && 'is-compact']
     .filter(Boolean)
     .join(' ');
 
