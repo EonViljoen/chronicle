@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import type { Calendar, Faction, Era, TimelineEvent } from '../../types/timeline';
 import { formatDate } from '../../lib/dates';
-import { eraSegments } from '../../lib/eras';
 import TimelineNode from './TimelineNode';
 import { mainFactionOf } from '../../lib/factions';
 
 interface Props {
-  /** Already sorted by date. */
+  /** The events of the era on show, already sorted by date. */
   events: TimelineEvent[];
-  eras: Era[];
+  /** The era on show; undefined for events outside every era. */
+  era: Era | undefined;
+  /** Changes whenever a different era is shown, to replay the fade-in. */
+  eraKey: number;
   calendar: Calendar;
   factions: Faction[];
   selectedId: string | null;
@@ -23,19 +25,20 @@ interface Props {
 const FALLBACK_COLOR = '#c9a227';
 
 /**
- * The horizontal line. Nodes are evenly spaced (index × gap) rather than to
- * scale, because some timelines have gaps of millions of years.
- * Positioning is done in CSS from --i and --n; see `.track` in index.css.
+ * The stage: one era at a time, across the full width of the page.
+ * Nodes are spaced evenly (index ÷ count) rather than to scale, because the
+ * real gaps between events can be anything from days to millions of years.
+ * An era with more events than fit scrolls sideways (each slot keeps at
+ * least --gap). Positioning is done in CSS from --i and --n; see `.track`.
  */
-export default function TimelineTrack({ events, eras, calendar, factions, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {
+export default function TimelineTrack({ events, era, eraKey, calendar, factions, selectedId, isVisible, onSelect, onStep, canStep, status }: Props) {
   // A Map of event id -> button element, filled by each node's ref callback.
   const nodeRefs = useRef(new Map<string, HTMLButtonElement>());
 
-  const segments = useMemo(() => eraSegments(events, eras), [events, eras]);
   const colorById = useMemo(() => new Map(factions.map((c) => [c.id, c.color])), [factions]);
 
-  // useEffect runs after render. Whenever the selection changes, slide that
-  // node to the centre of the scroller.
+  // useEffect runs after render. Whenever the selection changes, bring that
+  // node into view (only matters when the era is too long to fit).
   useEffect(() => {
     if (!selectedId) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -47,31 +50,19 @@ export default function TimelineTrack({ events, eras, calendar, factions, select
   }, [selectedId]);
 
   return (
-    <div className="stage">
+    <div className="stage" style={{ '--era-color': era?.color ?? 'transparent' } as CSSProperties}>
       <button className="stage-arrow stage-arrow-left" onClick={() => onStep(-1)} disabled={!canStep.prev} aria-label="Previous event">
         ‹
       </button>
 
-      <div className="track-scroller">
-        <div className="track-row">
-          <div className="track-spacer" />
-          <div className="track" style={{ '--n': events.length } as CSSProperties}>
-            {segments.map((seg) => (
-              <div
-                key={seg.startIndex}
-                className="era-band"
-                style={
-                  {
-                    '--start': seg.startIndex,
-                    '--count': seg.endIndex - seg.startIndex + 1,
-                    '--era-color': seg.era?.color ?? 'transparent',
-                  } as CSSProperties
-                }
-              >
-                {seg.era && <span className="era-band-label">{seg.era.name}</span>}
-              </div>
-            ))}
+      {/* `key` makes React build this part afresh for each era, which replays its fade-in */}
+      <div className="stage-era" key={eraKey}>
+        <div className="era-band" aria-hidden="true">
+          {era && <span className="era-band-label">{era.name}</span>}
+        </div>
 
+        <div className="track-scroller">
+          <div className="track" style={{ '--n': events.length } as CSSProperties}>
             <div className="track-line" aria-hidden="true" />
 
             {events.map((event, i) => (
@@ -92,7 +83,6 @@ export default function TimelineTrack({ events, eras, calendar, factions, select
               />
             ))}
           </div>
-          <div className="track-spacer" />
         </div>
       </div>
 

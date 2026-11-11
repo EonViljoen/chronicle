@@ -190,11 +190,16 @@ input {
 
 /* Stage: the scrolling track with an arrow on each side */
 .stage { position: relative; background: var(--surface); overflow: hidden; width: 100vw; margin-left: calc(50% - 50vw);}
-.track-scroller { overflow-x: auto; scrollbar-width: thin; }
-.track-row { display: flex; width: 100%; }
-/* Spacers let the first and last node scroll to the centre */
-.track-spacer { flex: 0 0 calc(50% - var(--gap) / 2); }
-.track { position: relative; flex: 0 0 auto; width: calc(var(--n) * var(--gap)); height: 210px; }
+/* Side padding keeps the first and last node clear of the arrows */
+.track-scroller { overflow-x: auto; scrollbar-width: thin; padding: 0 56px; }
+@media (max-width: 640px) { .track-scroller { padding: 0 40px; } }
+/* One era: fills the width, or scrolls once each event would get less than --gap */
+.track { position: relative; min-width: 100%; width: calc(var(--n) * var(--gap)); height: 210px; }
+/* Each new era fades in (see `key` in TimelineTrack.tsx) */
+@media (prefers-reduced-motion: no-preference) {
+  .stage-era { animation: era-in 0.35s ease; }
+}
+@keyframes era-in { from { opacity: 0; } }
 
 .track-line {
   position: absolute; left: 0; right: 0; top: 112px; height: 2px;
@@ -202,22 +207,22 @@ input {
   opacity: 0.6;
 }
 
+/* The era's colour wash behind the whole stage, with its name centred on top */
 .era-band {
-  position: absolute; top: 0; bottom: 0;
-  left: calc(var(--start) * var(--gap)); width: calc(var(--count) * var(--gap));
+  position: absolute; inset: 0;
   background: linear-gradient(180deg, color-mix(in srgb, var(--era-color) 26%, transparent), color-mix(in srgb, var(--era-color) 6%, transparent));
-  border-left: 1px solid color-mix(in srgb, var(--era-color) 70%, transparent);
 }
 .era-band-label {
-  position: absolute; top: 8px; left: 10px; right: 10px;
-  font-family: var(--font-display); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  position: absolute; top: 10px; left: 64px; right: 64px; text-align: center;
+  font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase;
   color: color-mix(in srgb, var(--era-color) 55%, var(--text));
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 /* A node: date / dot / title stacked, centred on its slot */
 .node {
-  position: absolute; top: 44px; left: calc(var(--i) * var(--gap)); width: var(--gap);
+  /* Slot i of n: evenly spread across the track, whatever its width */
+  position: absolute; top: 44px; left: calc(var(--i) * 100% / var(--n)); width: calc(100% / var(--n));
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: 0 8px; background: none; border: 0; color: var(--text); font: inherit; cursor: pointer;
   transition: opacity 0.2s;

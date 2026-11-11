@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { useSearchParams } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents } from '../../lib/dates';
-import { eraFor } from '../../lib/eras';
+import { eraFor, eraSegments } from '../../lib/eras';
 import { expandFactions, factionThemeId, mainFactionOf } from '../../lib/factions';
 import { useThemes } from '../../db/themes';
 import { useThemeOverride } from '../themeOverride';
@@ -52,6 +52,20 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
 
   const select = setSelectedId;
 
+  // ----- Which era is on the stage -----
+  // The events split into runs that share an era (eraSegments). The stage
+  // shows one run: the selected event's. With nothing selected it stays on
+  // the last one shown, so closing an event doesn't jump back to the start.
+  const segments = useMemo(() => eraSegments(events, timeline.eras), [events, timeline.eras]);
+  const selectedIndex = selected ? events.indexOf(selected) : -1;
+  const selectedSegment = segments.findIndex((s) => selectedIndex >= s.startIndex && selectedIndex <= s.endIndex);
+  const [lastSegment, setLastSegment] = useState(0);
+  // Updating state during render (not in an effect) is React's recommended way
+  // to remember something from a previous render; React re-renders straight away.
+  if (selectedSegment !== -1 && selectedSegment !== lastSegment) setLastSegment(selectedSegment);
+  const shownSegment = selectedSegment !== -1 ? selectedSegment : Math.min(lastSegment, Math.max(segments.length - 1, 0));
+  const shown = segments[shownSegment];
+
   // Mirror the selection into the URL. The guard stops a loop: setParams
   // changes `params`, which re-runs this effect.
   useEffect(() => {
@@ -82,12 +96,25 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
     [neighbourOf],
   );
 
-  // Keyboard: ← → to move, Home/End for first/last, Esc to close.
+  /** Jump to the first visible event of the next/previous era (skipping eras where everything is filtered out). */
+  const stepEra = useCallback(
+    (direction: 1 | -1) => {
+      for (let s = shownSegment + direction; s >= 0 && s < segments.length; s += direction) {
+        const first = events.slice(segments[s].startIndex, segments[s].endIndex + 1).find(isVisible);
+        if (first) return select(first.id);
+      }
+    },
+    [shownSegment, segments, events, isVisible, select],
+  );
+
+  // Keyboard: ← → to move, Shift+← → to change era, Home/End for first/last, Esc to close.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       // Don't hijack keys while typing in a field
       if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
-      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowRight' && e.shiftKey) stepEra(1);
+      else if (e.key === 'ArrowLeft' && e.shiftKey) stepEra(-1);
+      else if (e.key === 'ArrowRight') step(1);
       else if (e.key === 'ArrowLeft') step(-1);
       else if (e.key === 'Home' && visible.length) select(visible[0].id);
       else if (e.key === 'End' && visible.length) select(visible[visible.length - 1].id);
@@ -97,7 +124,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [step, select, visible]);
+  }, [step, stepEra, select, visible]);
 
   /** Enter in search: next match after the current one, wrapping round. */
   function nextMatch() {
@@ -120,7 +147,8 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
 
   // Eras with no visible events can't be jumped to
   const erasWithEvents = new Set(visible.map((e) => eraFor(e.date.sortKey, timeline.eras)?.id));
-  const currentEra = selected ? eraFor(selected.date.sortKey, timeline.eras) : undefined;
+  // The chip for the era on the stage is highlighted
+  const currentEra = shown?.era;
 
   // ----- Faction themes -----
   // The selected event's main faction sets the theme; with nothing selected
@@ -158,7 +186,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
     <EventPanel key={selected.id} timeline={timeline} event={selected} onSelect={select} onClose={() => select(null)} />
   ) : (
     <p className="viewer-hint muted">
-      Select an event on the timeline, or use the arrows (← → on a keyboard).
+      Select an event on the timeline, or use the arrows (← → on a keyboard; Shift+← → changes era).
       {hasMap && showMap && ' Click a place on the map to see what happened there.'}
     </p>
   );
@@ -194,8 +222,9 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
       />
 
       <TimelineTrack
-        events={events}
-        eras={timeline.eras}
+        events={shown ? events.slice(shown.startIndex, shown.endIndex + 1) : []}
+        era={shown?.era}
+        eraKey={shownSegment}
         calendar={calendar}
         factions={timeline.factions}
         selectedId={selected?.id ?? null}
