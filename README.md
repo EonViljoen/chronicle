@@ -42,10 +42,15 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 5. ✅ Link timeline and map, filters, search, polish
 6. ✅ Setting-neutral: branding config, themes, custom calendars (years, named ages, numbered cycles, free text)
 7. ✅ Themes as data (theme editor, presets), website export, nested factions with themes, main factions, flat image map
-8. ✅ One era at a time with an era glow, landing page, Calendar tab, multiple flat maps nested like factions
+8. ✅ One era at a time with an era glow, landing page, Calendar tab, multiple flat maps nested like factions, Maps and Starmap tabs
 
 ## To do
 
 - [x] **Multiple flat maps.** Any number of named flat maps beside the one 3D starmap, managed in their own **Maps** tab and pinned on in the **Places** tab; a place can be pinned on several maps; the viewer and map page switch between them. Old timelines' single map became the first in the list.
 - [x] **Nested maps, like nested factions.** A map can sit inside another (or inside the starmap), opened by clicking one of its places, to any depth, with breadcrumbs back up. A **start map** (master map) is where the viewer begins. Stored as a flat list with `parentId` and `placeId`, with the same loop protection as factions.
 - [x] **Calendar in its own tab.** The calendar settings moved out of the Settings tab into a **Calendar** tab in the editor.
+- [x] **Starmap in its own tab, coloured by the theme.** A **Starmap** tab with a live preview; the galaxy's arms and core follow the theme's accent and highlight colours (or your own).
+- [ ] **Planets.** Render a 3D planet as a kind of map, like the starmap, so places can be pinned on a globe (e.g. Starmap › Sector › a planet › a city map).
+  - A planet map type alongside the starmap and flat maps, nestable like any map (opened from a place on its parent map).
+  - Settings for its look: a surface picture wrapped round the sphere (or a generated one), colours from the theme, atmosphere, rings, maybe clouds.
+  - Places pinned by latitude and longitude, by clicking the globe; it turns to face the selected place.

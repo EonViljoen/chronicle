@@ -232,10 +232,10 @@ A `DatePrecision` can only be one of those strings. Typo `'centruy'` and TypeScr
 ```ts
 export type MapConfig =
   | { type: 'none' }
-  | { type: 'galaxy3d'; arms: number; radius: number; coreColor: string; armColor: string };
+  | { type: 'galaxy3d'; arms: number; radius: number; colors?: 'theme' | 'custom'; coreColor: string; armColor: string };
 ```
 
-You can't read `map.arms` until you've checked `map.type === 'galaxy3d'`. After the check, TypeScript *narrows* the type and lets you. [`SettingsForm.tsx`](../src/components/editor/SettingsForm.tsx) relies on this:
+You can't read `map.arms` until you've checked `map.type === 'galaxy3d'`. After the check, TypeScript *narrows* the type and lets you. [`StarmapTab.tsx`](../src/components/editor/StarmapTab.tsx) relies on this:
 
 ```tsx
 {map.type === 'galaxy3d' && (
@@ -1279,6 +1279,8 @@ When the shape changed (one `flatMap` became the `maps` list, `pin` became `pins
 - The wheel listener is added by hand with `{ passive: false }`, because React's `onWheel` can't call `preventDefault()` to stop the page scrolling.
 
 [`TimelineMap.tsx`](../src/components/map/TimelineMap.tsx) shows whichever map its parent picks (`mapId`), with the breadcrumbs and a picker of every map. The viewer keeps the map in state and starts on the **master map** (`masterMapId`); selecting an event whose places aren't on the map shown switches to a map that has one. The map page keeps it in the URL (`?map=…`), so the back button steps back out of a map. Maps are added, arranged and linked in the editor's **Maps** tab ([`MapsPanel.tsx`](../src/components/editor/MapsPanel.tsx)); places are pinned on them in the **Places** tab, which a map's "Pin places" button opens with that map already chosen (`?tab=places&map=…`).
+
+The starmap is drawn by three.js, which needs real colour values rather than CSS, so it can't pick up a theme the way the rest of the page does. [`themes/palette.ts`](../src/themes/palette.ts) bridges the gap: `useThemePalette` reads the theme's colours from the CSS variables on `<html>` and uses **`useSyncExternalStore`** (React's hook for reading something outside React) with a `MutationObserver` to re-render whenever a theme is applied. Because it reads what's on the page, the galaxy follows faction themes and the theme editor's preview too. Set to "From the theme" in the Starmap tab, the arms take the accent colour and the core the highlight; "My own" uses the colours stored in the timeline.
 
 ## 19. Pure update functions and immutability
 

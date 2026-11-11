@@ -134,13 +134,19 @@ export interface Place {
   pins?: Record<string, [x: number, y: number]>;
 }
 
-/** The map attached to a timeline. A discriminated union: check `type` first. */
+/** The 3D starmap's settings. A discriminated union: check `type` first. */
 export type MapConfig =
   | { type: 'none' }
   | {
       type: 'galaxy3d';
       arms: number;
       radius: number;
+      /**
+       * Where the galaxy's colours come from. 'theme' (or unset): the arms
+       * use the theme's accent colour and the core its highlight, so the
+       * galaxy follows theme changes. 'custom': coreColor and armColor.
+       */
+      colors?: 'theme' | 'custom';
       coreColor: string;
       armColor: string;
     };

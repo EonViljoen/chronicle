@@ -7,6 +7,7 @@ import { allMaps, mapsWithPlace } from '../lib/maps';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
 import CalendarTab from '../components/editor/CalendarTab';
+import StarmapTab from '../components/editor/StarmapTab';
 import ThemeTab from '../components/editor/ThemeTab';
 import WebsiteTab from '../components/editor/WebsiteTab';
 import EraForm from '../components/editor/EraForm';
@@ -29,7 +30,7 @@ import {
   savePlace,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'factions', 'places', 'maps', 'calendar', 'theme', 'website', 'settings'] as const;
+const TABS = ['events', 'eras', 'factions', 'places', 'maps', 'starmap', 'calendar', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -121,6 +122,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
     factions: factions.length,
     places: places.length,
     maps: allMaps(timeline).length,
+    starmap: null,
     calendar: null,
     theme: null,
     website: null,
@@ -153,6 +155,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
       {tab === 'settings' && <SettingsForm timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'calendar' && <CalendarTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'maps' && <MapsPanel {...shared} />}
+      {tab === 'starmap' && <StarmapTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'theme' && <ThemeTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'website' && <WebsiteTab timeline={timeline} onDirtyChange={setDirty} />}
 

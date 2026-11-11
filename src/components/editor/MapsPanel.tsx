@@ -22,7 +22,7 @@ const pinLink = (mapId: string) => `?tab=places&map=${encodeURIComponent(mapId)}
 
 /**
  * The editor's Maps tab: every map in tree order (the 3D starmap, set up in
- * Settings, and your own map pictures), the one to start on, and a form to
+ * the Starmap tab, and your own map pictures), the one to start on, and a form to
  * add or change a map. A map can sit inside another map, opened by clicking
  * one of its places (see lib/maps.ts). Pinning places on a map happens in
  * the Places tab; each map links there.
@@ -87,7 +87,7 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
         <div>
           <h2 id="maps-title" className="form-title">Maps</h2>
           <p className="muted">
-            Your own map pictures, plus the 3D starmap if it's on (in Settings). A map can sit inside another, opened by clicking one of its
+            Your own map pictures, plus the 3D starmap if it's on (Starmap tab). A map can sit inside another, opened by clicking one of its
             places. Pin places on a map in the Places tab.
           </p>
         </div>
@@ -123,13 +123,14 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
                   <span className="map-row-main">
                     <strong>{map.name}</strong>
                     <span className="muted">
-                      {!flat ? '3D starmap · set up in Settings' : `${flat.width} × ${flat.height} px`}
+                      {!flat ? '3D starmap · set up in the Starmap tab' : `${flat.width} × ${flat.height} px`}
                       {opener && ` · opens from ${opener.name}`}
                       {map.id === masterMapId(timeline) && ' · start map'}
                     </span>
                   </span>
                   <span className="map-row-actions">
                     <Link className="btn" to={flat ? pinLink(map.id) : '?tab=places'}>Pin places</Link>
+                    {!flat && <Link className="btn" to="?tab=starmap">Edit</Link>}
                     {flat && (
                       <>
                         {/* Greyed out when it's already first or last among the maps beside it */}

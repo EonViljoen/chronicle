@@ -19,6 +19,9 @@
   --font-body: 'Inter', system-ui, sans-serif;
   --font-size: 100%;
   --glyph: '';
+  /* Behind the 3D starmap and map pictures: the theme's background, darkened almost to black
+     (the starmap's own sky uses the same mix, see GalaxyMap.tsx) */
+  --space: color-mix(in srgb, var(--bg) 20%, #05050a);
   color-scheme: dark;
 }
 
@@ -436,7 +439,7 @@ textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent);
 /* ===== Starmap ===== */
 .map-stage {
   position: relative; margin-top: 16px; height: clamp(420px, calc(100vh - 220px), 900px);
-  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #05050a;
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--space);
 }
 .map-loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--muted); font-family: var(--font-display); }
 .map-panel {
@@ -467,7 +470,7 @@ textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent);
 .map-label.is-dimmed { opacity: 0.55; cursor: default; }
 .map-label:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.map-picker { position: relative; height: 380px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #05050a; }
+.map-picker { position: relative; height: 380px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--space); }
 a.chip { text-decoration: none; }
 .galaxy-map { position: absolute; inset: 0; }
 .map-reset { position: absolute; left: 10px; bottom: 10px; padding: 4px 10px; font-size: 0.8rem; background: rgba(8, 8, 12, 0.7); }
@@ -493,7 +496,7 @@ a.chip { text-decoration: none; }
 .viewer-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .viewer-split-map {
   position: sticky; top: 12px; height: clamp(360px, 60vh, 560px);
-  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #05050a;
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--space);
 }
 .viewer-split .viewer-hint { padding: 40px 16px; border: 1px dashed var(--border); border-radius: var(--radius); }
 @media (max-width: 860px) {
@@ -716,7 +719,7 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
   border: 1px solid transparent; border-radius: var(--radius); background: var(--surface-2);
 }
 .map-row.is-selected { border-color: var(--accent); }
-.map-thumb { flex: none; width: 56px; height: 38px; object-fit: cover; border: 1px solid var(--border); border-radius: calc(var(--radius) / 2); background: #05050a; }
+.map-thumb { flex: none; width: 56px; height: 38px; object-fit: cover; border: 1px solid var(--border); border-radius: calc(var(--radius) / 2); background: var(--space); }
 .map-thumb-3d { display: grid; place-items: center; color: #8fb4ff; }
 .map-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .map-row-main .muted { font-size: 0.8rem; }
@@ -727,5 +730,5 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .map-form-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .map-form-head h3 { margin: 0; }
 .map-form-body { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
-.map-form-picture { flex: 0 1 260px; max-width: 100%; max-height: 220px; object-fit: contain; border: 1px solid var(--border); border-radius: var(--radius); background: #05050a; }
+.map-form-picture { flex: 0 1 260px; max-width: 100%; max-height: 220px; object-fit: contain; border: 1px solid var(--border); border-radius: var(--radius); background: var(--space); }
 .map-form-fields { flex: 1 1 280px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }

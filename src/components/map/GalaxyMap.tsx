@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber';
 import { CameraControls, CameraControlsImpl, Html, Stars } from '@react-three/drei';
-import { AdditiveBlending, CanvasTexture, DoubleSide } from 'three';
+import { AdditiveBlending, CanvasTexture, Color, DoubleSide } from 'three';
 import type { GalaxyConfig, Place } from '../../types/timeline';
+import { useThemePalette } from '../../themes/palette';
 import { generateGalaxy } from './galaxy';
 
 /*
@@ -17,8 +18,10 @@ import { generateGalaxy } from './galaxy';
 
 type Vec3 = [number, number, number];
 
-const ACCENT = '#c9a227';
 const HOME: Vec3 = [0, 95, 125];
+
+/** Deep space: the theme's background, darkened almost to black (matches --space in index.css). */
+const spaceColor = (bg: string) => `#${new Color(bg).lerp(new Color('#05050a'), 0.8).getHexString()}`;
 
 interface Props {
   config: GalaxyConfig;
@@ -40,13 +43,20 @@ export default function GalaxyMap({ config, places, selectedPlaceId, highlightId
   // Bumping this number tells the camera to fly back to its resting view
   const [resetCount, setResetCount] = useState(0);
 
+  // Colours: the theme's (arms = accent, core = highlight) unless set to custom.
+  // Selection markers always use the accent, and space is the darkened background.
+  const palette = useThemePalette();
+  const fromTheme = config.colors !== 'custom';
+  const colored: GalaxyConfig = fromTheme ? { ...config, coreColor: palette.highlight, armColor: palette.accent } : config;
+  const accent = palette.accent;
+
   return (
     <div className="galaxy-map">
       <Canvas camera={{ position: HOME, fov: 50, near: 0.1, far: 3000 }} dpr={[1, 2]}>
-        <color attach="background" args={['#05050a']} />
+        <color attach="background" args={[spaceColor(palette.bg)]} />
         <Stars radius={700} depth={300} count={5000} factor={7} fade speed={0.4} />
-        <GalaxyPoints config={config} />
-        <CoreGlow color={config.coreColor} size={config.radius * 0.9} />
+        <GalaxyPoints config={colored} />
+        <CoreGlow color={colored.coreColor} size={config.radius * 0.9} />
 
         {placed.map((place) => (
           <PlaceMarker
@@ -55,6 +65,7 @@ export default function GalaxyMap({ config, places, selectedPlaceId, highlightId
             selected={place.id === selectedPlaceId}
             highlighted={highlightIds.includes(place.id)}
             opensMap={openIds.includes(place.id)}
+            accent={accent}
             interactive={interactive}
             dimmed={!!pick}
             onSelect={(id) => onSelectPlace?.(id)}
@@ -65,7 +76,7 @@ export default function GalaxyMap({ config, places, selectedPlaceId, highlightId
           <>
             <PickPlane radius={config.radius * 1.3} onPick={pick.onPick} />
             <polarGridHelper args={[config.radius * 1.2, 12, 6, 64, '#3a3a46', '#22222a']} />
-            {pick.position && <PickedMarker position={pick.position} />}
+            {pick.position && <PickedMarker position={pick.position} accent={accent} />}
           </>
         )}
 
@@ -136,12 +147,14 @@ interface MarkerProps {
   highlighted: boolean;
   /** Clicking it opens another map */
   opensMap: boolean;
+  /** The theme's accent colour, for the selected marker and its ring */
+  accent: string;
   interactive: boolean;
   dimmed: boolean;
   onSelect: (id: string) => void;
 }
 
-function PlaceMarker({ place, selected, highlighted, opensMap, interactive, dimmed, onSelect }: MarkerProps) {
+function PlaceMarker({ place, selected, highlighted, opensMap, accent, interactive, dimmed, onSelect }: MarkerProps) {
   const [hovered, setHovered] = useState(false);
   const active = selected || highlighted || (hovered && interactive);
 
@@ -167,12 +180,12 @@ function PlaceMarker({ place, selected, highlighted, opensMap, interactive, dimm
     <group position={place.position}>
       <mesh {...handlers}>
         <sphereGeometry args={[active ? 1.6 : 1.1, 16, 16]} />
-        <meshBasicMaterial color={selected ? ACCENT : '#f2eee4'} transparent opacity={dimmed ? 0.45 : 1} />
+        <meshBasicMaterial color={selected ? accent : '#f2eee4'} transparent opacity={dimmed ? 0.45 : 1} />
       </mesh>
       {active && (
         <mesh rotation-x={-Math.PI / 2}>
           <ringGeometry args={[2.6, 3.2, 48]} />
-          <meshBasicMaterial color={ACCENT} transparent opacity={0.85} side={DoubleSide} />
+          <meshBasicMaterial color={accent} transparent opacity={0.85} side={DoubleSide} />
         </mesh>
       )}
       {/* <Html> places normal DOM elements at a 3D position */}
@@ -213,16 +226,16 @@ function PickPlane({ radius, onPick }: { radius: number; onPick: (p: Vec3) => vo
   );
 }
 
-function PickedMarker({ position }: { position: Vec3 }) {
+function PickedMarker({ position, accent }: { position: Vec3; accent: string }) {
   return (
     <group position={position}>
       <mesh>
         <sphereGeometry args={[1.8, 16, 16]} />
-        <meshBasicMaterial color={ACCENT} />
+        <meshBasicMaterial color={accent} />
       </mesh>
       <mesh rotation-x={-Math.PI / 2}>
         <ringGeometry args={[3, 3.6, 48]} />
-        <meshBasicMaterial color={ACCENT} side={DoubleSide} />
+        <meshBasicMaterial color={accent} side={DoubleSide} />
       </mesh>
     </group>
   );
