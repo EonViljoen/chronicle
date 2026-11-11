@@ -11,7 +11,7 @@ npm run dev
 
 ## Sample timeline
 
-`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, a named-ages calendar, eras, the 3D starmap and a flat map). Load it with **Import file…** on the home page.
+`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, a named-ages calendar, eras, the 3D starmap and a flat map). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, an event with no faction, one with no place, and a very long title. Load it with **Import file…** on the timelines page.
 
 ## How data is stored
 

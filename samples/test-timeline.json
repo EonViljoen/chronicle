@@ -2,7 +2,7 @@
   "id": "test-timeline",
   "schemaVersion": 3,
   "title": "Test: The Shattered Realms",
-  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras, both maps. The setting is made up.",
+  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, both maps. The setting is made up.",
   "calendar": {
     "type": "ages",
     "format": "{age} {year}",
@@ -44,14 +44,21 @@
       "name": "The Long Peace",
       "color": "#4a6a8a",
       "start": 901,
-      "end": 1300
+      "end": 1100
+    },
+    {
+      "id": "silence",
+      "name": "The Silence",
+      "color": "#5a5a6e",
+      "start": 1101,
+      "end": 1200
     },
     {
       "id": "skyfall",
       "name": "The Skyfall",
       "color": "#3b5b7a",
       "start": 1301,
-      "end": 2400
+      "end": 2300
     }
   ],
   "factions": [
@@ -392,7 +399,7 @@
       "summary": "The Wardens light watchfires along the coast.",
       "body": "A branch of the Wardens takes up the coastal fires: the *Lantern Keepers*.\n\nThis is a sub-sub-faction: Concord › Wardens › Lantern Keepers. Filtering by the Concord includes it.",
       "date": {
-        "sortKey": 1140,
+        "sortKey": 1250,
         "precision": "exact"
       },
       "factionIds": [
@@ -467,6 +474,359 @@
       "relatedIds": [],
       "sources": [],
       "mainFactionId": "exiles"
+    },
+    {
+      "id": "lume-bridge",
+      "title": "The Lume Bridge",
+      "summary": "A stone bridge joins the two banks of the Lume.",
+      "body": "A stone bridge joins the two banks of the Lume.",
+      "date": {
+        "sortKey": 95,
+        "precision": "century"
+      },
+      "factionIds": [
+        "freeholds"
+      ],
+      "placeIds": [
+        "brightvale"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "freeholds"
+    },
+    {
+      "id": "ember-plague",
+      "title": "The Ember Plague",
+      "summary": "A coughing sickness spreads from the ash pits.",
+      "body": "No faction is tied to this event, so its node uses the fallback colour.",
+      "date": {
+        "sortKey": 330,
+        "precision": "decade"
+      },
+      "factionIds": [],
+      "placeIds": [],
+      "relatedIds": [],
+      "sources": []
+    },
+    {
+      "id": "siege-brightvale",
+      "title": "Siege of Brightvale",
+      "summary": "The Hollow Crown surrounds the Concord capital.",
+      "body": "The Hollow Crown surrounds the Concord capital.",
+      "date": {
+        "sortKey": 520,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown",
+        "wardens",
+        "concord"
+      ],
+      "placeIds": [
+        "brightvale"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "crown"
+    },
+    {
+      "id": "pact-ash-iron",
+      "title": "Pact of Ash and Iron",
+      "summary": "The Ashen Order secretly bargains with the Crown.",
+      "body": "The Ashen Order secretly bargains with the Crown.",
+      "date": {
+        "sortKey": 545,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "ashen",
+        "crown"
+      ],
+      "placeIds": [
+        "hollowhold"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "ashen"
+    },
+    {
+      "id": "freehold-revolt",
+      "title": "The Freehold Revolt",
+      "summary": "Farmers refuse the Crown's grain levy.",
+      "body": "Farmers refuse the Crown's grain levy.",
+      "date": {
+        "sortKey": 568,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "freeholds",
+        "crown"
+      ],
+      "placeIds": [
+        "emberfall"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "freeholds"
+    },
+    {
+      "id": "battle-reeds",
+      "title": "Battle of the Reeds",
+      "summary": "The Wardens hold the river crossings for nine days.",
+      "body": "The Wardens hold the river crossings for nine days.",
+      "date": {
+        "sortKey": 612,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "wardens",
+        "crown"
+      ],
+      "placeIds": [
+        "brightvale"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "wardens"
+    },
+    {
+      "id": "winter-campaign",
+      "title": "The Long Winter Campaign",
+      "summary": "Both armies freeze in the passes of the Reach.",
+      "body": "Both armies freeze in the passes of the Reach.",
+      "date": {
+        "sortKey": 650,
+        "precision": "decade"
+      },
+      "factionIds": [
+        "crown",
+        "concord"
+      ],
+      "placeIds": [
+        "hollowhold"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "crown"
+    },
+    {
+      "id": "truce-hollowhold",
+      "title": "Truce of Hollowhold",
+      "summary": "A truce that lasts a single summer.",
+      "body": "A truce that lasts a single summer.",
+      "date": {
+        "sortKey": 700,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown",
+        "concord"
+      ],
+      "placeIds": [
+        "hollowhold"
+      ],
+      "relatedIds": [],
+      "sources": []
+    },
+    {
+      "id": "last-heir",
+      "title": "The Coronation of Edrin the Pale, Last Heir of the Hollow Crown, at the Gates of Hollowhold",
+      "summary": "A very long title, to check that node titles are clipped to two lines.",
+      "body": "A very long title, to check that node titles are clipped to two lines.",
+      "date": {
+        "sortKey": 731,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown"
+      ],
+      "placeIds": [
+        "hollowhold"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "crown"
+    },
+    {
+      "id": "raid-emberfall",
+      "title": "Raid on Emberfall",
+      "summary": "Crown riders burn the old fire-temple.",
+      "body": "Crown riders burn the old fire-temple.",
+      "date": {
+        "sortKey": 762,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown",
+        "freeholds"
+      ],
+      "placeIds": [
+        "emberfall"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "crown"
+    },
+    {
+      "id": "archive-burns",
+      "title": "The Archive Burns",
+      "summary": "The Ashen Order loses three centuries of records.",
+      "body": "The Ashen Order loses three centuries of records.",
+      "date": {
+        "sortKey": 788,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "ashen"
+      ],
+      "placeIds": [
+        "brightvale"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "ashen"
+    },
+    {
+      "id": "glass-treaty",
+      "title": "Treaty of the Glass Sea",
+      "summary": "Signed on the ice, by envoys who would not share a shore.",
+      "body": "Signed on the ice, by envoys who would not share a shore.",
+      "date": {
+        "sortKey": 801,
+        "precision": "circa"
+      },
+      "factionIds": [
+        "crown",
+        "concord",
+        "wardens"
+      ],
+      "placeIds": [
+        "glass-sea"
+      ],
+      "relatedIds": [
+        "glass-night"
+      ],
+      "sources": [],
+      "mainFactionId": "concord"
+    },
+    {
+      "id": "wars-end",
+      "title": "The Wars End",
+      "summary": "The last Crown garrison surrenders.",
+      "body": "The last Crown garrison surrenders.",
+      "date": {
+        "sortKey": 850,
+        "precision": "decade"
+      },
+      "factionIds": [
+        "concord",
+        "crown"
+      ],
+      "placeIds": [
+        "hollowhold",
+        "brightvale"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "concord"
+    },
+    {
+      "id": "dimming-stars",
+      "title": "The Dimming Stars",
+      "summary": "Three stars go dark in one winter. No era covers this time.",
+      "body": "Three stars go dark in one winter. No era covers this time.",
+      "date": {
+        "sortKey": 1290,
+        "precision": "circa"
+      },
+      "factionIds": [
+        "lantern"
+      ],
+      "placeIds": [
+        "glass-sea"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "lantern"
+    },
+    {
+      "id": "exile-charter",
+      "title": "The Exile Charter",
+      "summary": "Every faction of the realm signs the charter. It has no single place.",
+      "body": "Every faction of the realm signs the charter. It has no single place.",
+      "date": {
+        "sortKey": 1400,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "exiles",
+        "concord",
+        "wardens",
+        "lantern",
+        "freeholds"
+      ],
+      "placeIds": [],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "exiles"
+    },
+    {
+      "id": "sky-roads",
+      "title": "The Sky-Roads Open",
+      "summary": "Exile ships begin regular voyages between the stars.",
+      "body": "Exile ships begin regular voyages between the stars.",
+      "date": {
+        "sortKey": 1650,
+        "precision": "century"
+      },
+      "factionIds": [
+        "exiles"
+      ],
+      "placeIds": [
+        "skyfall"
+      ],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "exiles"
+    },
+    {
+      "id": "shattering",
+      "title": "The Shattering",
+      "summary": "The event that gives the realms their name.",
+      "body": "The event that gives the realms their name.",
+      "date": {
+        "sortKey": 2000,
+        "precision": "millennium"
+      },
+      "factionIds": [
+        "exiles",
+        "crown",
+        "concord"
+      ],
+      "placeIds": [
+        "glass-sea",
+        "skyfall"
+      ],
+      "relatedIds": [],
+      "sources": []
+    },
+    {
+      "id": "far-future",
+      "title": "Beyond the Last Age",
+      "summary": "A prophecy, with a free-text date.",
+      "body": "A prophecy, with a free-text date.",
+      "date": {
+        "sortKey": 2290,
+        "precision": "circa",
+        "label": "At the end of all ages"
+      },
+      "factionIds": [
+        "lantern"
+      ],
+      "placeIds": [],
+      "relatedIds": [],
+      "sources": [],
+      "mainFactionId": "lantern"
     }
   ],
   "createdAt": 0,
