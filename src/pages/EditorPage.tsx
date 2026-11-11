@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useBlocker, useSearchParams, type BlockerFunction } from 'react-router-dom';
 import type { Faction, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
+import CharacterForm, { type CharacterDraft } from '../components/editor/CharacterForm';
+import { characterGroups } from '../lib/characters';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
 import { allMaps, mapsWithPlace } from '../lib/maps';
@@ -20,17 +22,19 @@ import { eraFor } from '../lib/eras';
 import { factionTree } from '../lib/factions';
 import {
   countUsage,
+  removeCharacter,
   removeFaction,
   removeEra,
   removeEvent,
   removePlace,
+  saveCharacterWithEvents,
   saveFaction,
   saveEra,
   saveEvent,
   savePlace,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'factions', 'places', 'maps', 'starmap', 'calendar', 'theme', 'website', 'settings'] as const;
+const TABS = ['events', 'eras', 'factions', 'characters', 'places', 'maps', 'starmap', 'calendar', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -115,11 +119,22 @@ function Editor({ timeline }: { timeline: Timeline }) {
   const factions = useMemo(() => factionRows.map((r) => r.faction), [factionRows]);
   const depthOf = (id: string) => factionRows.find((r) => r.faction.id === id)?.depth ?? 0;
   const places = useMemo(() => [...timeline.places].sort((a, b) => a.name.localeCompare(b.name)), [timeline.places]);
+  // Characters grouped by faction (independent last), each with the events they're in
+  const groups = useMemo(() => characterGroups(timeline), [timeline]);
+  const characters = useMemo<CharacterDraft[]>(
+    () =>
+      groups.flatMap((g) =>
+        g.characters.map((c) => ({ ...c, eventIds: timeline.events.filter((e) => e.characterIds.includes(c.id)).map((e) => e.id) })),
+      ),
+    [groups, timeline.events],
+  );
+  const groupOfCharacter = useMemo(() => new Map(groups.flatMap((g) => g.characters.map((c) => [c.id, g.name] as const))), [groups]);
 
   const counts: Record<Tab, number | null> = {
     events: events.length,
     eras: eras.length,
     factions: factions.length,
+    characters: characters.length,
     places: places.length,
     maps: allMaps(timeline).length,
     starmap: null,
@@ -229,6 +244,32 @@ function Editor({ timeline }: { timeline: Timeline }) {
         />
       )}
 
+      {tab === 'characters' && (
+        <CollectionTab<CharacterDraft>
+          {...shared}
+          items={characters}
+          noun="character"
+          blank={() => ({ id: '', name: '', description: '', feats: [], eventIds: [] })}
+          nameOf={(c) => c.name}
+          matches={(c, q) => c.name.toLowerCase().includes(q)}
+          groupOf={(c) => groupOfCharacter.get(c.id) ?? ''}
+          renderRow={(c) => {
+            const color = timeline.factions.find((f) => f.id === c.factionId)?.color;
+            return (
+              <>
+                <span className="swatch" style={{ background: color ?? 'transparent' }} />
+                <span className="row-main">{c.name}</span>
+                <span className="row-meta">{c.eventIds.length}</span>
+              </>
+            );
+          }}
+          save={saveCharacterWithEvents}
+          remove={removeCharacter}
+          deleteWarning={(c) => usageWarning(c.eventIds.length)}
+          renderForm={(p) => <CharacterForm {...p} timeline={timeline} />}
+        />
+      )}
+
       {tab === 'places' && (
         <>
           {/* Arrived from "Pin places" in the Maps tab: say which map the pins go on */}
@@ -270,8 +311,11 @@ function Editor({ timeline }: { timeline: Timeline }) {
 function factionDeleteWarning(timeline: Timeline, faction: Faction): string | undefined {
   const children = timeline.factions.filter((c) => c.parentId === faction.id).length;
   const parent = timeline.factions.find((c) => c.id === faction.parentId);
+  const members = timeline.characters.filter((c) => c.factionId === faction.id).length;
   const lines = [
     usageWarning(countUsage(timeline, 'factionIds', faction.id)),
+    members > 0 &&
+      `Its ${members} character${members === 1 ? ' moves' : 's move'} ${parent ? `to ${parent.name}` : 'to independent'}.`,
     children > 0 &&
       `Its ${children} sub-faction${children === 1 ? ' moves' : 's move'} ${parent ? `up to ${parent.name}` : 'to the top level'}.`,
   ].filter(Boolean);
@@ -299,5 +343,5 @@ function blankEvent(timeline: Timeline, sortedEvents: TimelineEvent[]): Timeline
     // In a free-text calendar every date is a label
     ...(timeline.calendar.type === 'freeform' && { label: '' }),
   };
-  return { id: '', title: '', summary: '', body: '', date, factionIds: [], placeIds: [], relatedIds: [], sources: [] };
+  return { id: '', title: '', summary: '', body: '', date, factionIds: [], placeIds: [], characterIds: [], relatedIds: [], sources: [] };
 }

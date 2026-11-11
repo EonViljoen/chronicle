@@ -1,6 +1,6 @@
 {
   "id": "test-timeline",
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "title": "Test: The Shattered Realms",
   "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, the 3D starmap and nested flat maps (galaxy, region, city). The setting is made up.",
   "calendar": {
@@ -114,7 +114,7 @@
     {
       "id": "brightvale",
       "name": "Brightvale",
-      "description": "Capital of the Concord, on the river Lume.",
+      "description": "Capital of the Concord, on the river Lume.\n\nBesieged by [[Aldric Vane]] in C.A. 20, and home to [[Tamsin Reed]]'s wardens.",
       "position": [
         -38,
         0,
@@ -288,6 +288,142 @@
       }
     }
   ],
+  "characters": [
+    {
+      "id": "aldric-vane",
+      "name": "Aldric Vane",
+      "factionId": "crown",
+      "born": {
+        "sortKey": 470,
+        "precision": "exact"
+      },
+      "died": {
+        "sortKey": 548,
+        "precision": "exact"
+      },
+      "description": "First king of the Hollow Crown. He took [[Hollowhold]] by marriage and the rest by the sword, and his [[Siege of Brightvale|siege]] is still sung about in the [[faction:The Hollow Crown|Crown]]'s halls.\n\nHe signed the [[Pact of Ash and Iron]] in his last years and died before he saw what it cost.",
+      "feats": [
+        {
+          "name": "Crowned at Hollowhold",
+          "description": "Took the crown in the [[The Throne Hall]] in C.A. 3."
+        },
+        {
+          "name": "Breaker of Walls",
+          "description": "Brought down the walls of Brightvale in eleven days."
+        }
+      ]
+    },
+    {
+      "id": "mirela-ashgrave",
+      "name": "Mirela Ashgrave",
+      "factionId": "ashen",
+      "born": {
+        "sortKey": 505,
+        "precision": "circa"
+      },
+      "died": {
+        "sortKey": 560,
+        "precision": "circa"
+      },
+      "description": "Speaker of the Ashen Order, who bargained with the [[The Hollow Crown]] when the Concord would not listen.",
+      "feats": [
+        {
+          "name": "Voice of the Order",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "tamsin-reed",
+      "name": "Tamsin Reed",
+      "factionId": "wardens",
+      "born": {
+        "sortKey": 590,
+        "precision": "exact"
+      },
+      "died": {
+        "sortKey": 681,
+        "precision": "exact"
+      },
+      "description": "Warden-captain of Brightvale through the long wars. Held the river at the [[Battle of the Reeds]] and fell on the [[The Glass Night|Night of Glass]].",
+      "feats": [
+        {
+          "name": "Held the Reeds",
+          "description": "Three days on the river with two hundred wardens."
+        },
+        {
+          "name": "Never left the walls",
+          "description": "Swore not to leave [[Brightvale]] while it was in danger, and kept the oath for forty years."
+        }
+      ]
+    },
+    {
+      "id": "oren-thorne",
+      "name": "Oren Thorne",
+      "factionId": "thornguard",
+      "born": {
+        "sortKey": 870,
+        "precision": "exact"
+      },
+      "description": "Founder of the Thornguard. Nobody wrote down when he died, so he has no death date: a test of a character with only a birth.",
+      "feats": []
+    },
+    {
+      "id": "ilse-lanternkeeper",
+      "name": "Ilse the Lanternkeeper",
+      "factionId": "lantern",
+      "born": {
+        "sortKey": 1220,
+        "precision": "exact"
+      },
+      "died": {
+        "sortKey": 1310,
+        "precision": "exact"
+      },
+      "description": "Lit the first lantern on the [[The Lantern Spire]], and watched the [[The Dimming Stars|Dimming of the Stars]] from its top.",
+      "feats": [
+        {
+          "name": "First flame",
+          "description": "The lanterns of Brightvale have burned since her hand lit them."
+        }
+      ]
+    },
+    {
+      "id": "kael-skyborn",
+      "name": "Kael Skyborn",
+      "factionId": "exiles",
+      "born": {
+        "sortKey": 1301,
+        "precision": "exact"
+      },
+      "died": {
+        "sortKey": 1402,
+        "precision": "exact"
+      },
+      "description": "Born the day the ships fell. Grew up to write the [[The Exile Charter]] with the people his parents had fled to.",
+      "feats": [
+        {
+          "name": "Born in the Skyfall",
+          "description": ""
+        },
+        {
+          "name": "Author of the Charter",
+          "description": "Wrote it in one night, the story goes."
+        }
+      ]
+    },
+    {
+      "id": "wren",
+      "name": "Wren",
+      "description": "A wandering storyteller with no faction, who turns up wherever something is about to happen. A test of an independent character with no dates.\n\nSome say Wren kept the only copy of [[The Lost Library]]: that link is broken on purpose, to test how broken links look.",
+      "feats": [
+        {
+          "name": "Saw everything",
+          "description": ""
+        }
+      ]
+    }
+  ],
   "map": {
     "type": "galaxy3d",
     "arms": 3,
@@ -323,7 +459,8 @@
       "sources": [
         "The Ember Chronicle, book I"
       ],
-      "mainFactionId": "freeholds"
+      "mainFactionId": "freeholds",
+      "characterIds": []
     },
     {
       "id": "vale-founded",
@@ -345,7 +482,8 @@
         "concord-sworn"
       ],
       "sources": [],
-      "mainFactionId": "wardens"
+      "mainFactionId": "wardens",
+      "characterIds": []
     },
     {
       "id": "ashen-rite",
@@ -364,7 +502,8 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "ashen"
+      "mainFactionId": "ashen",
+      "characterIds": []
     },
     {
       "id": "concord-sworn",
@@ -388,7 +527,10 @@
         "crown-rises"
       ],
       "sources": [],
-      "mainFactionId": "concord"
+      "mainFactionId": "concord",
+      "characterIds": [
+        "wren"
+      ]
     },
     {
       "id": "crown-rises",
@@ -410,7 +552,10 @@
         "crown-wars"
       ],
       "sources": [],
-      "mainFactionId": "crown"
+      "mainFactionId": "crown",
+      "characterIds": [
+        "aldric-vane"
+      ]
     },
     {
       "id": "crown-wars",
@@ -436,13 +581,16 @@
         "glass-night"
       ],
       "sources": [],
-      "mainFactionId": "crown"
+      "mainFactionId": "crown",
+      "characterIds": [
+        "tamsin-reed"
+      ]
     },
     {
       "id": "glass-night",
       "title": "The Glass Night",
       "summary": "The sea freezes clear in a single night.",
-      "body": "Both fleets are caught as the sea turns to glass. The war ends with no victor.",
+      "body": "Both fleets are caught as the sea turns to glass. The war ends with no victor.\n\n[[Tamsin Reed]] fell here, the last of the wardens who had held the [[Battle of the Reeds|Reeds]].",
       "date": {
         "sortKey": 681,
         "precision": "exact"
@@ -459,6 +607,9 @@
       ],
       "sources": [
         "Accounts of the survivors"
+      ],
+      "characterIds": [
+        "tamsin-reed"
       ]
     },
     {
@@ -478,7 +629,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "thornguard"
+      "mainFactionId": "thornguard",
+      "characterIds": [
+        "oren-thorne"
+      ]
     },
     {
       "id": "lanterns",
@@ -498,7 +652,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "lantern"
+      "mainFactionId": "lantern",
+      "characterIds": [
+        "ilse-lanternkeeper"
+      ]
     },
     {
       "id": "skyfall",
@@ -519,13 +676,17 @@
         "first-contact"
       ],
       "sources": [],
-      "mainFactionId": "exiles"
+      "mainFactionId": "exiles",
+      "characterIds": [
+        "ilse-lanternkeeper",
+        "kael-skyborn"
+      ]
     },
     {
       "id": "first-contact",
       "title": "First Contact at Brightvale",
       "summary": "Exile envoys reach the Concord's council.",
-      "body": "The Star-Exiles send envoys to Brightvale. The council argues for a year.",
+      "body": "The Star-Exiles send envoys to Brightvale. The council argues for a year.\n\nThe exiles came down to [[place:Brightvale]], not to [[Founding of Brightvale|the old founding stone]].",
       "date": {
         "sortKey": 1309,
         "precision": "exact"
@@ -542,7 +703,11 @@
         "skyfall"
       ],
       "sources": [],
-      "mainFactionId": "exiles"
+      "mainFactionId": "exiles",
+      "characterIds": [
+        "ilse-lanternkeeper",
+        "kael-skyborn"
+      ]
     },
     {
       "id": "age-of-stars",
@@ -561,7 +726,8 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "exiles"
+      "mainFactionId": "exiles",
+      "characterIds": []
     },
     {
       "id": "lume-bridge",
@@ -581,7 +747,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "freeholds"
+      "mainFactionId": "freeholds",
+      "characterIds": [
+        "wren"
+      ]
     },
     {
       "id": "ember-plague",
@@ -595,13 +764,14 @@
       "factionIds": [],
       "placeIds": [],
       "relatedIds": [],
-      "sources": []
+      "sources": [],
+      "characterIds": []
     },
     {
       "id": "siege-brightvale",
       "title": "Siege of Brightvale",
       "summary": "The Hollow Crown surrounds the Concord capital.",
-      "body": "The Hollow Crown surrounds the Concord capital.",
+      "body": "The Hollow Crown surrounds the Concord capital.\n\nThe Crown's host was led by [[Aldric Vane]] himself. Its archive would burn too, when [[The Archive Burns|the Ashen Order set it alight]].",
       "date": {
         "sortKey": 520,
         "precision": "exact"
@@ -617,7 +787,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "crown"
+      "mainFactionId": "crown",
+      "characterIds": [
+        "aldric-vane"
+      ]
     },
     {
       "id": "pact-ash-iron",
@@ -637,7 +810,11 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "ashen"
+      "mainFactionId": "ashen",
+      "characterIds": [
+        "aldric-vane",
+        "mirela-ashgrave"
+      ]
     },
     {
       "id": "freehold-revolt",
@@ -657,7 +834,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "freeholds"
+      "mainFactionId": "freeholds",
+      "characterIds": [
+        "mirela-ashgrave"
+      ]
     },
     {
       "id": "battle-reeds",
@@ -677,7 +857,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "wardens"
+      "mainFactionId": "wardens",
+      "characterIds": [
+        "tamsin-reed"
+      ]
     },
     {
       "id": "winter-campaign",
@@ -698,7 +881,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "crown"
+      "mainFactionId": "crown",
+      "characterIds": [
+        "tamsin-reed"
+      ]
     },
     {
       "id": "truce-hollowhold",
@@ -718,7 +904,8 @@
         "keep-gate"
       ],
       "relatedIds": [],
-      "sources": []
+      "sources": [],
+      "characterIds": []
     },
     {
       "id": "last-heir",
@@ -738,7 +925,8 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "crown"
+      "mainFactionId": "crown",
+      "characterIds": []
     },
     {
       "id": "raid-emberfall",
@@ -758,7 +946,8 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "crown"
+      "mainFactionId": "crown",
+      "characterIds": []
     },
     {
       "id": "archive-burns",
@@ -777,7 +966,8 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "ashen"
+      "mainFactionId": "ashen",
+      "characterIds": []
     },
     {
       "id": "glass-treaty",
@@ -800,7 +990,8 @@
         "glass-night"
       ],
       "sources": [],
-      "mainFactionId": "concord"
+      "mainFactionId": "concord",
+      "characterIds": []
     },
     {
       "id": "wars-end",
@@ -821,7 +1012,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "concord"
+      "mainFactionId": "concord",
+      "characterIds": [
+        "wren"
+      ]
     },
     {
       "id": "dimming-stars",
@@ -840,7 +1034,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "lantern"
+      "mainFactionId": "lantern",
+      "characterIds": [
+        "ilse-lanternkeeper"
+      ]
     },
     {
       "id": "exile-charter",
@@ -861,7 +1058,10 @@
       "placeIds": [],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "exiles"
+      "mainFactionId": "exiles",
+      "characterIds": [
+        "kael-skyborn"
+      ]
     },
     {
       "id": "sky-roads",
@@ -880,7 +1080,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "exiles"
+      "mainFactionId": "exiles",
+      "characterIds": [
+        "wren"
+      ]
     },
     {
       "id": "shattering",
@@ -901,7 +1104,8 @@
         "skyfall"
       ],
       "relatedIds": [],
-      "sources": []
+      "sources": [],
+      "characterIds": []
     },
     {
       "id": "far-future",
@@ -919,7 +1123,8 @@
       "placeIds": [],
       "relatedIds": [],
       "sources": [],
-      "mainFactionId": "lantern"
+      "mainFactionId": "lantern",
+      "characterIds": []
     }
   ],
   "createdAt": 0,

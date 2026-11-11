@@ -199,9 +199,11 @@ interface DateProps {
   calendar: Calendar;
   onChange: (date: EventDate) => void;
   error?: string;
+  /** The field's label. Default "Date". */
+  label?: string;
 }
 
-export function DateInput({ value, calendar, onChange, error }: DateProps) {
+export function DateInput({ value, calendar, onChange, error, label = 'Date' }: DateProps) {
   const { sortKey, precision } = value;
   const freeformCalendar = calendar.type === 'freeform';
   const textMode = freeformCalendar || value.label !== undefined;
@@ -223,10 +225,10 @@ export function DateInput({ value, calendar, onChange, error }: DateProps) {
       : `The number only sets the order. It's where ${formatKey(sortKey, calendar)} would be.`;
 
   return (
-    <Field label="Date" group error={error} hint={hint}>
+    <Field label={label} group error={error} hint={hint}>
       <div className="inline-inputs wrap">
         {!freeformCalendar && (
-          <select value={textMode ? 'text' : 'calendar'} aria-label="Date type" onChange={(e) => changeMode(e.target.value as 'calendar' | 'text')}>
+          <select value={textMode ? 'text' : 'calendar'} aria-label={`${label}: type`} onChange={(e) => changeMode(e.target.value as 'calendar' | 'text')}>
             <option value="calendar">Calendar date</option>
             <option value="text">Free text</option>
           </select>
@@ -237,13 +239,13 @@ export function DateInput({ value, calendar, onChange, error }: DateProps) {
             <input
               value={value.label ?? ''}
               placeholder="Time immemorial"
-              aria-label="Date label"
+              aria-label={`${label}: text`}
               onChange={(e) => onChange({ ...value, label: e.target.value })}
             />
             <NumberInput
               className="w-md"
               value={sortKey}
-              aria-label="Order number"
+              aria-label={`${label}: order number`}
               title="Order number"
               onChange={(n) => n !== undefined && onChange({ ...value, sortKey: n })}
             />
@@ -253,7 +255,7 @@ export function DateInput({ value, calendar, onChange, error }: DateProps) {
             <CalendarFields
               calendar={calendar}
               value={sortKey}
-              label="Date"
+              label={label}
               periodAllowed={supportsPeriod(calendar)}
               isPeriod={isPeriod}
               onChange={(key, period) => onChange({ sortKey: key, precision: period ? 'period' : isPeriod ? 'exact' : precision })}
@@ -264,7 +266,7 @@ export function DateInput({ value, calendar, onChange, error }: DateProps) {
         {/* Approximate dates get "c." (calendar dates only) and a hollow node */}
         <select
           value={isPeriod ? 'exact' : precision}
-          aria-label="Precision"
+          aria-label={label === 'Date' ? 'Precision' : `${label}: precision`}
           disabled={isPeriod && !textMode}
           title={isPeriod && !textMode ? 'Only the period is known' : undefined}
           onChange={(e) => onChange({ ...value, precision: e.target.value as DatePrecision })}

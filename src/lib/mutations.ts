@@ -1,4 +1,5 @@
-import type { Faction, Era, FlatMap, Place, Timeline, TimelineEvent } from '../types/timeline';
+import type { Character, Faction, Era, FlatMap, Place, Timeline, TimelineEvent } from '../types/timeline';
+import { renameLinks, type LinkKind } from './links';
 
 /*
  * Pure functions: each takes a timeline and returns a NEW timeline with one
@@ -17,14 +18,24 @@ export function upsert<T extends { id: string }>(list: T[], item: T): T[] {
 
 const without = (ids: string[], id: string) => ids.filter((x) => x !== id);
 
+/**
+ * When something linkable is renamed, [[links]] to its old name are
+ * rewritten so they keep working (see lib/links.ts).
+ */
+function keepLinks(before: Timeline, after: Timeline, kind: LinkKind, id: string, newName: string): Timeline {
+  const old =
+    kind === 'event'
+      ? before.events.find((e) => e.id === id)?.title
+      : (kind === 'character' ? before.characters : kind === 'place' ? before.places : before.factions).find((x) => x.id === id)?.name;
+  return old === undefined ? after : renameLinks(after, before, kind, old, newName);
+}
+
 export const saveEra = (t: Timeline, era: Era): Timeline => ({ ...t, eras: upsert(t.eras, era) });
 export const removeEra = (t: Timeline, id: string): Timeline => ({ ...t, eras: t.eras.filter((e) => e.id !== id) });
 
-export const saveFaction = (t: Timeline, faction: Faction): Timeline => ({
-  ...t,
-  factions: upsert(t.factions, faction),
-});
-/** Deletes a faction. Its sub-factions move up to its parent, so they aren't lost. */
+export const saveFaction = (t: Timeline, faction: Faction): Timeline =>
+  keepLinks(t, { ...t, factions: upsert(t.factions, faction) }, 'faction', faction.id, faction.name);
+/** Deletes a faction. Its sub-factions and characters move up to its parent, so they aren't lost. */
 export function removeFaction(t: Timeline, id: string): Timeline {
   const parentId = t.factions.find((c) => c.id === id)?.parentId;
   return {
@@ -32,6 +43,7 @@ export function removeFaction(t: Timeline, id: string): Timeline {
     factions: t.factions
       .filter((c) => c.id !== id)
       .map((c) => (c.parentId === id ? { ...c, parentId } : c)),
+    characters: t.characters.map((c) => (c.factionId === id ? { ...c, factionId: parentId } : c)),
     events: t.events.map((e) => ({
       ...e,
       factionIds: without(e.factionIds, id),
@@ -40,13 +52,40 @@ export function removeFaction(t: Timeline, id: string): Timeline {
   };
 }
 
-export const savePlace = (t: Timeline, place: Place): Timeline => ({ ...t, places: upsert(t.places, place) });
+export const savePlace = (t: Timeline, place: Place): Timeline =>
+  keepLinks(t, { ...t, places: upsert(t.places, place) }, 'place', place.id, place.name);
 /** Deletes a place. Events lose it, and a map it opened stays, but no longer opens from here. */
 export const removePlace = (t: Timeline, id: string): Timeline => ({
   ...t,
   places: t.places.filter((p) => p.id !== id),
   maps: t.maps.map((m) => (m.placeId === id ? { ...m, placeId: undefined } : m)),
   events: t.events.map((e) => ({ ...e, placeIds: without(e.placeIds, id) })),
+});
+
+export const saveCharacter = (t: Timeline, character: Character): Timeline =>
+  keepLinks(t, { ...t, characters: upsert(t.characters, character) }, 'character', character.id, character.name);
+/**
+ * Saves a character along with the events they're in. Events hold that link
+ * (`characterIds`), so each event gains or loses the character to match.
+ */
+export function saveCharacterWithEvents(t: Timeline, { eventIds, ...character }: Character & { eventIds: string[] }): Timeline {
+  const inEvent = new Set(eventIds);
+  const next = saveCharacter(t, character);
+  return {
+    ...next,
+    events: next.events.map((e) => {
+      const listed = e.characterIds.includes(character.id);
+      if (inEvent.has(e.id) && !listed) return { ...e, characterIds: [...e.characterIds, character.id] };
+      if (!inEvent.has(e.id) && listed) return { ...e, characterIds: without(e.characterIds, character.id) };
+      return e;
+    }),
+  };
+}
+/** Deletes a character. Events no longer list them. */
+export const removeCharacter = (t: Timeline, id: string): Timeline => ({
+  ...t,
+  characters: t.characters.filter((c) => c.id !== id),
+  events: t.events.map((e) => ({ ...e, characterIds: without(e.characterIds, id) })),
 });
 
 export const saveMap = (t: Timeline, map: FlatMap): Timeline => ({ ...t, maps: upsert(t.maps, map) });
@@ -111,7 +150,7 @@ export function saveEvent(t: Timeline, event: TimelineEvent): Timeline {
     if (!related.has(e.id) && linked) return { ...e, relatedIds: without(e.relatedIds, event.id) };
     return e;
   });
-  return { ...t, events };
+  return keepLinks(t, { ...t, events }, 'event', event.id, event.title);
 }
 
 export const removeEvent = (t: Timeline, id: string): Timeline => ({
@@ -119,6 +158,6 @@ export const removeEvent = (t: Timeline, id: string): Timeline => ({
   events: t.events.filter((e) => e.id !== id).map((e) => ({ ...e, relatedIds: without(e.relatedIds, id) })),
 });
 
-/** How many events use a faction or place (for delete warnings). */
-export const countUsage = (t: Timeline, key: 'factionIds' | 'placeIds', id: string) =>
+/** How many events use a faction, place or character (for delete warnings). */
+export const countUsage = (t: Timeline, key: 'factionIds' | 'placeIds' | 'characterIds', id: string) =>
   t.events.filter((e) => e[key].includes(id)).length;

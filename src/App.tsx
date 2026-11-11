@@ -7,6 +7,10 @@ import TimelinesPage from './pages/TimelinesPage';
 import ViewerPage from './pages/ViewerPage';
 import EditorPage from './pages/EditorPage';
 import MapPage from './pages/MapPage';
+import CharactersPage from './pages/CharactersPage';
+import CharacterPage from './pages/CharacterPage';
+import PlacePage from './pages/PlacePage';
+import FactionPage from './pages/FactionPage';
 
 /*
  * Routes. `Layout` wraps every page (header etc.) and renders the matched
@@ -22,6 +26,10 @@ const routes = [
       { path: '/t/:id', element: <ViewerPage /> },
       { path: '/t/:id/edit', element: <EditorPage /> },
       { path: '/t/:id/map', element: <MapPage /> },
+      { path: '/t/:id/characters', element: <CharactersPage /> },
+      { path: '/t/:id/characters/:itemId', element: <CharacterPage /> },
+      { path: '/t/:id/places/:itemId', element: <PlacePage /> },
+      { path: '/t/:id/factions/:itemId', element: <FactionPage /> },
     ],
   },
 ];

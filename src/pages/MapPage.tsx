@@ -3,6 +3,7 @@ import type { Timeline } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
 import TimelineMap from '../components/map/TimelineMap';
+import RichText from '../components/RichText';
 import { allMaps, childMapAt, isPlacedOn, mapTree, masterMapId } from '../lib/maps';
 import { compareEvents, formatDate } from '../lib/dates';
 
@@ -80,7 +81,12 @@ function MapView({ timeline }: { timeline: Timeline }) {
               <>
                 <button className="link-btn muted" onClick={() => select(null)}>← All places</button>
                 <h2 className="map-panel-title">{selected.name}</h2>
-                {selected.description && <p className="map-panel-desc">{selected.description}</p>}
+                {selected.description && (
+                  <div className="map-panel-desc prose">
+                    <RichText text={selected.description} timeline={timeline} />
+                  </div>
+                )}
+                <Link className="map-panel-more" to={`/t/${timeline.id}/places/${encodeURIComponent(selected.id)}`}>Its history and people →</Link>
                 <h3 className="map-panel-sub">Events here</h3>
                 {events.length === 0 ? (
                   <p className="muted">No events linked to this place yet.</p>

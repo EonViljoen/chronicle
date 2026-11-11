@@ -1,11 +1,11 @@
-import Markdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
 import { formatDate } from '../../lib/dates';
-import { factionPath, mainFactionOf } from '../../lib/factions';
-import { allMaps, mapsWithPlace } from '../../lib/maps';
+import { mainFactionOf } from '../../lib/factions';
 import { EditOnly } from '../EditOnly';
+import RichText from '../RichText';
+import { CharacterChip, FactionChip, PlaceChip } from '../history/Chips';
 
 interface Props {
   timeline: Timeline;
@@ -23,6 +23,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
     .filter((c) => event.factionIds.includes(c.id))
     .sort((a, b) => Number(b.id === mainId) - Number(a.id === mainId));
   const places = timeline.places.filter((p) => event.placeIds.includes(p.id));
+  const characters = timeline.characters.filter((c) => event.characterIds.includes(c.id));
   // Skip related ids that point at deleted events
   const related = event.relatedIds
     .map((id) => timeline.events.find((e) => e.id === id))
@@ -47,34 +48,24 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
         </div>
       </header>
 
+      {/* Each chip opens that faction's, place's or character's page */}
       {(factions.length > 0 || places.length > 0) && (
         <div className="chips">
-          {factions.map((c) => (
-            <span
-              key={c.id}
-              className={`chip${c.id === mainId ? ' is-primary' : ''}`}
-              style={{ borderColor: c.color }}
-              title={`${factionPath(c.id, timeline.factions)}${c.id === mainId ? ' (main faction)' : ''}`}
-            >
-              <span className="swatch" style={{ background: c.color }} /> {c.id === mainId && <span aria-hidden="true">★</span>} {c.name}
-              {c.id === mainId && <span className="sr-only">(main faction)</span>}
-            </span>
-          ))}
-          {places.map((p) =>
-            // Places that are on a map link to it; the map page picks a map that shows them
-            mapsWithPlace(p, allMaps(timeline)).length > 0 ? (
-              <Link key={p.id} className="chip chip-place chip-link" to={`/t/${timeline.id}/map?place=${p.id}`}>⌖ {p.name}</Link>
-            ) : (
-              <span key={p.id} className="chip chip-place">⌖ {p.name}</span>
-            ),
-          )}
+          {factions.map((c) => <FactionChip key={c.id} timeline={timeline} faction={c} main={c.id === mainId} />)}
+          {places.map((p) => <PlaceChip key={p.id} timeline={timeline} place={p} />)}
+        </div>
+      )}
+      {characters.length > 0 && (
+        <div className="chips">
+          {characters.map((c) => <CharacterChip key={c.id} timeline={timeline} character={c} />)}
         </div>
       )}
 
       {event.imageUrl && <img className="event-panel-image" src={event.imageUrl} alt="" />}
 
       <div className="prose">
-        {event.body ? <Markdown>{event.body}</Markdown> : <p className="muted">{event.summary || 'No details yet.'}</p>}
+        {/* [[Links]] to other events select them here, without leaving the viewer */}
+        {event.body ? <RichText text={event.body} timeline={timeline} onEventLink={onSelect} /> : <p className="muted">{event.summary || 'No details yet.'}</p>}
       </div>
 
       {related.length > 0 && (

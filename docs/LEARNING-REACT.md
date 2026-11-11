@@ -172,11 +172,13 @@ wh40k-timeline/
     │   ├── db.ts               The Dexie database definition
     │   └── timelines.ts        Read hooks and write functions for timelines
     ├── lib/                    Plain functions, no React (easy to test)
+    │   ├── characters.ts       Characters grouped by faction; their events; ages
     │   ├── dates.ts            Calendars: turning a date number into "AD 1066" and back
     │   ├── eras.ts             Which era a date is in; era bands
     │   ├── filters.ts          Does an event match the search/filters?
     │   ├── ids.ts              "Horus Heresy" -> "horus-heresy"
-    │   ├── images.ts           Reading an uploaded picture (map images)
+    │   ├── images.ts           Reading an uploaded picture (maps, portraits)
+    │   ├── links.ts            [[Links]] in text: finding what they point at, renaming
     │   ├── maps.ts             The starmap and flat maps as one list; the map tree
     │   ├── mutations.ts        Timeline -> new Timeline update functions
     │   ├── prefs.ts            Preferences in localStorage (usePref)
@@ -188,11 +190,17 @@ wh40k-timeline/
     │   ├── TimelinesPage.tsx   /timelines : your timelines, with a dashboard
     │   ├── ViewerPage.tsx      /t/:id
     │   ├── EditorPage.tsx      /t/:id/edit
-    │   └── MapPage.tsx         /t/:id/map
+    │   ├── MapPage.tsx         /t/:id/map
+    │   ├── CharactersPage.tsx  /t/:id/characters : everyone, by faction
+    │   ├── CharacterPage.tsx   /t/:id/characters/:itemId : a life on the timeline
+    │   ├── PlacePage.tsx       /t/:id/places/:itemId : a place's history
+    │   └── FactionPage.tsx     /t/:id/factions/:itemId : a faction's history
     └── components/
         ├── Layout.tsx          Header + <Outlet />
         ├── TimelineCard.tsx    One card on the home page
         ├── TimelineGate.tsx    Loads the timeline in the URL, handles "not found"
+        ├── RichText.tsx        Markdown with [[links]] turned into router links
+        ├── history/            The pieces of the character, place and faction pages
         ├── viewer/             The horizontal timeline and info box
         ├── editor/             The editor's tabs and forms
         ├── form/               Reusable inputs (NumberInput, DateInput, Field…)
@@ -1281,6 +1289,17 @@ When the shape changed (one `flatMap` became the `maps` list, `pin` became `pins
 [`TimelineMap.tsx`](../src/components/map/TimelineMap.tsx) shows whichever map its parent picks (`mapId`), with the breadcrumbs and a picker of every map. The viewer keeps the map in state and starts on the **master map** (`masterMapId`); selecting an event whose places aren't on the map shown switches to a map that has one. The map page keeps it in the URL (`?map=…`), so the back button steps back out of a map. Maps are added, arranged and linked in the editor's **Maps** tab ([`MapsPanel.tsx`](../src/components/editor/MapsPanel.tsx)); places are pinned on them in the **Places** tab, which a map's "Pin places" button opens with that map already chosen (`?tab=places&map=…`).
 
 The starmap is drawn by three.js, which needs real colour values rather than CSS, so it can't pick up a theme the way the rest of the page does. [`themes/palette.ts`](../src/themes/palette.ts) bridges the gap: `useThemePalette` reads the theme's colours from the CSS variables on `<html>` and uses **`useSyncExternalStore`** (React's hook for reading something outside React) with a `MutationObserver` to re-render whenever a theme is applied. Because it reads what's on the page, the galaxy follows faction themes and the theme editor's preview too. Set to "From the theme" in the Starmap tab, the arms take the accent colour and the core the highlight; "My own" uses the colours stored in the timeline.
+
+### Characters, and [[links]] in text
+
+**Characters** (`timeline.characters`) work like places: events list who's in them (`characterIds`), the same way they list places. The character form also lets you pick their events, but the link is still stored on the events, so [`saveCharacterWithEvents`](../src/lib/mutations.ts) adds or removes the character on each event. One source of truth, two ways to edit it.
+
+**[[Links]]** show a trick for extending a library you don't control. `react-markdown` knows nothing about `[[Siege of Brightvale]]`, so [`RichText.tsx`](../src/components/RichText.tsx) does it in two steps:
+
+1. **Rewrite the text first.** [`linkify`](../src/lib/links.ts) turns each `[[Name]]` into an ordinary Markdown link with a made-up address, `[Name](link:event:siege-brightvale)`. That's a plain string-to-string function in `lib/`, easy to test.
+2. **Render links your way.** `react-markdown` takes a `components` prop: your own component for each HTML tag. RichText's `a` reads the `link:` address and returns a router `<Link>`, so the page changes without a reload. (`urlTransform` keeps those addresses; by default react-markdown drops unknown ones for safety.)
+
+Renaming something rewrites the `[[links]]` to its old name (`renameLinks`, called from the save functions), so links don't break.
 
 ## 19. Pure update functions and immutability
 

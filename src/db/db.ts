@@ -61,3 +61,15 @@ db.version(5)
         ref.value = upgradeTimeline(timeline);
       }),
   );
+
+// Version 6: characters (timeline schema 5).
+db.version(6)
+  .stores({ timelines: 'id, title, updatedAt', themes: 'id, name' })
+  .upgrade((tx) =>
+    tx
+      .table('timelines')
+      .toCollection()
+      .modify((timeline, ref) => {
+        ref.value = upgradeTimeline(timeline);
+      }),
+  );

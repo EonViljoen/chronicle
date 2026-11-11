@@ -15,6 +15,7 @@ export default function ViewerPage() {
               {timeline.description && <p className="muted page-desc">{timeline.description}</p>}
             </div>
             <div className="page-head-actions">
+              {timeline.characters.length > 0 && <Link className="btn" to={`/t/${timeline.id}/characters`}>Characters</Link>}
               {allMaps(timeline).length > 0 && <Link className="btn" to={`/t/${timeline.id}/map`}>Map</Link>}
               <EditOnly>
                 <Link className="btn" to={`/t/${timeline.id}/edit?tab=events&item=new`}>+ Add event</Link>

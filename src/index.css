@@ -448,7 +448,9 @@ textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent);
   background: color-mix(in srgb, var(--surface) 85%, transparent); backdrop-filter: blur(8px);
 }
 .map-panel-title { margin: 6px 0 8px; font-size: 1.3rem; }
-.map-panel-desc { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; white-space: pre-line; }
+.map-panel-desc { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
+.map-panel-desc p { margin: 0 0 6px; }
+.map-panel-more { display: inline-block; margin-bottom: 10px; font-size: 0.85rem; }
 .map-panel-sub { margin: 14px 0 6px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .map-events { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .map-events a { display: block; padding: 6px 8px; border-radius: 6px; color: var(--text); text-decoration: none; font-size: 0.9rem; }
@@ -732,3 +734,111 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .map-form-body { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
 .map-form-picture { flex: 0 1 260px; max-width: 100%; max-height: 220px; object-fit: contain; border: 1px solid var(--border); border-radius: var(--radius); background: var(--space); }
 .map-form-fields { flex: 1 1 280px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+/* ===== [[Links]] in text ===== */
+.wiki-link { color: var(--accent); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.wiki-link:hover { text-decoration-style: solid; }
+button.wiki-link { padding: 0; font: inherit; }
+.wiki-link.is-broken { color: var(--muted); text-decoration-color: var(--danger); cursor: help; }
+
+/* ===== Characters in the editor ===== */
+.rows-group {
+  padding: 12px 10px 4px; font-family: var(--font-body); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.rows-group:first-child { padding-top: 4px; }
+.character-picture-edit { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.life-date { display: flex; flex-direction: column; gap: 8px; }
+.feats-edit { display: flex; flex-direction: column; gap: 10px; }
+.feat-edit { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); }
+.feat-edit .inline-inputs input { flex: 1; }
+
+/* ===== Character, place and faction pages ===== */
+.character-portrait {
+  flex: none; width: 112px; height: 112px; object-fit: cover; border-radius: 50%;
+  border: 2px solid var(--accent); background: var(--surface);
+}
+.character-portrait.is-small { width: 48px; height: 48px; border-width: 1px; }
+.character-portrait.is-empty {
+  display: grid; place-items: center; color: var(--muted);
+  font-family: var(--font-display); font-size: 2.4rem;
+}
+.character-portrait.is-small.is-empty { font-size: 1.2rem; }
+.chip-portrait { width: 18px; height: 18px; margin: -2px 0; border-radius: 50%; object-fit: cover; vertical-align: middle; }
+
+.history-head { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+.history-head-main { flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px; }
+.history-kind { margin: 0; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.history-title { margin: 0; font-family: var(--font-heading); }
+.history-life { margin: 0; }
+.history-swatch { flex: none; width: 56px; height: 56px; border-radius: var(--radius); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15); }
+
+.history-columns { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; }
+.history-side:empty { display: none; }
+@media (max-width: 860px) { .history-columns { grid-template-columns: 1fr; } }
+.history-section { margin-bottom: 28px; }
+.history-heading {
+  margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  font-family: var(--font-heading); font-size: 1.05rem;
+}
+.history-sub { margin: -6px 0 10px; font-size: 0.85rem; }
+.history-map {
+  position: relative; height: clamp(320px, 55vh, 560px);
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--space);
+}
+
+.feats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.feats li { padding-left: 12px; border-left: 2px solid var(--accent); }
+.feat-name { display: block; }
+.feat-text { font-size: 0.9rem; color: var(--muted); }
+.feat-text p { margin: 4px 0 0; }
+
+/* A vertical history, in runs per era */
+.chrono-run { --era-color: var(--border); }
+.chrono-era {
+  margin: 18px 0 8px; font-family: var(--font-body); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: color-mix(in srgb, var(--era-color) 60%, var(--text));
+}
+.chrono-run:first-child .chrono-era { margin-top: 0; }
+.chrono-list { list-style: none; margin: 0; padding: 0 0 0 20px; border-left: 2px solid color-mix(in srgb, var(--era-color) 70%, transparent); }
+.chrono-item { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 6px 0 10px; }
+.chrono-item::before {
+  content: ''; position: absolute; left: -27px; top: 11px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--era-color); box-shadow: 0 0 0 3px var(--bg);
+}
+.chrono-item.is-marker::before { background: var(--bg); border: 2px solid var(--accent); width: 8px; height: 8px; }
+.chrono-item.is-marker .chrono-title { font-style: italic; }
+.chrono-date { font-size: 0.8rem; color: var(--muted); }
+.chrono-title { font-weight: 600; }
+.chrono-title a { color: var(--text); text-decoration: none; }
+.chrono-title a:hover { color: var(--accent); text-decoration: underline; }
+.chrono-note { font-size: 0.88rem; }
+
+/* A life to scale */
+.life-strip { margin: 0 0 20px; }
+.life-bar { position: relative; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--surface) 80%, var(--border)); }
+.life-band { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--era-color) 55%, transparent); }
+.life-band:first-child { border-radius: 7px 0 0 7px; }
+.life-dot {
+  position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+  background: var(--text); box-shadow: 0 0 0 2px var(--bg);
+}
+.life-dot.is-marker { width: 14px; height: 14px; margin: -7px 0 0 -7px; background: var(--bg); border: 2px solid var(--accent); }
+a.life-dot:hover { background: var(--accent); }
+.life-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
+
+/* The characters list */
+.character-group { margin-bottom: 28px; }
+.character-group-title {
+  margin: 0 0 12px; padding-left: 10px; border-left: 4px solid var(--group-color);
+  font-family: var(--font-heading); font-size: 1.05rem;
+}
+.character-group-title a { color: inherit; }
+.character-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.character-card {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; height: 100%;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: inherit; text-decoration: none;
+}
+.character-card:hover { border-color: var(--accent); }
+.character-card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.character-card-text .muted { font-size: 0.8rem; }

@@ -25,6 +25,8 @@ interface Props<T extends { id: string }> {
   nameOf: (item: T) => string;
   renderRow: (item: T) => ReactNode;
   matches?: (item: T, query: string) => boolean;
+  /** Optional: a heading to list each item under. Items must already be sorted by it. */
+  groupOf?: (item: T) => string;
   save: (timeline: Timeline, item: T) => Timeline;
   remove: (timeline: Timeline, id: string) => Timeline;
   deleteWarning?: (item: T) => string | undefined;
@@ -47,6 +49,7 @@ export default function CollectionTab<T extends { id: string }>({
   nameOf,
   renderRow,
   matches,
+  groupOf,
   save,
   remove,
   deleteWarning,
@@ -101,13 +104,21 @@ export default function CollectionTab<T extends { id: string }>({
           <p className="muted collection-empty">No {plural} yet.</p>
         ) : (
           <ul className="rows">
-            {visible.map((item) => (
-              <li key={item.id}>
-                <button className={`row${item.id === itemId ? ' is-selected' : ''}`} onClick={() => onSelectItem(item.id)}>
-                  {renderRow(item)}
-                </button>
-              </li>
-            ))}
+            {visible.map((item, i) => {
+              // A heading wherever the group changes
+              const group = groupOf?.(item);
+              const heading = group !== undefined && (i === 0 || groupOf?.(visible[i - 1]) !== group);
+              return (
+                <Fragment key={item.id}>
+                  {heading && <li className="rows-group" aria-hidden="true">{group}</li>}
+                  <li>
+                    <button className={`row${item.id === itemId ? ' is-selected' : ''}`} onClick={() => onSelectItem(item.id)}>
+                      {renderRow(item)}
+                    </button>
+                  </li>
+                </Fragment>
+              );
+            })}
             {visible.length === 0 && <li className="muted collection-empty">No matches.</li>}
           </ul>
         )}

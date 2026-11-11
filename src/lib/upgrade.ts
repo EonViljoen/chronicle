@@ -94,13 +94,37 @@ function v3to4(t: V3Timeline): Timeline {
   };
 }
 
+// ---------- Version 4 -> 5: characters ----------
+
+type V4Timeline = Omit<Timeline, 'characters' | 'events'> & {
+  characters?: Timeline['characters'];
+  events: (Omit<Timeline['events'][number], 'characterIds'> & { characterIds?: string[] })[];
+};
+
+function v4to5(t: V4Timeline): Timeline {
+  return {
+    ...t,
+    schemaVersion: 5,
+    characters: t.characters ?? [],
+    events: t.events.map((e) => ({ ...e, characterIds: e.characterIds ?? [] })),
+  };
+}
+
 /** Returns the timeline in the current shape. Already-current ones pass through unchanged. */
 export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
   let t: unknown = data;
   if ((t as { schemaVersion: number }).schemaVersion < 2) t = v1to2(t as V1Timeline);
   if ((t as { schemaVersion: number }).schemaVersion < 3) t = v2to3(t as V2Timeline);
   if ((t as { schemaVersion: number }).schemaVersion < 4) t = v3to4(t as V3Timeline);
-  // Future steps go here: if (version < 5) t = v4to5(t) …
-  // A hand-made current file might leave the list out
-  return { ...(t as Timeline), maps: (t as Timeline).maps ?? [], schemaVersion: SCHEMA_VERSION };
+  if ((t as { schemaVersion: number }).schemaVersion < 5) t = v4to5(t as V4Timeline);
+  // Future steps go here: if (version < 6) t = v5to6(t) …
+  // A hand-made current file might leave lists out
+  const current = t as Timeline;
+  return {
+    ...current,
+    maps: current.maps ?? [],
+    characters: (current.characters ?? []).map((c) => ({ ...c, description: c.description ?? '', feats: c.feats ?? [] })),
+    events: current.events.map((e) => (e.characterIds ? e : { ...e, characterIds: [] })),
+    schemaVersion: SCHEMA_VERSION,
+  };
 }

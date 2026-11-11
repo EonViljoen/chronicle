@@ -1,6 +1,6 @@
 # Chronicle
 
-A timeline builder: create timelines of events, eras, factions and places, then browse them on an interactive horizontal timeline, a 3D starmap and your own map pictures, nested as deep as you like (galaxy → region → city). Use it for real history, a fantasy world, a sci-fi saga or anything else with a past.
+A timeline builder: create timelines of events, eras, factions, characters and places, then browse them on an interactive horizontal timeline, a 3D starmap and your own map pictures, nested as deep as you like (galaxy → region → city). Use it for real history, a fantasy world, a sci-fi saga or anything else with a past.
 
 ## Run it
 
@@ -11,7 +11,7 @@ npm run dev
 
 ## Sample timeline
 
-`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, a named-ages calendar, eras, the 3D starmap and four nested flat maps: The Shattered Realms › Brightvale, and Starmap › The Hollow Reach › Hollowhold Keep). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, an event with no faction, one with no place, and a very long title. Load it with **Import file…** on the timelines page.
+`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, characters with feats and life dates, `[[links]]` in text, a named-ages calendar, eras, the 3D starmap and four nested flat maps: The Shattered Realms › Brightvale, and Starmap › The Hollow Reach › Hollowhold Keep). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, an event with no faction, one with no place, a very long title, a character with only a birth date, an independent character with no dates, and a deliberately broken `[[link]]`. Load it with **Import file…** on the timelines page.
 
 ## How data is stored
 
@@ -43,6 +43,7 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 6. ✅ Setting-neutral: branding config, themes, custom calendars (years, named ages, numbered cycles, free text)
 7. ✅ Themes as data (theme editor, presets), website export, nested factions with themes, main factions, flat image map
 8. ✅ One era at a time with an era glow, landing page, Calendar tab, multiple flat maps nested like factions, Maps and Starmap tabs
+9. ✅ Characters, character / place / faction pages, `[[links]]` in text
 
 ## To do
 
@@ -50,6 +51,9 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 - [x] **Nested maps, like nested factions.** A map can sit inside another (or inside the starmap), opened by clicking one of its places, to any depth, with breadcrumbs back up. A **start map** (master map) is where the viewer begins. Stored as a flat list with `parentId` and `placeId`, with the same loop protection as factions.
 - [x] **Calendar in its own tab.** The calendar settings moved out of the Settings tab into a **Calendar** tab in the editor.
 - [x] **Starmap in its own tab, coloured by the theme.** A **Starmap** tab with a live preview; the galaxy's arms and core follow the theme's accent and highlight colours (or your own).
+- [x] **Characters.** A **Characters** tab, grouped by faction (or Independent): name, picture (uploaded or a web address), faction, birth and death dates, a description and feats. Events list the characters in them, set from either side. Each character has a page with their life on the timeline: a to-scale strip across the eras, and every event from birth to death. A **Characters** page lists everyone.
+- [x] **Place and faction pages.** Every place and faction has a page with its history (every event linked to it, in order, under era headings), the people and factions involved, and its maps with the places marked. A faction's page includes its sub-factions' events and takes on its theme. Chips in the event panel open these pages.
+- [x] **Links in event text.** `[[Siege of Brightvale]]` in an event's details (or a character's or place's description, or a feat) links to the event, character, place or faction with that name. `[[Name|other text]]` changes the text shown; `[[place:Name]]` picks the kind. Renaming something updates the links to it, and links that match nothing are listed under the field.
 - [ ] **Planets.** Render a 3D planet as a kind of map, like the starmap, so places can be pinned on a globe (e.g. Starmap › Sector › a planet › a city map).
   - A planet map type alongside the starmap and flat maps, nestable like any map (opened from a place on its parent map).
   - Settings for its look: a surface picture wrapped round the sphere (or a generated one), colours from the theme, atmosphere, rings, maybe clouds.

@@ -86,7 +86,7 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
         />
       </Field>
 
-      <MarkdownField label="Details" value={draft.body} onChange={(body) => patch({ body })} />
+      <MarkdownField label="Details" value={draft.body} onChange={(body) => patch({ body })} timeline={timeline} />
 
       <Field label="Places" group hint={timeline.places.length === 0 ? 'Add places in the Places tab' : undefined}>
         <MultiPicker
@@ -95,6 +95,16 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
           options={timeline.places.map((p) => ({ id: p.id, label: p.name }))}
           value={draft.placeIds}
           onChange={(placeIds) => patch({ placeIds })}
+        />
+      </Field>
+
+      <Field label="Characters" group hint={timeline.characters.length === 0 ? 'Add characters in the Characters tab' : 'Who took part. The event shows up in their life story.'}>
+        <MultiPicker
+          label="Add a character"
+          placeholder="Add a character…"
+          options={[...timeline.characters].sort((a, b) => a.name.localeCompare(b.name)).map((c) => ({ id: c.id, label: c.name }))}
+          value={draft.characterIds}
+          onChange={(characterIds) => patch({ characterIds })}
         />
       </Field>
 

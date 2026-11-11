@@ -14,8 +14,9 @@ import type { Theme } from './theme';
  * 2: `dateFormat` became `calendar`; dates lost `kind` and `display`.
  * 3: categories were renamed factions (`factions`, `factionIds`).
  * 4: one `flatMap` became a list of named `maps`; a place's `pin` became `pins` (one per map).
+ * 5: `characters`, and events' `characterIds`.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /** The header and footer of an exported website. */
 export interface WebsiteSettings {
@@ -134,6 +135,32 @@ export interface Place {
   pins?: Record<string, [x: number, y: number]>;
 }
 
+/** Something a character is known for: a deed, a skill, a title. */
+export interface Feat {
+  name: string;
+  /** Optional. Markdown, with [[links]]. */
+  description: string;
+}
+
+/**
+ * A person (or creature, ship, AI…) in the timeline. Events list the
+ * characters in them (`characterIds`), which gives each character a life
+ * story on their own page.
+ */
+export interface Character {
+  id: string;
+  name: string;
+  /** Markdown, with [[links]]. */
+  description: string;
+  /** A picture: a data: URL (uploaded) or a web address. */
+  imageUrl?: string;
+  /** The faction they belong to. Unset = independent. */
+  factionId?: string;
+  born?: EventDate;
+  died?: EventDate;
+  feats: Feat[];
+}
+
 /** The 3D starmap's settings. A discriminated union: check `type` first. */
 export type MapConfig =
   | { type: 'none' }
@@ -192,6 +219,8 @@ export interface TimelineEvent {
   /** The faction at the heart of the event (one of factionIds). Sets the node colour and, if it has one, the theme. */
   mainFactionId?: string;
   placeIds: string[];
+  /** The characters in the event. */
+  characterIds: string[];
   relatedIds: string[];
   sources: string[];
 }
@@ -205,6 +234,7 @@ export interface Timeline {
   eras: Era[];
   factions: Faction[];
   places: Place[];
+  characters: Character[];
   /** The 3D starmap's settings (or none). */
   map: MapConfig;
   /** Flat image maps, in the order you arranged them. */

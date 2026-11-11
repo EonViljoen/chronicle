@@ -3,9 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents } from '../../lib/dates';
 import { eraFor, eraSegments } from '../../lib/eras';
-import { expandFactions, factionThemeId, mainFactionOf } from '../../lib/factions';
-import { useThemes } from '../../db/themes';
-import { normalizeTheme } from '../../themes';
+import { expandFactions, mainFactionOf } from '../../lib/factions';
+import { useFactionTheme } from '../useFactionTheme';
 import { useThemeOverride } from '../themeOverride';
 import { matchesFilters, NO_FILTERS, type Filters } from '../../lib/filters';
 import { usePref } from '../../lib/prefs';
@@ -175,14 +174,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   // The selected event's main faction sets the theme; with nothing selected
   // (or no theme for it), a filter on exactly one faction does. Sub-factions
   // without a theme use their nearest parent's (factionThemeId).
-  const library = useThemes();
-  const themeOf = (factionId: string | undefined) => {
-    const id = factionId ? factionThemeId(factionId, timeline.factions) : undefined;
-    // A published timeline brings its own copies (themeDefs); otherwise use this browser's library
-    const found = id ? [...(timeline.themeDefs ?? []), ...library].find((t) => t.id === id) : undefined;
-    // Copies in files may be from an older version: fill in any missing options
-    return found ? normalizeTheme(found) : null;
-  };
+  const themeOf = useFactionTheme(timeline);
   const focusTheme =
     themeOf(selected ? mainFactionOf(selected) : undefined) ??
     themeOf(filters.factionIds.length === 1 ? filters.factionIds[0] : undefined);
