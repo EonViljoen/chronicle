@@ -6,6 +6,7 @@ import { EditOnly } from '../components/EditOnly';
 import { mapKinds } from '../components/map/mapKinds';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
+import CalendarTab from '../components/editor/CalendarTab';
 import ThemeTab from '../components/editor/ThemeTab';
 import WebsiteTab from '../components/editor/WebsiteTab';
 import EraForm from '../components/editor/EraForm';
@@ -27,7 +28,7 @@ import {
   savePlace,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'factions', 'places', 'theme', 'website', 'settings'] as const;
+const TABS = ['events', 'eras', 'factions', 'places', 'calendar', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -113,6 +114,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
     eras: eras.length,
     factions: factions.length,
     places: places.length,
+    calendar: null,
     theme: null,
     website: null,
     settings: null,
@@ -142,6 +144,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
       </nav>
 
       {tab === 'settings' && <SettingsForm timeline={timeline} onDirtyChange={setDirty} />}
+      {tab === 'calendar' && <CalendarTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'theme' && <ThemeTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'website' && <WebsiteTab timeline={timeline} onDirtyChange={setDirty} />}
 

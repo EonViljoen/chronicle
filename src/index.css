@@ -505,6 +505,7 @@ a.chip { text-decoration: none; }
 /* Calendar settings */
 .calendar-settings { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: var(--radius); min-width: 0; }
 .calendar-settings > legend { padding: 0 6px; font-family: var(--font-display); font-weight: 700; }
+.calendar-tab p { margin: 4px 0 0; }
 .calendar-samples { margin: 0; }
 .ages { display: flex; flex-direction: column; gap: 8px; }
 .age-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 110px auto; gap: 8px; align-items: center; }

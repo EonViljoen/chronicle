@@ -17,7 +17,7 @@ interface Props {
   sampleKeys: number[];
 }
 
-/** The calendar part of the Settings form: a preset picker, then the chosen type's own fields. */
+/** The Calendar tab's fields: a preset picker, then the chosen type's own fields. */
 export default function CalendarSettings({ value, onChange, sampleKeys }: Props) {
   // Comparing as JSON is a simple way to spot "exactly a preset"
   const presetIndex = CALENDAR_PRESETS.findIndex((p) => JSON.stringify(p.calendar) === JSON.stringify(value));
@@ -25,8 +25,8 @@ export default function CalendarSettings({ value, onChange, sampleKeys }: Props)
   const samples = [...new Set(sampleKeys.map((k) => formatKey(k, value)))];
 
   return (
-    <fieldset className="calendar-settings">
-      <legend>Calendar</legend>
+    // aria-label instead of a <legend>: the Calendar tab's heading already names it on screen
+    <fieldset className="calendar-settings" aria-label="Calendar">
 
       <Field label="Start from" hint="Changing the calendar relabels every date. The order of events never changes.">
         <select

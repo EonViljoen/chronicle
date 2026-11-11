@@ -55,4 +55,4 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
   - Breadcrumbs above the map (Galaxy › Segmentum › Cadia) go back up a level; the master map is where the viewer starts.
   - Store it the way factions are stored: a flat list of maps, each with an optional `parentMapId` and the place it hangs off, with the same loop protection.
   - Builds on the multiple flat maps item above.
-- [ ] **Calendar in its own tab.** Move the calendar settings out of the Settings tab into a **Calendar** tab in the editor, so they're easier to find and the Settings form gets shorter.
+- [x] **Calendar in its own tab.** The calendar settings moved out of the Settings tab into a **Calendar** tab in the editor.

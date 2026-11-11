@@ -1,6 +1,4 @@
 import type { MapConfig, Timeline } from '../../types/timeline';
-import { calendarError, compareEvents } from '../../lib/dates';
-import CalendarSettings from './CalendarSettings';
 import FlatMapSettings from './FlatMapSettings';
 import { updateTimeline } from '../../db/timelines';
 import Field from '../form/Field';
@@ -8,15 +6,8 @@ import NumberInput from '../form/NumberInput';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
 
-type Settings = Pick<Timeline, 'title' | 'description' | 'calendar' | 'map' | 'flatMap'>;
-
-/** Preview dates for a timeline with no events yet. */
-const SAMPLE_KEYS: Record<Timeline['calendar']['type'], number[]> = {
-  years: [-500, 1066],
-  ages: [-99, 1, 1500, 4000],
-  cycles: [-60_000_000, 30_005, 40_999],
-  freeform: [],
-};
+// The calendar has its own tab (CalendarTab.tsx)
+type Settings = Pick<Timeline, 'title' | 'description' | 'map' | 'flatMap'>;
 
 const DEFAULT_GALAXY: MapConfig = { type: 'galaxy3d', arms: 4, radius: 100, coreColor: '#ffd9a0', armColor: '#7aa6ff' };
 
@@ -29,7 +20,6 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
   const original: Settings = {
     title: timeline.title,
     description: timeline.description,
-    calendar: timeline.calendar,
     map: timeline.map,
     flatMap: timeline.flatMap,
   };
@@ -39,13 +29,8 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
   };
   const { draft, patch, dirty, saving, submit, reset } = useDraft(original, save, onDirtyChange);
   const titleError = draft.title.trim() ? undefined : 'Give the timeline a title';
-  const valid = !titleError && !calendarError(draft.calendar);
+  const valid = !titleError;
   const map = draft.map;
-
-  // Preview the calendar on the first, middle and last events
-  const sorted = [...timeline.events].sort(compareEvents);
-  const picks = sorted.length ? [sorted[0], sorted[Math.floor(sorted.length / 2)], sorted[sorted.length - 1]] : [];
-  const sampleKeys = picks.length ? picks.map((e) => e.date.sortKey) : SAMPLE_KEYS[draft.calendar.type];
 
   return (
     <form className="form settings-form" onSubmit={(e) => submit(e, (s) => ({ ...s, title: s.title.trim(), description: s.description.trim() }))}>
@@ -58,8 +43,6 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
       <Field label="Description">
         <textarea rows={3} value={draft.description} onChange={(e) => patch({ description: e.target.value })} />
       </Field>
-
-      <CalendarSettings value={draft.calendar} onChange={(calendar) => patch({ calendar })} sampleKeys={sampleKeys} />
 
       <Field label="3D starmap">
         <select value={map.type} onChange={(e) => patch({ map: e.target.value === 'galaxy3d' ? DEFAULT_GALAXY : { type: 'none' } })}>
