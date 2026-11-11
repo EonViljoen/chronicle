@@ -4,6 +4,8 @@ import { importTimelineFile, useTimelines } from '../db/timelines';
 import { brand } from '../brand';
 import { usePublished } from '../db/published';
 import TimelineCard from '../components/TimelineCard';
+import BackupPanel from '../components/BackupPanel';
+import { isBackup, readBackup, type ReadBackup } from '../db/backup';
 import CreateTimelineForm from '../components/CreateTimelineForm';
 import { readRecent } from '../lib/recent';
 import { allMaps } from '../lib/maps';
@@ -24,6 +26,8 @@ export default function TimelinesPage() {
   const [busy, setBusy] = useState(false);
   // Read once when the page opens: it only changes while you're on other pages
   const [recentIds] = useState(readRecent);
+  // A backup file picked through "Import file…", waiting to be reviewed
+  const [pendingBackup, setPendingBackup] = useState<ReadBackup | null>(null);
 
   // useRef: a handle to a DOM element. Here, the hidden file input.
   const fileInput = useRef<HTMLInputElement>(null);
@@ -32,7 +36,19 @@ export default function TimelinesPage() {
     if (!file) return;
     setError(null);
     setBusy(true);
-    importTimelineFile(file)
+    // A backup file picked here goes to the backup panel's review instead
+    file
+      .text()
+      .then(async (text) => {
+        let data: unknown = null;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // not JSON: importTimelineFile gives the error
+        }
+        if (isBackup(data)) setPendingBackup(await readBackup(data));
+        else await importTimelineFile(file);
+      })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setBusy(false));
     if (fileInput.current) fileInput.current.value = ''; // allow re-importing the same file
@@ -78,7 +94,7 @@ export default function TimelinesPage() {
     <div className="home">
       <section className="home-intro">
         <h1>Your timelines</h1>
-        <p>Everything is saved in this browser; export a file to back it up or share it.</p>
+        <p>Everything is saved in this browser. Export a timeline to share it, or back up everything below.</p>
       </section>
 
       {timelines && timelines.length > 0 && <Dashboard timelines={timelines} recentIds={recentIds} />}
@@ -98,6 +114,8 @@ export default function TimelinesPage() {
       </section>
 
       {errorBanner}
+
+      <BackupPanel pending={pendingBackup} onPendingChange={setPendingBackup} />
 
       {/* Three render states: loading, empty, list */}
       {timelines === undefined ? (

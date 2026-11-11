@@ -9,6 +9,7 @@ import { EditOnly } from '../components/EditOnly';
 import { allMaps, mapsWithPlace } from '../lib/maps';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
+import PicturesSection from '../components/editor/PicturesSection';
 import CalendarTab from '../components/editor/CalendarTab';
 import StarmapTab from '../components/editor/StarmapTab';
 import ThemeTab from '../components/editor/ThemeTab';
@@ -168,7 +169,12 @@ function Editor({ timeline }: { timeline: Timeline }) {
         ))}
       </nav>
 
-      {tab === 'settings' && <SettingsForm timeline={timeline} onDirtyChange={setDirty} />}
+      {tab === 'settings' && (
+        <>
+          <SettingsForm timeline={timeline} onDirtyChange={setDirty} />
+          <PicturesSection timeline={timeline} />
+        </>
+      )}
       {tab === 'calendar' && <CalendarTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'maps' && <MapsPanel {...shared} />}
       {tab === 'starmap' && <StarmapTab timeline={timeline} onDirtyChange={setDirty} />}

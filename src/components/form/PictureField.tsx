@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { bigImageNote, readImage } from '../../lib/images';
+import { PORTRAIT_SIZE, readImage } from '../../lib/images';
 import Field from './Field';
 
 interface Props {
@@ -25,10 +25,10 @@ export default function PictureField({ value, onChange, fallbackColor, hint = 'U
   async function upload(file: File | undefined) {
     if (!file) return;
     try {
-      const { image } = await readImage(file);
+      // Portraits and crests are shown small, so they're shrunk a lot
+      const { image, note } = await readImage(file, PORTRAIT_SIZE);
       onChange(image);
-      const big = bigImageNote(file);
-      setNote(big ? { text: big } : null);
+      setNote(note ? { text: note } : null);
     } catch (e) {
       setNote({ text: e instanceof Error ? e.message : String(e), error: true });
     }

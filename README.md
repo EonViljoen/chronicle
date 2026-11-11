@@ -15,7 +15,7 @@ npm run dev
 
 ## How data is stored
 
-Everything is saved in your browser (IndexedDB). There are no accounts and no server. Use **Export** to save a timeline as a `.json` file for backup or sharing, and **Import file…** to load one.
+Everything is saved in your browser (IndexedDB). There are no accounts and no server. Use **Back up everything** on the timelines page to save every timeline and theme in one file (and **Restore backup…** to load it), or **Export** to save one timeline for sharing, and **Import file…** to load one.
 
 ## Publishing a timeline as a website
 
@@ -68,7 +68,8 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
   - A **relations diagram**: factions as nodes (with their pictures and colours), relations as lines styled by kind (solid green for allies, red for enemies, an arrow for vassals). Sub-factions grouped inside their parent. A page of its own (`/t/:id/relations`), plus a small version on each faction's page showing just its neighbours.
   - Shown as a list on the faction's page too ("Allies: …, Enemies: …"), linking to the other factions.
   - Deleting a faction removes its relations; [[links]] to factions keep working.
-- [ ] **Back up everything.** Export every timeline and theme in one file, and restore from it (choosing to replace or keep copies when ids clash). A safety net while everything lives in the browser, and a way to move to another browser or computer.
+- [x] **Back up everything.** **Back up everything** on the timelines page downloads one JSON file with every timeline and theme in this browser; **Restore backup…** (or picking the file in **Import file…**) shows what's in it and asks what to do with timelines and themes already here: keep both, or replace them. The page reminds you when you last backed up. The file is versioned (`"kind": "chronicle-backup"`), ready to be uploaded to an account once accounts exist.
+- [x] **Shrink uploaded pictures.** Uploads are resized (maps to 4096 pixels across, portraits and crests to 640) and saved as WebP, keeping whichever is smaller; SVGs and GIFs stay as they are. **Settings → Pictures** shows how much room a timeline's pictures take and shrinks ones added before this.
 - [ ] **Type check script and tests.** Add `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`; plain `tsc -p .` checks nothing, because `tsconfig.json` only lists references) and unit tests (Vitest) for the pure functions in `lib/`: dates, eras, factions, maps, mutations and above all `upgrade.ts`, since upgrades rewrite people's saved data.
 - [ ] **Accounts and cloud saving (Supabase).** Optional sign-in, so your timelines and themes are saved online and follow you between devices. One service does both the sign-in and the storage.
   - **Sign-in with Supabase Auth** (email magic link or password, Google, GitHub…). Using the app without an account keeps working exactly as now, saved in the browser.

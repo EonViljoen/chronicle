@@ -170,14 +170,15 @@ wh40k-timeline/
     ├── types/timeline.ts       The data model: Timeline, Era, TimelineEvent…
     ├── db/
     │   ├── db.ts               The Dexie database definition
-    │   └── timelines.ts        Read hooks and write functions for timelines
+    │   ├── timelines.ts        Read hooks and write functions for timelines
+    │   └── backup.ts           Backing up and restoring everything in one file
     ├── lib/                    Plain functions, no React (easy to test)
     │   ├── characters.ts       Characters grouped by faction; their events; ages
     │   ├── dates.ts            Calendars: turning a date number into "AD 1066" and back
     │   ├── eras.ts             Which era a date is in; era bands
     │   ├── filters.ts          Does an event match the search/filters?
     │   ├── ids.ts              "Horus Heresy" -> "horus-heresy"
-    │   ├── images.ts           Reading an uploaded picture (maps, portraits)
+    │   ├── images.ts           Reading and shrinking uploaded pictures (maps, portraits)
     │   ├── links.ts            [[Links]] in text: finding what they point at, renaming
     │   ├── maps.ts             The starmap and flat maps as one list; the map tree
     │   ├── mutations.ts        Timeline -> new Timeline update functions

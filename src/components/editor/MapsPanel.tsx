@@ -4,7 +4,7 @@ import { STARMAP_ID, type FlatMap, type Timeline } from '../../types/timeline';
 import { updateTimeline } from '../../db/timelines';
 import { allMaps, indentMapLabel, isPlacedOn, mapPath, mapTree, mapWithDescendants, masterMapId } from '../../lib/maps';
 import { canMoveMap, moveMap, removeMap, saveMap } from '../../lib/mutations';
-import { bigImageNote, readImage } from '../../lib/images';
+import { readImage } from '../../lib/images';
 import Field from '../form/Field';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
@@ -47,11 +47,10 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
     if (!file) return;
     setNote(null);
     try {
-      const picture = await readImage(file);
+      const { note, ...picture } = await readImage(file);
       const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
       setNewMap({ id: crypto.randomUUID(), name, ...picture });
-      const warning = bigImageNote(file);
-      if (warning) setNote({ error: false, text: warning });
+      if (note) setNote({ error: false, text: note });
     } catch (e) {
       setNote({ error: true, text: e instanceof Error ? e.message : String(e) });
     }
@@ -225,7 +224,8 @@ function MapForm({ timeline, original, isNew, onSave, onCancel, onDirtyChange }:
     if (!file) return;
     setReplaceError(null);
     try {
-      patch(await readImage(file));
+      const { image, width, height } = await readImage(file);
+      patch({ image, width, height });
     } catch (e) {
       setReplaceError(e instanceof Error ? e.message : String(e));
     }
