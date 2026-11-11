@@ -54,3 +54,14 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
   - A planet map type alongside the starmap and flat maps, nestable like any map (opened from a place on its parent map).
   - Settings for its look: a surface picture wrapped round the sphere (or a generated one), colours from the theme, atmosphere, rings, maybe clouds.
   - Places pinned by latitude and longitude, by clicking the globe; it turns to face the selected place.
+- [ ] **Era overview strip.** The stage shows one era at a time, so add a thin bar above it with every era, each sized by how many events it has, marking the era on show. Click an era to jump to it; it shows the whole timeline at a glance.
+- [ ] **Back up everything.** Export every timeline and theme in one file, and restore from it (choosing to replace or keep copies when ids clash). A safety net while everything lives in the browser, and a way to move to another browser or computer.
+- [ ] **Type check script and tests.** Add `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`; plain `tsc -p .` checks nothing, because `tsconfig.json` only lists references) and unit tests (Vitest) for the pure functions in `lib/`: dates, eras, factions, maps, mutations and above all `upgrade.ts`, since upgrades rewrite people's saved data.
+- [ ] **Accounts and cloud saving (Auth0 + Supabase).** Optional sign-in, so your timelines and themes are saved online and follow you between devices.
+  - **Sign-in with Auth0** (email, Google…). Using the app without an account keeps working exactly as now, saved in the browser.
+  - **Storage in Supabase** (Postgres): a `timelines` and a `themes` table keyed by the user, with row-level security so people only ever read and write their own. Map pictures move to Supabase Storage instead of living inside the timeline as `data:` URLs.
+  - **Wire the two together** with Supabase's third-party auth support for Auth0, so Supabase trusts Auth0's tokens. (Worth weighing first: Supabase Auth alone would do the sign-in too, with one service instead of two.)
+  - **Local-first:** keep Dexie as the working copy and sync in the background, so the app stays fast and works offline. Decide how to handle edits from two devices (last save wins per timeline is the simple start).
+  - **On first sign-in,** offer to upload the timelines already in this browser.
+  - **Unchanged:** exported websites stay static and read-only, with no sign-in. Later, sharing a timeline with other accounts (view or edit) becomes possible.
+  - Update "How data is stored" above and the privacy wording: data would no longer only live in the browser for signed-in users.
