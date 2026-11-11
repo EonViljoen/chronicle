@@ -752,6 +752,13 @@ button.wiki-link { padding: 0; font: inherit; }
 .feats-edit { display: flex; flex-direction: column; gap: 10px; }
 .feat-edit { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); }
 .feat-edit .inline-inputs input { flex: 1; }
+/* A non-blocking warning under a field */
+.field-warning {
+  margin: 4px 0 0; padding: 6px 10px 6px 26px; list-style: none; position: relative;
+  border-left: 3px solid var(--highlight); border-radius: 0 var(--radius) var(--radius) 0;
+  background: color-mix(in srgb, var(--highlight) 10%, transparent); font-size: 0.85rem;
+}
+.field-warning::before { content: '⚠'; position: absolute; left: 8px; top: 6px; color: var(--highlight); }
 
 /* ===== Character, place and faction pages ===== */
 .character-portrait {

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { compareEvents, formatDate } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
+import { outsideLife } from '../../lib/characters';
 import { factionPath, factionTree } from '../../lib/factions';
 import Field from '../form/Field';
 import MultiPicker from '../form/MultiPicker';
@@ -37,6 +38,11 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
   };
   const valid = !errors.title && !errors.date;
   const era = eraFor(draft.date.sortKey, timeline.eras);
+  // Characters in the event who weren't alive at its date: allowed, but worth a second look
+  const notAlive = timeline.characters
+    .filter((c) => draft.characterIds.includes(c.id))
+    .map((c) => ({ c, when: outsideLife(c, draft.date.sortKey) }))
+    .filter((x) => x.when);
 
   const otherEvents = [...timeline.events]
     .filter((e) => e.id !== original.id)
@@ -106,6 +112,15 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
           value={draft.characterIds}
           onChange={(characterIds) => patch({ characterIds })}
         />
+        {notAlive.length > 0 && (
+          <ul className="field-warning" role="status">
+            {notAlive.map(({ c, when }) => (
+              <li key={c.id}>
+                <strong>{c.name}</strong> {when === 'before' ? `isn't born yet (born ${formatDate(c.born!, timeline.calendar)})` : `has already died (died ${formatDate(c.died!, timeline.calendar)})`}.
+              </li>
+            ))}
+          </ul>
+        )}
       </Field>
 
       <Field label="Related events" group hint="Links are two-way: the other event will link back here">

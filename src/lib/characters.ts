@@ -60,5 +60,16 @@ export function ageAt(character: Character, calendar: Calendar, until = characte
   return `${exact ? '' : 'about '}${years.toLocaleString()} year${years === 1 ? '' : 's'}`;
 }
 
+/**
+ * Is a date outside the character's life? 'before' they were born or
+ * 'after' they died; undefined if it's within it (or the dates aren't set).
+ * Only a warning: a legend, a prophecy or a ghost may well appear anyway.
+ */
+export function outsideLife(c: Pick<Character, 'born' | 'died'>, sortKey: number): 'before' | 'after' | undefined {
+  if (c.born && sortKey < c.born.sortKey) return 'before';
+  if (c.died && sortKey > c.died.sortKey) return 'after';
+  return undefined;
+}
+
 /** The colour of the character's faction, if they have one. */
 export const characterColor = (c: Character, factions: Faction[]) => factions.find((f) => f.id === c.factionId)?.color;

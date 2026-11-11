@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Character, EventDate, Feat, Timeline } from '../../types/timeline';
 import { compareEvents, defaultSortKey, formatDate } from '../../lib/dates';
 import { factionTree, indentLabel } from '../../lib/factions';
+import { outsideLife } from '../../lib/characters';
 import { bigImageNote, readImage } from '../../lib/images';
 import Field from '../form/Field';
 import MultiPicker from '../form/MultiPicker';
@@ -50,6 +51,10 @@ export default function CharacterForm({ original, isNew, onSave, onDelete, onDir
         : undefined,
   };
   const valid = !errors.name && !errors.born && !errors.died;
+  // Linked events outside their life: allowed, but worth a second look
+  const outside = linked
+    .map((e) => ({ e, when: outsideLife(draft, e.date.sortKey) }))
+    .filter((x) => x.when);
 
   /** A first guess for a new birth or death date: their first or last event, else the calendar's start. */
   function startDate(which: 'born' | 'died'): EventDate {
@@ -163,6 +168,15 @@ export default function CharacterForm({ original, isNew, onSave, onDelete, onDir
           value={draft.eventIds}
           onChange={(eventIds) => patch({ eventIds })}
         />
+        {outside.length > 0 && (
+          <ul className="field-warning" role="status">
+            {outside.map(({ e, when }) => (
+              <li key={e.id}>
+                <strong>{e.title}</strong> ({formatDate(e.date, calendar)}) is {when === 'before' ? 'before they were born' : 'after they died'}.
+              </li>
+            ))}
+          </ul>
+        )}
       </Field>
 
       <FormActions isNew={isNew} dirty={dirty} valid={valid} saving={saving} onRevert={reset} onDelete={onDelete} />
