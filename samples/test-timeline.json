@@ -1,8 +1,8 @@
 {
   "id": "test-timeline",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "title": "Test: The Shattered Realms",
-  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, both maps. The setting is made up.",
+  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, the 3D starmap and nested flat maps (galaxy, region, city). The setting is made up.",
   "calendar": {
     "type": "ages",
     "format": "{age} {year}",
@@ -120,10 +120,12 @@
         0,
         22
       ],
-      "pin": [
-        0.23,
-        0.4
-      ]
+      "pins": {
+        "realms": [
+          0.23,
+          0.4
+        ]
+      }
     },
     {
       "id": "emberfall",
@@ -134,10 +136,12 @@
         2,
         -10
       ],
-      "pin": [
-        0.17,
-        0.55
-      ]
+      "pins": {
+        "realms": [
+          0.17,
+          0.55
+        ]
+      }
     },
     {
       "id": "hollowhold",
@@ -148,10 +152,16 @@
         -1,
         -35
       ],
-      "pin": [
-        0.66,
-        0.27
-      ]
+      "pins": {
+        "realms": [
+          0.66,
+          0.27
+        ],
+        "hollow-reach": [
+          0.42,
+          0.45
+        ]
+      }
     },
     {
       "id": "thornwatch",
@@ -162,10 +172,16 @@
         0,
         40
       ],
-      "pin": [
-        0.67,
-        0.75
-      ]
+      "pins": {
+        "realms": [
+          0.67,
+          0.75
+        ],
+        "hollow-reach": [
+          0.82,
+          0.62
+        ]
+      }
     },
     {
       "id": "glass-sea",
@@ -176,10 +192,12 @@
         0,
         0
       ],
-      "pin": [
-        0.49,
-        0.5
-      ]
+      "pins": {
+        "realms": [
+          0.49,
+          0.5
+        ]
+      }
     },
     {
       "id": "skyfall",
@@ -190,10 +208,84 @@
         6,
         10
       ],
-      "pin": [
-        0.9,
-        0.68
-      ]
+      "pins": {
+        "realms": [
+          0.9,
+          0.68
+        ]
+      }
+    },
+    {
+      "id": "lantern-spire",
+      "name": "The Lantern Spire",
+      "description": "A tower where the Lantern Keepers tend the old fire.",
+      "position": null,
+      "pins": {
+        "brightvale-city": [
+          0.53,
+          0.44
+        ]
+      }
+    },
+    {
+      "id": "old-bridge",
+      "name": "The Old Bridge",
+      "description": "The first stone bridge over the Lume.",
+      "position": null,
+      "pins": {
+        "brightvale-city": [
+          0.51,
+          0.58
+        ]
+      }
+    },
+    {
+      "id": "riverside-market",
+      "name": "Riverside Market",
+      "description": "Stalls along the north bank.",
+      "position": null,
+      "pins": {
+        "brightvale-city": [
+          0.3,
+          0.48
+        ]
+      }
+    },
+    {
+      "id": "reach-pass",
+      "name": "The Reach Pass",
+      "description": "The only road through the Reach, snowbound half the year.",
+      "position": null,
+      "pins": {
+        "hollow-reach": [
+          0.55,
+          0.66
+        ]
+      }
+    },
+    {
+      "id": "throne-hall",
+      "name": "The Throne Hall",
+      "description": "Where the Hollow Crown is worn.",
+      "position": null,
+      "pins": {
+        "hollowhold-keep": [
+          0.5,
+          0.48
+        ]
+      }
+    },
+    {
+      "id": "keep-gate",
+      "name": "The Iron Gate",
+      "description": "The keep's only entrance.",
+      "position": null,
+      "pins": {
+        "hollowhold-keep": [
+          0.5,
+          0.81
+        ]
+      }
     }
   ],
   "map": {
@@ -202,11 +294,6 @@
     "radius": 100,
     "coreColor": "#ffe2b0",
     "armColor": "#8fb4ff"
-  },
-  "flatMap": {
-    "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjEwMDAiIHZpZXdCb3g9IjAgMCAxNjAwIDEwMDAiPgo8ZGVmcz4KPHJhZGlhbEdyYWRpZW50IGlkPSJwYXBlciIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNzUlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNlY2RmYmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNjOWI0OGEiLz48L3JhZGlhbEdyYWRpZW50Pgo8cGF0dGVybiBpZD0id2F2ZXMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTAgcTEwIC04IDIwIDAgdDIwIDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTNhOCIgc3Ryb2tlLXdpZHRoPSIxLjIiIG9wYWNpdHk9IjAuNSIvPjwvcGF0dGVybj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSIxMDAwIiBmaWxsPSJ1cmwoI3BhcGVyKSIvPgo8cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSIxMDAwIiBmaWxsPSJ1cmwoI3dhdmVzKSIvPgo8ZyBmaWxsPSIjYjliMDdhIiBzdHJva2U9IiM1YjRhMmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xODAgMjYwIEMyNjAgMTYwIDQzMCAxNDAgNTYwIDE5MCBDNjkwIDI0MCA3NjAgMzMwIDc0MCA0NTAgQzcyMCA1NjAgNjQwIDY0MCA1MjAgNjkwIEM0MDAgNzQwIDI2MCA3MjAgMjAwIDYyMCBDMTQwIDUyMCAxMTAgMzYwIDE4MCAyNjAgWiIvPgo8cGF0aCBkPSJNODIwIDE4MCBDOTMwIDExMCAxMTEwIDEyMCAxMjIwIDIwMCBDMTMzMCAyODAgMTM2MCA0MDAgMTMwMCA1MDAgQzEyNDAgNjAwIDExMTAgNjIwIDEwMTAgNTgwIEM5MTAgNTQwIDgzMCA0NjAgODAwIDM2MCBDNzgwIDI5MCA3NjAgMjMwIDgyMCAxODAgWiIvPgo8cGF0aCBkPSJNOTAwIDY2MCBDOTkwIDYyMCAxMTMwIDY0MCAxMjAwIDcxMCBDMTI3MCA3ODAgMTI1MCA4NzAgMTE1MCA5MDAgQzEwNTAgOTMwIDkzMCA5MDAgODgwIDgzMCBDODMwIDc2MCA4NDAgNjkwIDkwMCA2NjAgWiIvPgo8cGF0aCBkPSJNMTM4MCA2NDAgQzE0MzAgNjEwIDE0OTAgNjMwIDE1MDAgNjgwIEMxNTEwIDczMCAxNDcwIDc3MCAxNDIwIDc2MCBDMTM3MCA3NTAgMTM0MCA2ODAgMTM4MCA2NDAgWiIvPgo8L2c+CjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVmOGE5OSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiPgo8cGF0aCBkPSJNMzMwIDI2MCBDMzYwIDM0MCAzMzAgNDIwIDM4MCA1MDAgQzQyMCA1NjAgNDcwIDYwMCA1MjAgNjkwIi8+CjxwYXRoIGQ9Ik0xMDQwIDIyMCBDMTA2MCAzMDAgMTAyMCAzODAgMTA4MCA0NTAgQzExMjAgNTAwIDExNTAgNTQwIDExODAgNTgwIi8+CjwvZz4KPGcgZmlsbD0iIzdhNmE0YSIgb3BhY2l0eT0iMC44Ij4KPHBhdGggZD0iTTU2MCAzMDAgbDI1IC00NSBsMjUgNDUgWiIvPjxwYXRoIGQ9Ik02MDAgMzIwIGwyMiAtNDAgbDIyIDQwIFoiLz48cGF0aCBkPSJNNjMwIDI5MCBsMjUgLTQ1IGwyNSA0NSBaIi8+CjxwYXRoIGQ9Ik0xMTUwIDMwMCBsMjUgLTQ1IGwyNSA0NSBaIi8+PHBhdGggZD0iTTExOTAgMzIwIGwyMiAtNDAgbDIyIDQwIFoiLz4KPC9nPgo8ZyBmaWxsPSIjM2Y1YTNhIiBvcGFjaXR5PSIwLjU1Ij4KPGNpcmNsZSBjeD0iMjYwIiBjeT0iNDgwIiByPSIxNiIvPjxjaXJjbGUgY3g9IjI5MCIgY3k9IjUwMCIgcj0iMTQiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSI1MjAiIHI9IjEzIi8+PGNpcmNsZSBjeD0iOTMwIiBjeT0iNDIwIiByPSIxNSIvPjxjaXJjbGUgY3g9Ijk2MCIgY3k9IjQ0MCIgcj0iMTMiLz4KPC9nPgo8ZyBmb250LWZhbWlseT0iR2VvcmdpYSwgc2VyaWYiIGZpbGw9IiMzYjJjMTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgo8dGV4dCB4PSI4MDAiIHk9IjcwIiBmb250LXNpemU9IjU0IiBsZXR0ZXItc3BhY2luZz0iNiI+VEhFIFNIQVRURVJFRCBSRUFMTVM8L3RleHQ+Cjx0ZXh0IHg9IjQ1MCIgeT0iNTYwIiBmb250LXNpemU9IjM0IiBmb250LXN0eWxlPSJpdGFsaWMiPlZhbGUgb2YgQ29uY29yZDwvdGV4dD4KPHRleHQgeD0iMTA2MCIgeT0iMzUwIiBmb250LXNpemU9IjM0IiBmb250LXN0eWxlPSJpdGFsaWMiPkhvbGxvdyBSZWFjaDwvdGV4dD4KPHRleHQgeD0iMTA2MCIgeT0iNzkwIiBmb250LXNpemU9IjI4IiBmb250LXN0eWxlPSJpdGFsaWMiPklzbGUgb2YgVGhvcm5zPC90ZXh0Pgo8dGV4dCB4PSI3ODAiIHk9IjU2MCIgZm9udC1zaXplPSIyNiIgZmlsbD0iIzNkNWI2MiIgZm9udC1zdHlsZT0iaXRhbGljIj5UaGUgR2xhc3MgU2VhPC90ZXh0Pgo8L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NDAgMTQwKSIgc3Ryb2tlPSIjM2IyYzE1IiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiPjxjaXJjbGUgcj0iNjAiLz48cGF0aCBkPSJNMCAtODAgTDEyIDAgTDAgODAgTC0xMiAwIFoiIGZpbGw9IiMzYjJjMTUiLz48cGF0aCBkPSJNLTgwIDAgTDAgLTEwIEw4MCAwIEwwIDEwIFoiLz48L2c+CjxyZWN0IHg9IjEyIiB5PSIxMiIgd2lkdGg9IjE1NzYiIGhlaWdodD0iOTc2IiBmaWxsPSJub25lIiBzdHJva2U9IiM1YjRhMmMiIHN0cm9rZS13aWR0aD0iNiIvPgo8L3N2Zz4=",
-    "width": 1600,
-    "height": 1000
   },
   "theme": "default",
   "website": {
@@ -406,7 +493,8 @@
         "lantern"
       ],
       "placeIds": [
-        "brightvale"
+        "brightvale",
+        "lantern-spire"
       ],
       "relatedIds": [],
       "sources": [],
@@ -488,7 +576,8 @@
         "freeholds"
       ],
       "placeIds": [
-        "brightvale"
+        "brightvale",
+        "old-bridge"
       ],
       "relatedIds": [],
       "sources": [],
@@ -523,7 +612,8 @@
         "concord"
       ],
       "placeIds": [
-        "brightvale"
+        "brightvale",
+        "riverside-market"
       ],
       "relatedIds": [],
       "sources": [],
@@ -603,7 +693,8 @@
         "concord"
       ],
       "placeIds": [
-        "hollowhold"
+        "hollowhold",
+        "reach-pass"
       ],
       "relatedIds": [],
       "sources": [],
@@ -623,7 +714,8 @@
         "concord"
       ],
       "placeIds": [
-        "hollowhold"
+        "hollowhold",
+        "keep-gate"
       ],
       "relatedIds": [],
       "sources": []
@@ -641,7 +733,8 @@
         "crown"
       ],
       "placeIds": [
-        "hollowhold"
+        "hollowhold",
+        "throne-hall"
       ],
       "relatedIds": [],
       "sources": [],
@@ -830,5 +923,42 @@
     }
   ],
   "createdAt": 0,
-  "updatedAt": 0
+  "updatedAt": 0,
+  "maps": [
+    {
+      "id": "realms",
+      "name": "The Shattered Realms",
+      "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjEwMDAiIHZpZXdCb3g9IjAgMCAxNjAwIDEwMDAiPgo8ZGVmcz4KPHJhZGlhbEdyYWRpZW50IGlkPSJwYXBlciIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNzUlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNlY2RmYmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNjOWI0OGEiLz48L3JhZGlhbEdyYWRpZW50Pgo8cGF0dGVybiBpZD0id2F2ZXMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTAgcTEwIC04IDIwIDAgdDIwIDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTNhOCIgc3Ryb2tlLXdpZHRoPSIxLjIiIG9wYWNpdHk9IjAuNSIvPjwvcGF0dGVybj4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSIxMDAwIiBmaWxsPSJ1cmwoI3BhcGVyKSIvPgo8cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSIxMDAwIiBmaWxsPSJ1cmwoI3dhdmVzKSIvPgo8ZyBmaWxsPSIjYjliMDdhIiBzdHJva2U9IiM1YjRhMmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xODAgMjYwIEMyNjAgMTYwIDQzMCAxNDAgNTYwIDE5MCBDNjkwIDI0MCA3NjAgMzMwIDc0MCA0NTAgQzcyMCA1NjAgNjQwIDY0MCA1MjAgNjkwIEM0MDAgNzQwIDI2MCA3MjAgMjAwIDYyMCBDMTQwIDUyMCAxMTAgMzYwIDE4MCAyNjAgWiIvPgo8cGF0aCBkPSJNODIwIDE4MCBDOTMwIDExMCAxMTEwIDEyMCAxMjIwIDIwMCBDMTMzMCAyODAgMTM2MCA0MDAgMTMwMCA1MDAgQzEyNDAgNjAwIDExMTAgNjIwIDEwMTAgNTgwIEM5MTAgNTQwIDgzMCA0NjAgODAwIDM2MCBDNzgwIDI5MCA3NjAgMjMwIDgyMCAxODAgWiIvPgo8cGF0aCBkPSJNOTAwIDY2MCBDOTkwIDYyMCAxMTMwIDY0MCAxMjAwIDcxMCBDMTI3MCA3ODAgMTI1MCA4NzAgMTE1MCA5MDAgQzEwNTAgOTMwIDkzMCA5MDAgODgwIDgzMCBDODMwIDc2MCA4NDAgNjkwIDkwMCA2NjAgWiIvPgo8cGF0aCBkPSJNMTM4MCA2NDAgQzE0MzAgNjEwIDE0OTAgNjMwIDE1MDAgNjgwIEMxNTEwIDczMCAxNDcwIDc3MCAxNDIwIDc2MCBDMTM3MCA3NTAgMTM0MCA2ODAgMTM4MCA2NDAgWiIvPgo8L2c+CjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVmOGE5OSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiPgo8cGF0aCBkPSJNMzMwIDI2MCBDMzYwIDM0MCAzMzAgNDIwIDM4MCA1MDAgQzQyMCA1NjAgNDcwIDYwMCA1MjAgNjkwIi8+CjxwYXRoIGQ9Ik0xMDQwIDIyMCBDMTA2MCAzMDAgMTAyMCAzODAgMTA4MCA0NTAgQzExMjAgNTAwIDExNTAgNTQwIDExODAgNTgwIi8+CjwvZz4KPGcgZmlsbD0iIzdhNmE0YSIgb3BhY2l0eT0iMC44Ij4KPHBhdGggZD0iTTU2MCAzMDAgbDI1IC00NSBsMjUgNDUgWiIvPjxwYXRoIGQ9Ik02MDAgMzIwIGwyMiAtNDAgbDIyIDQwIFoiLz48cGF0aCBkPSJNNjMwIDI5MCBsMjUgLTQ1IGwyNSA0NSBaIi8+CjxwYXRoIGQ9Ik0xMTUwIDMwMCBsMjUgLTQ1IGwyNSA0NSBaIi8+PHBhdGggZD0iTTExOTAgMzIwIGwyMiAtNDAgbDIyIDQwIFoiLz4KPC9nPgo8ZyBmaWxsPSIjM2Y1YTNhIiBvcGFjaXR5PSIwLjU1Ij4KPGNpcmNsZSBjeD0iMjYwIiBjeT0iNDgwIiByPSIxNiIvPjxjaXJjbGUgY3g9IjI5MCIgY3k9IjUwMCIgcj0iMTQiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSI1MjAiIHI9IjEzIi8+PGNpcmNsZSBjeD0iOTMwIiBjeT0iNDIwIiByPSIxNSIvPjxjaXJjbGUgY3g9Ijk2MCIgY3k9IjQ0MCIgcj0iMTMiLz4KPC9nPgo8ZyBmb250LWZhbWlseT0iR2VvcmdpYSwgc2VyaWYiIGZpbGw9IiMzYjJjMTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgo8dGV4dCB4PSI4MDAiIHk9IjcwIiBmb250LXNpemU9IjU0IiBsZXR0ZXItc3BhY2luZz0iNiI+VEhFIFNIQVRURVJFRCBSRUFMTVM8L3RleHQ+Cjx0ZXh0IHg9IjQ1MCIgeT0iNTYwIiBmb250LXNpemU9IjM0IiBmb250LXN0eWxlPSJpdGFsaWMiPlZhbGUgb2YgQ29uY29yZDwvdGV4dD4KPHRleHQgeD0iMTA2MCIgeT0iMzUwIiBmb250LXNpemU9IjM0IiBmb250LXN0eWxlPSJpdGFsaWMiPkhvbGxvdyBSZWFjaDwvdGV4dD4KPHRleHQgeD0iMTA2MCIgeT0iNzkwIiBmb250LXNpemU9IjI4IiBmb250LXN0eWxlPSJpdGFsaWMiPklzbGUgb2YgVGhvcm5zPC90ZXh0Pgo8dGV4dCB4PSI3ODAiIHk9IjU2MCIgZm9udC1zaXplPSIyNiIgZmlsbD0iIzNkNWI2MiIgZm9udC1zdHlsZT0iaXRhbGljIj5UaGUgR2xhc3MgU2VhPC90ZXh0Pgo8L2c+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NDAgMTQwKSIgc3Ryb2tlPSIjM2IyYzE1IiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiPjxjaXJjbGUgcj0iNjAiLz48cGF0aCBkPSJNMCAtODAgTDEyIDAgTDAgODAgTC0xMiAwIFoiIGZpbGw9IiMzYjJjMTUiLz48cGF0aCBkPSJNLTgwIDAgTDAgLTEwIEw4MCAwIEwwIDEwIFoiLz48L2c+CjxyZWN0IHg9IjEyIiB5PSIxMiIgd2lkdGg9IjE1NzYiIGhlaWdodD0iOTc2IiBmaWxsPSJub25lIiBzdHJva2U9IiM1YjRhMmMiIHN0cm9rZS13aWR0aD0iNiIvPgo8L3N2Zz4=",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "id": "brightvale-city",
+      "name": "Brightvale",
+      "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjgwMCIgdmlld0JveD0iMCAwIDEyMDAgODAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9InAiIGN4PSI1MCUiIGN5PSI1MCUiIHI9Ijc1JSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZWNkZmJmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjYzliNDhhIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjgwMCIgZmlsbD0idXJsKCNwKSIvPgo8cGF0aCBkPSJNMCA0NzAgQzIwMCA0MzAgMzgwIDUyMCA2MDAgNDcwIEM4MjAgNDIwIDEwMDAgNTAwIDEyMDAgNDUwIEwxMjAwIDU2MCBDMTAwMCA2MTAgODIwIDUzMCA2MDAgNTgwIEMzODAgNjMwIDIwMCA1NDAgMCA1ODAgWiIgZmlsbD0iIzhmYjBiNSIgc3Ryb2tlPSIjNWY4YTk5IiBzdHJva2Utd2lkdGg9IjQiLz4KPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNWI0YTJjIiBzdHJva2Utd2lkdGg9IjEwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIwIDE4MCBMOTgwIDE4MCBMMTA0MCA0MjAgTDE2MCA0MjAgWiIvPjwvZz4KPGcgZmlsbD0iI2E4OTE2YSIgc3Ryb2tlPSIjNWI0YTJjIiBzdHJva2Utd2lkdGg9IjIiPgo8cmVjdCB4PSIyNjAiIHk9IjIyMCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI3MCIvPjxyZWN0IHg9IjQyMCIgeT0iMjMwIiB3aWR0aD0iOTAiIGhlaWdodD0iNjAiLz48cmVjdCB4PSI1NjAiIHk9IjIxMCIgd2lkdGg9IjE0MCIgaGVpZ2h0PSI5MCIvPgo8cmVjdCB4PSI3NTAiIHk9IjIzMCIgd2lkdGg9IjExMCIgaGVpZ2h0PSI3MCIvPjxyZWN0IHg9IjMwMCIgeT0iMzIwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjYwIi8+PHJlY3QgeD0iODIwIiB5PSIzMjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNzAiLz48L2c+CjxjaXJjbGUgY3g9IjY0MCIgY3k9IjM1MCIgcj0iMzQiIGZpbGw9IiNjOWEyMjciIHN0cm9rZT0iIzViNGEyYyIgc3Ryb2tlLXdpZHRoPSI0Ii8+CjxyZWN0IHg9IjU2MCIgeT0iNDU1IiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjIyIiBmaWxsPSIjN2E2YTRhIiBzdHJva2U9IiMzYjJjMTUiIHN0cm9rZS13aWR0aD0iMyIvPgo8ZyBmb250LWZhbWlseT0iR2VvcmdpYSwgc2VyaWYiIGZpbGw9IiMzYjJjMTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgo8dGV4dCB4PSI2MDAiIHk9IjgwIiBmb250LXNpemU9IjQ4IiBsZXR0ZXItc3BhY2luZz0iNiI+QlJJR0hUVkFMRTwvdGV4dD4KPHRleHQgeD0iNjAwIiB5PSI3NjAiIGZvbnQtc2l6ZT0iMjYiIGZvbnQtc3R5bGU9Iml0YWxpYyI+dGhlIHJpdmVyIEx1bWU8L3RleHQ+PC9nPgo8cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMTgwIiBoZWlnaHQ9Ijc4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNWI0YTJjIiBzdHJva2Utd2lkdGg9IjYiLz48L3N2Zz4=",
+      "width": 1200,
+      "height": 800,
+      "parentId": "realms",
+      "placeId": "brightvale"
+    },
+    {
+      "id": "hollow-reach",
+      "name": "The Hollow Reach",
+      "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE0MDAgOTAwIj4KPHJlY3Qgd2lkdGg9IjE0MDAiIGhlaWdodD0iOTAwIiBmaWxsPSIjMWIxNzE0Ii8+CjxnIGZpbGw9IiMzYTJmMjYiIHN0cm9rZT0iIzhlMWIxYiIgc3Ryb2tlLXdpZHRoPSIzIj4KPHBhdGggZD0iTTEyMCAyMDAgQzMwMCAxMDAgNjAwIDEyMCA3NjAgMjQwIEM5MjAgMzYwIDExMDAgMzAwIDEyODAgNDIwIEMxMzIwIDYwMCAxMTAwIDc2MCA4MjAgNzYwIEM1NjAgNzYwIDMwMCA3MDAgMTYwIDU2MCBDODAgNDYwIDYwIDMwMCAxMjAgMjAwIFoiLz48L2c+CjxnIGZpbGw9IiM1YTRhM2MiPjxwYXRoIGQ9Ik00MDAgMzgwIGw0MCAtODAgbDQwIDgwIFoiLz48cGF0aCBkPSJNNDYwIDQwMCBsMzUgLTcwIGwzNSA3MCBaIi8+PHBhdGggZD0iTTg4MCA0MjAgbDQwIC04MCBsNDAgODAgWiIvPjxwYXRoIGQ9Ik05NDAgNDQwIGwzNSAtNzAgbDM1IDcwIFoiLz48L2c+CjxwYXRoIGQ9Ik0zMDAgNjIwIEM1MDAgNTYwIDcwMCA2MDAgMTAwMCA1MjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwOTEzYSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtZGFzaGFycmF5PSIxNCAxMCIvPgo8ZyBmb250LWZhbWlseT0iR2VvcmdpYSwgc2VyaWYiIGZpbGw9IiNlOGRmY2EiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgo8dGV4dCB4PSI3MDAiIHk9IjkwIiBmb250LXNpemU9IjUwIiBsZXR0ZXItc3BhY2luZz0iOCI+VEhFIEhPTExPVyBSRUFDSDwvdGV4dD48L2c+CjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEzODAiIGhlaWdodD0iODgwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4ZTFiMWIiIHN0cm9rZS13aWR0aD0iNiIvPjwvc3ZnPg==",
+      "width": 1400,
+      "height": 900,
+      "parentId": "starmap",
+      "placeId": "hollowhold"
+    },
+    {
+      "id": "hollowhold-keep",
+      "name": "Hollowhold Keep",
+      "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAwIiBoZWlnaHQ9IjEwMDAiIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPgo8cmVjdCB3aWR0aD0iMTAwMCIgaGVpZ2h0PSIxMDAwIiBmaWxsPSIjMTUxMjBmIi8+CjxnIGZpbGw9IiMyYTIyMWMiIHN0cm9rZT0iI2MwOTEzYSIgc3Ryb2tlLXdpZHRoPSI0Ij4KPHJlY3QgeD0iMjAwIiB5PSIyMDAiIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIi8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSI3MCIvPjxjaXJjbGUgY3g9IjgwMCIgY3k9IjIwMCIgcj0iNzAiLz4KPGNpcmNsZSBjeD0iMjAwIiBjeT0iODAwIiByPSI3MCIvPjxjaXJjbGUgY3g9IjgwMCIgY3k9IjgwMCIgcj0iNzAiLz48L2c+CjxyZWN0IHg9IjM4MCIgeT0iMzMwIiB3aWR0aD0iMjQwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzNhMmYyNiIgc3Ryb2tlPSIjOGUxYjFiIiBzdHJva2Utd2lkdGg9IjQiLz4KPHJlY3QgeD0iNDUwIiB5PSI3OTAiIHdpZHRoPSIxMDAiIGhlaWdodD0iNDAiIGZpbGw9IiM1YTRhM2MiIHN0cm9rZT0iI2MwOTEzYSIgc3Ryb2tlLXdpZHRoPSIzIi8+CjxnIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCBzZXJpZiIgZmlsbD0iI2U4ZGZjYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+PHRleHQgeD0iNTAwIiB5PSIxMTAiIGZvbnQtc2l6ZT0iNDQiIGxldHRlci1zcGFjaW5nPSI2Ij5IT0xMT1dIT0xEIEtFRVA8L3RleHQ+PC9nPjwvc3ZnPg==",
+      "width": 1000,
+      "height": 1000,
+      "parentId": "hollow-reach",
+      "placeId": "hollowhold"
+    }
+  ],
+  "masterMapId": "realms"
 }

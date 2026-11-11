@@ -1,6 +1,6 @@
 # Chronicle
 
-A timeline builder: create timelines of events, eras, factions and places, then browse them on an interactive horizontal timeline, a 3D starmap and your own flat map image. Use it for real history, a fantasy world, a sci-fi saga or anything else with a past.
+A timeline builder: create timelines of events, eras, factions and places, then browse them on an interactive horizontal timeline, a 3D starmap and your own map pictures, nested as deep as you like (galaxy → region → city). Use it for real history, a fantasy world, a sci-fi saga or anything else with a past.
 
 ## Run it
 
@@ -11,7 +11,7 @@ npm run dev
 
 ## Sample timeline
 
-`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, a named-ages calendar, eras, the 3D starmap and a flat map). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, an event with no faction, one with no place, and a very long title. Load it with **Import file…** on the timelines page.
+`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, a named-ages calendar, eras, the 3D starmap and four nested flat maps: The Shattered Realms › Brightvale, and Starmap › The Hollow Reach › Hollowhold Keep). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, an event with no faction, one with no place, and a very long title. Load it with **Import file…** on the timelines page.
 
 ## How data is stored
 
@@ -42,17 +42,10 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 5. ✅ Link timeline and map, filters, search, polish
 6. ✅ Setting-neutral: branding config, themes, custom calendars (years, named ages, numbered cycles, free text)
 7. ✅ Themes as data (theme editor, presets), website export, nested factions with themes, main factions, flat image map
+8. ✅ One era at a time with an era glow, landing page, Calendar tab, multiple flat maps nested like factions
 
 ## To do
 
-- [ ] **Multiple flat maps.** A timeline can have any number of flat maps (a world map, region maps, city maps…), each with a name and its own image. Keep the one 3D starmap as it is.
-  - Manage the maps in the **Places** tab, not in Settings: add, name, replace, reorder and remove them there, next to the places that go on them.
-  - A place can be pinned on several maps (one position per map) or on none.
-  - The viewer and map page list the starmap and every flat map by name to switch between them.
-  - Upgrade existing timelines: today's single flat map becomes the first map in the list, and each place's pin moves onto it.
-- [ ] **Nested maps, like nested factions.** Pick one **master map** (the 3D starmap or any flat map, e.g. a world or galaxy map) as the top of the tree.
-  - A place on a map can link to another map (its "child" map): clicking that pin opens the linked map, e.g. galaxy → sector → planet → city. Each map can have its own linked maps, to any depth.
-  - Breadcrumbs above the map (Galaxy › Segmentum › Cadia) go back up a level; the master map is where the viewer starts.
-  - Store it the way factions are stored: a flat list of maps, each with an optional `parentMapId` and the place it hangs off, with the same loop protection.
-  - Builds on the multiple flat maps item above.
+- [x] **Multiple flat maps.** Any number of named flat maps beside the one 3D starmap, managed in their own **Maps** tab and pinned on in the **Places** tab; a place can be pinned on several maps; the viewer and map page switch between them. Old timelines' single map became the first in the list.
+- [x] **Nested maps, like nested factions.** A map can sit inside another (or inside the starmap), opened by clicking one of its places, to any depth, with breadcrumbs back up. A **start map** (master map) is where the viewer begins. Stored as a flat list with `parentId` and `placeId`, with the same loop protection as factions.
 - [x] **Calendar in its own tab.** The calendar settings moved out of the Settings tab into a **Calendar** tab in the editor.

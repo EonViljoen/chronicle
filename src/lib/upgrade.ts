@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, type Calendar, type DatePrecision, type EventDate, type Timeline } from '../types/timeline';
+import { SCHEMA_VERSION, type Calendar, type DatePrecision, type EventDate, type FlatMap, type Place, type Timeline } from '../types/timeline';
 
 /*
  * Brings timelines saved by older versions of the app up to date. Used for
@@ -67,11 +67,40 @@ function v2to3(t: V2Timeline): Timeline {
   };
 }
 
+// ---------- Version 3 -> 4: one flat map became a list of maps ----------
+
+type V3Place = Omit<Place, 'pins'> & { pin?: [number, number] | null; pins?: Place['pins'] };
+type V3Timeline = Omit<Timeline, 'maps' | 'places'> & {
+  flatMap?: { image: string; width: number; height: number };
+  maps?: FlatMap[];
+  places: V3Place[];
+};
+
+/** The id the old single flat map gets. */
+const V3_MAP_ID = 'map';
+
+function v3to4(t: V3Timeline): Timeline {
+  const { flatMap, maps, places, ...rest } = t;
+  return {
+    ...rest,
+    schemaVersion: 4,
+    // The single flat map becomes the first (and only) map in the list…
+    maps: maps ?? (flatMap ? [{ id: V3_MAP_ID, name: 'Map', ...flatMap }] : []),
+    // …and each place's pin moves onto it
+    places: places.map(({ pin, pins, ...p }) => {
+      if (pins) return { ...p, pins };
+      return pin && flatMap ? { ...p, pins: { [V3_MAP_ID]: pin } } : p;
+    }),
+  };
+}
+
 /** Returns the timeline in the current shape. Already-current ones pass through unchanged. */
 export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
   let t: unknown = data;
   if ((t as { schemaVersion: number }).schemaVersion < 2) t = v1to2(t as V1Timeline);
   if ((t as { schemaVersion: number }).schemaVersion < 3) t = v2to3(t as V2Timeline);
-  // Future steps go here: if (version < 4) t = v3to4(t) …
-  return { ...(t as Timeline), schemaVersion: SCHEMA_VERSION };
+  if ((t as { schemaVersion: number }).schemaVersion < 4) t = v3to4(t as V3Timeline);
+  // Future steps go here: if (version < 5) t = v4to5(t) …
+  // A hand-made current file might leave the list out
+  return { ...(t as Timeline), maps: (t as Timeline).maps ?? [], schemaVersion: SCHEMA_VERSION };
 }

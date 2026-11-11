@@ -4,6 +4,7 @@ import type { Timeline, TimelineEvent } from '../../types/timeline';
 import { eraFor } from '../../lib/eras';
 import { formatDate } from '../../lib/dates';
 import { factionPath, mainFactionOf } from '../../lib/factions';
+import { allMaps, mapsWithPlace } from '../../lib/maps';
 import { EditOnly } from '../EditOnly';
 
 interface Props {
@@ -60,8 +61,8 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
             </span>
           ))}
           {places.map((p) =>
-            // Places that are on the map link to it
-            (p.position && timeline.map.type === 'galaxy3d') || (p.pin && timeline.flatMap) ? (
+            // Places that are on a map link to it; the map page picks a map that shows them
+            mapsWithPlace(p, allMaps(timeline)).length > 0 ? (
               <Link key={p.id} className="chip chip-place chip-link" to={`/t/${timeline.id}/map?place=${p.id}`}>⌖ {p.name}</Link>
             ) : (
               <span key={p.id} className="chip chip-place">⌖ {p.name}</span>

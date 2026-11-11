@@ -26,12 +26,14 @@ interface Props {
   selectedPlaceId?: string | null;
   /** Places to emphasise, e.g. the ones linked to an event. */
   highlightIds?: string[];
+  /** Places whose marker opens another map: their labels get a marker. */
+  openIds?: string[];
   onSelectPlace?: (id: string) => void;
   /** Placement mode for the editor: click the galaxy to set a position. */
   pick?: { position: Place['position']; onPick: (position: Vec3) => void };
 }
 
-export default function GalaxyMap({ config, places, selectedPlaceId, highlightIds = [], onSelectPlace, pick }: Props) {
+export default function GalaxyMap({ config, places, selectedPlaceId, highlightIds = [], openIds = [], onSelectPlace, pick }: Props) {
   const placed = places.filter((p): p is Place & { position: Vec3 } => p.position !== null);
   const selected = placed.find((p) => p.id === selectedPlaceId);
   const interactive = !pick && onSelectPlace !== undefined;
@@ -52,6 +54,7 @@ export default function GalaxyMap({ config, places, selectedPlaceId, highlightId
             place={place}
             selected={place.id === selectedPlaceId}
             highlighted={highlightIds.includes(place.id)}
+            opensMap={openIds.includes(place.id)}
             interactive={interactive}
             dimmed={!!pick}
             onSelect={(id) => onSelectPlace?.(id)}
@@ -131,12 +134,14 @@ interface MarkerProps {
   place: Place & { position: Vec3 };
   selected: boolean;
   highlighted: boolean;
+  /** Clicking it opens another map */
+  opensMap: boolean;
   interactive: boolean;
   dimmed: boolean;
   onSelect: (id: string) => void;
 }
 
-function PlaceMarker({ place, selected, highlighted, interactive, dimmed, onSelect }: MarkerProps) {
+function PlaceMarker({ place, selected, highlighted, opensMap, interactive, dimmed, onSelect }: MarkerProps) {
   const [hovered, setHovered] = useState(false);
   const active = selected || highlighted || (hovered && interactive);
 
@@ -174,7 +179,7 @@ function PlaceMarker({ place, selected, highlighted, interactive, dimmed, onSele
       <Html center position={[0, 4.5, 0]} zIndexRange={[20, 0]} style={{ pointerEvents: interactive ? 'auto' : 'none' }}>
         <button
           type="button" // the map can sit inside a <form>; don't let labels submit it
-          className={`map-label${selected ? ' is-selected' : ''}${highlighted ? ' is-highlighted' : ''}${dimmed ? ' is-dimmed' : ''}`}
+          className={`map-label${selected ? ' is-selected' : ''}${highlighted ? ' is-highlighted' : ''}${opensMap ? ' opens-map' : ''}${dimmed ? ' is-dimmed' : ''}`}
           tabIndex={interactive ? 0 : -1}
           onClick={() => onSelect(place.id)}
         >

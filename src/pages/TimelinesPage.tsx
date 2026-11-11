@@ -6,7 +6,7 @@ import { usePublished } from '../db/published';
 import TimelineCard from '../components/TimelineCard';
 import CreateTimelineForm from '../components/CreateTimelineForm';
 import { readRecent } from '../lib/recent';
-import { mapKinds } from '../components/map/mapKinds';
+import { allMaps } from '../lib/maps';
 import type { Timeline } from '../types/timeline';
 
 /*
@@ -158,7 +158,7 @@ function Dashboard({ timelines, recentIds }: { timelines: Timeline[]; recentIds:
         <div className="card-actions">
           <Link className="btn btn-primary" to={`/t/${current.id}`}>View</Link>
           <Link className="btn" to={`/t/${current.id}/edit`}>Edit</Link>
-          {mapKinds(current).length > 0 && <Link className="btn" to={`/t/${current.id}/map`}>Map</Link>}
+          {allMaps(current).length > 0 && <Link className="btn" to={`/t/${current.id}/map`}>Map</Link>}
         </div>
       </div>
 

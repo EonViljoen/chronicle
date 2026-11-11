@@ -674,9 +674,58 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 }
 .flat-map-controls { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 4px; }
 .flat-map-controls .btn { padding: 2px 10px; background: rgba(8, 8, 12, 0.7); color: #f2eee4; }
-.map-kind { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.map-kind button { padding: 4px 12px; border: 0; background: var(--surface-2); color: var(--muted); font: inherit; font-size: 0.85rem; cursor: pointer; }
-.map-kind button[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); }
-.map-switch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2; }
-.flat-map-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.flat-thumb { width: 120px; height: 80px; object-fit: cover; border: 1px solid var(--border); border-radius: var(--radius); }
+/* Over the map, top left: breadcrumbs back up through the maps, and a map picker */
+.map-nav {
+  position: absolute; top: 10px; left: 10px; z-index: 2; max-width: calc(100% - 20px);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+}
+.map-trail {
+  padding: 4px 10px; border-radius: var(--radius); background: rgba(8, 8, 12, 0.75); color: #f2eee4;
+  font-size: 0.85rem; backdrop-filter: blur(6px);
+}
+.map-trail-link { padding: 0; border: 0; background: none; color: #c9c3b6; font: inherit; text-decoration: underline; cursor: pointer; }
+.map-trail-link:hover { color: #fff; }
+.map-trail-current { font-weight: 600; }
+.map-picker-select { padding: 4px 8px; font-size: 0.85rem; background: rgba(8, 8, 12, 0.75); color: #f2eee4; border-color: rgba(255, 255, 255, 0.2); }
+/* A place that opens another map: a small arrow after its name */
+.map-label.opens-map::before { content: '↘ '; color: var(--accent); }
+.map-label.opens-map.is-selected::before { color: inherit; }
+/* The map page's panel sits top right; on a phone it's at the bottom, so the nav fits */
+.map-stage .map-nav { max-width: calc(100% - 340px); }
+@media (max-width: 640px) { .map-stage .map-nav { max-width: calc(100% - 20px); } }
+
+/* "Pinning places on …" at the top of the Places tab, and "Opens …" in the place form */
+.pin-banner {
+  margin: 0 0 14px; padding: 8px 12px; border-radius: var(--radius); font-size: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border)); background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+.place-opens { display: flex; flex-direction: column; gap: 4px; }
+.place-opens ul { margin: 0; padding-left: 18px; }
+
+/* ----- Maps tab ----- */
+.maps-panel {
+  display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 16px;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+}
+.maps-panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.maps-panel-head p { margin: 4px 0 0; max-width: 70ch; font-size: 0.9rem; }
+.maps-panel > .field { max-width: 360px; }
+.map-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.map-row {
+  display: flex; align-items: center; gap: 12px; padding: 6px 10px;
+  border: 1px solid transparent; border-radius: var(--radius); background: var(--surface-2);
+}
+.map-row.is-selected { border-color: var(--accent); }
+.map-thumb { flex: none; width: 56px; height: 38px; object-fit: cover; border: 1px solid var(--border); border-radius: calc(var(--radius) / 2); background: #05050a; }
+.map-thumb-3d { display: grid; place-items: center; color: #8fb4ff; }
+.map-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.map-row-main .muted { font-size: 0.8rem; }
+.map-row-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.map-row-actions .btn { padding: 3px 9px; font-size: 0.8rem; }
+@media (max-width: 640px) { .map-row { flex-wrap: wrap; } .map-row-actions { width: 100%; } }
+.map-form { max-width: none; padding: 14px; border: 1px solid var(--accent); border-radius: var(--radius); }
+.map-form-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.map-form-head h3 { margin: 0; }
+.map-form-body { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.map-form-picture { flex: 0 1 260px; max-width: 100%; max-height: 220px; object-fit: contain; border: 1px solid var(--border); border-radius: var(--radius); background: #05050a; }
+.map-form-fields { flex: 1 1 280px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }

@@ -3,7 +3,7 @@ import { Link, useBlocker, useSearchParams, type BlockerFunction } from 'react-r
 import type { Faction, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
-import { mapKinds } from '../components/map/mapKinds';
+import { allMaps, mapsWithPlace } from '../lib/maps';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
 import CalendarTab from '../components/editor/CalendarTab';
@@ -12,6 +12,7 @@ import WebsiteTab from '../components/editor/WebsiteTab';
 import EraForm from '../components/editor/EraForm';
 import FactionForm from '../components/editor/FactionForm';
 import PlaceForm from '../components/editor/PlaceForm';
+import MapsPanel from '../components/editor/MapsPanel';
 import EventForm from '../components/editor/EventForm';
 import { compareEvents, defaultSortKey, formatDate, formatKey } from '../lib/dates';
 import { eraFor } from '../lib/eras';
@@ -28,7 +29,7 @@ import {
   savePlace,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'factions', 'places', 'calendar', 'theme', 'website', 'settings'] as const;
+const TABS = ['events', 'eras', 'factions', 'places', 'maps', 'calendar', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -96,9 +97,14 @@ function Editor({ timeline }: { timeline: Timeline }) {
   const go = (nextTab: Tab, item: string | null = null) => {
     const next = new URLSearchParams({ tab: nextTab });
     if (item) next.set('item', item);
+    // ?map=… (from "Pin places here" in the Maps tab) picks the map the place
+    // form pins on; keep it while moving between places
+    const pinMap = params.get('map');
+    if (pinMap && nextTab === 'places' && tab === 'places') next.set('map', pinMap);
     setParams(next);
   };
   const selectItem = (item: string | null) => go(tab, item);
+  const pinMapName = timeline.maps.find((m) => m.id === params.get('map'))?.name;
 
   // ----- Sorted lists -----
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
@@ -114,6 +120,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
     eras: eras.length,
     factions: factions.length,
     places: places.length,
+    maps: allMaps(timeline).length,
     calendar: null,
     theme: null,
     website: null,
@@ -129,7 +136,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
       <div className="page-head">
         <h1>{timeline.title}</h1>
         <div className="page-head-actions">
-          {mapKinds(timeline).length > 0 && <Link className="btn" to={`/t/${timeline.id}/map`}>Map</Link>}
+          {allMaps(timeline).length > 0 && <Link className="btn" to={`/t/${timeline.id}/map`}>Map</Link>}
           <Link className="btn" to={`/t/${timeline.id}`}>View timeline</Link>
         </div>
       </div>
@@ -145,6 +152,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
 
       {tab === 'settings' && <SettingsForm timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'calendar' && <CalendarTab timeline={timeline} onDirtyChange={setDirty} />}
+      {tab === 'maps' && <MapsPanel {...shared} />}
       {tab === 'theme' && <ThemeTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'website' && <WebsiteTab timeline={timeline} onDirtyChange={setDirty} />}
 
@@ -219,24 +227,37 @@ function Editor({ timeline }: { timeline: Timeline }) {
       )}
 
       {tab === 'places' && (
-        <CollectionTab<Place>
-          {...shared}
-          items={places}
-          noun="place"
-          blank={() => ({ id: '', name: '', description: '', position: null })}
-          nameOf={(p) => p.name}
-          matches={(p, q) => p.name.toLowerCase().includes(q)}
-          renderRow={(p) => (
-            <>
-              <span className="row-main">{p.name}</span>
-              <span className="row-meta">{p.position ? '⌖' : ''}</span>
-            </>
+        <>
+          {/* Arrived from "Pin places" in the Maps tab: say which map the pins go on */}
+          {pinMapName && (
+            <p className="pin-banner">
+              Pinning places on <strong>{pinMapName}</strong>: pick a place, or add a new one, then click the map.{' '}
+              <Link to="?tab=maps">Back to Maps</Link>
+            </p>
           )}
-          save={savePlace}
-          remove={removePlace}
-          deleteWarning={(p) => usageWarning(countUsage(timeline, 'placeIds', p.id))}
-          renderForm={(p) => <PlaceForm {...p} timeline={timeline} />}
-        />
+          <CollectionTab<Place>
+            {...shared}
+            items={places}
+            noun="place"
+            blank={() => ({ id: '', name: '', description: '', position: null })}
+            nameOf={(p) => p.name}
+            matches={(p, q) => p.name.toLowerCase().includes(q)}
+            renderRow={(p) => {
+              // How many maps the place is on
+              const on = mapsWithPlace(p, allMaps(timeline)).length;
+              return (
+                <>
+                  <span className="row-main">{p.name}</span>
+                  <span className="row-meta" title={on ? `On ${on} map${on === 1 ? '' : 's'}` : 'Not on a map'}>{on ? `⌖${on > 1 ? ` ${on}` : ''}` : ''}</span>
+                </>
+              );
+            }}
+            save={savePlace}
+            remove={removePlace}
+            deleteWarning={(p) => placeDeleteWarning(timeline, p)}
+            renderForm={(p) => <PlaceForm {...p} timeline={timeline} />}
+          />
+        </>
       )}
     </div>
   );
@@ -255,6 +276,16 @@ function factionDeleteWarning(timeline: Timeline, faction: Faction): string | un
 }
 
 const usageWarning = (n: number) => (n > 0 ? `It's used by ${n} event${n === 1 ? '' : 's'} and will be removed from them.` : undefined);
+
+/** What deleting a place affects: events lose it, and maps it opened no longer open from it. */
+function placeDeleteWarning(timeline: Timeline, place: Place): string | undefined {
+  const opens = timeline.maps.filter((m) => m.placeId === place.id).map((m) => m.name);
+  const lines = [
+    usageWarning(countUsage(timeline, 'placeIds', place.id)),
+    opens.length > 0 && `It opens the map${opens.length === 1 ? '' : 's'} ${opens.join(', ')}, which will stay but no longer open from here.`,
+  ].filter(Boolean);
+  return lines.length ? lines.join('\n\n') : undefined;
+}
 
 /** A new event starts at the latest event's date, since timelines are often filled in order. */
 function blankEvent(timeline: Timeline, sortedEvents: TimelineEvent[]): TimelineEvent {

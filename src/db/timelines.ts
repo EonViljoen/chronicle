@@ -57,6 +57,7 @@ export async function createTimeline(title: string): Promise<Timeline> {
     factions: [],
     places: [],
     map: { type: 'none' },
+    maps: [],
     events: [],
     createdAt: now,
     updatedAt: now,

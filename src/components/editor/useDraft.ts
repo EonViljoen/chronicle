@@ -16,12 +16,14 @@ export function useDraft<T>(
   original: T,
   onSave: (value: T) => Promise<void>,
   onDirtyChange: (dirty: boolean) => void,
+  /** Something new that only exists in the draft (e.g. a just-added map): unsaved from the start. */
+  unsavedFromStart = false,
 ) {
   const [draft, setDraft] = useState(original);
   const [saving, setSaving] = useState(false);
 
   // Comparing JSON is a simple deep-equality check, fine for small objects
-  const dirty = JSON.stringify(draft) !== JSON.stringify(original);
+  const dirty = unsavedFromStart || JSON.stringify(draft) !== JSON.stringify(original);
 
   useEffect(() => {
     onDirtyChange(dirty);

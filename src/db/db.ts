@@ -49,3 +49,15 @@ db.version(4)
         ref.value = upgradeTimeline(timeline);
       }),
   );
+
+// Version 5: one flat map became a list of maps (timeline schema 4).
+db.version(5)
+  .stores({ timelines: 'id, title, updatedAt', themes: 'id, name' })
+  .upgrade((tx) =>
+    tx
+      .table('timelines')
+      .toCollection()
+      .modify((timeline, ref) => {
+        ref.value = upgradeTimeline(timeline);
+      }),
+  );

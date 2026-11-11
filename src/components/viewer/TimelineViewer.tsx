@@ -10,7 +10,7 @@ import { useThemeOverride } from '../themeOverride';
 import { matchesFilters, NO_FILTERS, type Filters } from '../../lib/filters';
 import { usePref } from '../../lib/prefs';
 import TimelineMap from '../map/TimelineMap';
-import { isOnMap, useMapKind } from '../map/mapKinds';
+import { allMaps, isPlacedOn, mapTree, masterMapId } from '../../lib/maps';
 import TimelineTrack from './TimelineTrack';
 import EventPanel from './EventPanel';
 import ViewerToolbar from './ViewerToolbar';
@@ -33,13 +33,33 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [showMap, setShowMap] = usePref('viewer.showMap', true);
 
-  // The 3D starmap and/or the flat map; shown when places are positioned on it
-  const { kind: mapKind, kinds: mapKinds, setKind: setMapKind } = useMapKind(timeline);
-  const hasMap = mapKinds.some((k) => timeline.places.some((p) => isOnMap(p, k)));
-
   // useMemo: only re-sort when the events actually change
   const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
   const selected = events.find((e) => e.id === selectedId) ?? null;
+
+  // ----- Which map is shown -----
+  // The starmap and flat maps; the map beside the timeline starts on the
+  // master map. It's only shown once some place is positioned on a map.
+  const maps = allMaps(timeline);
+  const hasMap = maps.some((m) => timeline.places.some((p) => isPlacedOn(p, m.id)));
+  const [chosenMapId, setMapId] = useState(() => masterMapId(timeline));
+  const mapId = maps.some((m) => m.id === chosenMapId) ? chosenMapId : masterMapId(timeline);
+
+  // Selecting an event whose places aren't on the map shown switches to a map
+  // that has one (the master map first, then the others in order). This only
+  // happens when the selection changes, so you can still browse other maps.
+  // Remembering the previous selection in state, and adjusting during render,
+  // is React's recommended pattern for "react to a change" without an effect.
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+  if (selectedId !== lastSelectedId) {
+    setLastSelectedId(selectedId);
+    const eventPlaces = selected ? timeline.places.filter((p) => selected.placeIds.includes(p.id)) : [];
+    if (mapId && eventPlaces.length > 0 && !eventPlaces.some((p) => isPlacedOn(p, mapId))) {
+      const order = [masterMapId(timeline), ...mapTree(maps).map((r) => r.map.id)];
+      const target = order.find((id) => id && eventPlaces.some((p) => isPlacedOn(p, id)));
+      if (target) setMapId(target);
+    }
+  }
 
   const calendar = timeline.calendar;
   // Picking a faction also matches everything under it, so expand the
@@ -173,7 +193,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const status = position !== -1 ? `${position + 1} / ${visible.length}` : `${visible.length} events`;
 
   // Which place the map focuses: the place filter, else the selected event's first placed place
-  const placedIds = new Set(timeline.places.filter((p) => mapKind && isOnMap(p, mapKind)).map((p) => p.id));
+  const placedIds = new Set(timeline.places.filter((p) => mapId && isPlacedOn(p, mapId)).map((p) => p.id));
   const mapFocus = filters.placeId ?? selected?.placeIds.find((id) => placedIds.has(id)) ?? null;
 
   if (events.length === 0) {
@@ -241,15 +261,14 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         status={status}
       />
 
-      {hasMap && showMap && mapKind ? (
+      {hasMap && showMap && mapId ? (
         <div className="viewer-split">
           <div className="viewer-split-panel">{panel}</div>
           <div className="viewer-split-map">
             <TimelineMap
               timeline={timeline}
-              kind={mapKind}
-              kinds={mapKinds}
-              onKindChange={setMapKind}
+              mapId={mapId}
+              onMapChange={setMapId}
               selectedPlaceId={mapFocus}
               highlightIds={selected?.placeIds ?? []}
               onSelectPlace={focusPlace}

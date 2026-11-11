@@ -176,13 +176,16 @@ wh40k-timeline/
     │   ├── eras.ts             Which era a date is in; era bands
     │   ├── filters.ts          Does an event match the search/filters?
     │   ├── ids.ts              "Horus Heresy" -> "horus-heresy"
+    │   ├── images.ts           Reading an uploaded picture (map images)
+    │   ├── maps.ts             The starmap and flat maps as one list; the map tree
     │   ├── mutations.ts        Timeline -> new Timeline update functions
     │   ├── prefs.ts            Preferences in localStorage (usePref)
     │   ├── upgrade.ts          Upgrading timelines saved by older versions
     │   └── validate.ts         Checking imported JSON files
     ├── themes/                 Theme presets, fonts, and applying a theme to the page
     ├── pages/                  One component per route
-    │   ├── HomePage.tsx        Your timelines
+    │   ├── HomePage.tsx        / : the landing page
+    │   ├── TimelinesPage.tsx   /timelines : your timelines, with a dashboard
     │   ├── ViewerPage.tsx      /t/:id
     │   ├── EditorPage.tsx      /t/:id/edit
     │   └── MapPage.tsx         /t/:id/map
@@ -1260,16 +1263,22 @@ A faction can pick a theme (`themeId`). `TimelineViewer` works out a **focus the
 
 The viewer hands that theme to `useThemeOverride`, the same Context the theme editor uses for its live preview. `TimelineGate` still owns the one place where a theme is applied; it just shows `override ?? savedTheme`. That's the payoff of having built the override as a general mechanism: a second feature reused it without any changes to `TimelineGate`.
 
-### Two maps
+### Many maps, nested
 
-A timeline can have the 3D starmap and a **flat map**: your own picture, stored in the timeline as a `data:` URL. Places get a second position, `pin`, as fractions of the picture's size (0–1), so pins stay put however big the map is drawn. [`FlatMap.tsx`](../src/components/map/FlatMap.tsx) is a good small study in direct DOM work from React:
+A timeline can have the 3D starmap plus any number of **flat maps** (`timeline.maps`): your own pictures, each stored in the timeline as a `data:` URL. A place has one 3D `position` and a `pins` object with one position per flat map (`{ [mapId]: [x, y] }`), as fractions of the picture's size (0–1), so pins stay put however big the map is drawn. A place can be on several maps, or none.
+
+Maps **nest like factions**: each flat map may have a `parentId` (another flat map, or `'starmap'`) and a `placeId`, the place on the parent map that opens it. Clicking that place's pin goes into the child map (galaxy → region → city), and breadcrumbs go back up. [`lib/maps.ts`](../src/lib/maps.ts) mirrors `lib/factions.ts`: `allMaps` turns the starmap and the flat maps into one list of `MapEntry`s so nothing else has to care which kind a map is, then `mapTree`, `mapAncestry` (the breadcrumbs) and `mapWithDescendants` (the maps a map can't be moved into, so the tree can't loop) work on that list. Unlike factions, sibling maps keep the order you arrange them in rather than going alphabetical.
+
+When the shape changed (one `flatMap` became the `maps` list, `pin` became `pins`), `v3to4` in [`lib/upgrade.ts`](../src/lib/upgrade.ts) moved old timelines over: the single map becomes the first in the list, and each pin moves onto it.
+
+[`FlatMap.tsx`](../src/components/map/FlatMap.tsx) is a good small study in direct DOM work from React:
 
 - **`ResizeObserver`** in an effect refits the picture whenever its box changes size (the window `resize` event misses layout changes).
 - **Pointer events** with `setPointerCapture` handle dragging with mouse, pen or finger alike. A drag of a few pixels still counts as a click, so placing a pin isn't fiddly.
 - **One transformed layer**: the picture and its pins move together with a single CSS `translate(...) scale(...)`. Each pin sits in a zero-size anchor scaled by `1 / scale`, so labels stay readable at any zoom.
 - The wheel listener is added by hand with `{ passive: false }`, because React's `onWheel` can't call `preventDefault()` to stop the page scrolling.
 
-[`TimelineMap.tsx`](../src/components/map/TimelineMap.tsx) shows whichever map is chosen, with a switch when both exist; the choice is remembered with `usePref`.
+[`TimelineMap.tsx`](../src/components/map/TimelineMap.tsx) shows whichever map its parent picks (`mapId`), with the breadcrumbs and a picker of every map. The viewer keeps the map in state and starts on the **master map** (`masterMapId`); selecting an event whose places aren't on the map shown switches to a map that has one. The map page keeps it in the URL (`?map=…`), so the back button steps back out of a map. Maps are added, arranged and linked in the editor's **Maps** tab ([`MapsPanel.tsx`](../src/components/editor/MapsPanel.tsx)); places are pinned on them in the **Places** tab, which a map's "Pin places" button opens with that map already chosen (`?tab=places&map=…`).
 
 ## 19. Pure update functions and immutability
 

@@ -8,6 +8,8 @@ interface Props {
   places: Place[];
   selectedPlaceId?: string | null;
   highlightIds?: string[];
+  /** Places whose pin opens another map: they get a marker. */
+  openIds?: string[];
   onSelectPlace?: (id: string) => void;
   /** Placement mode for the editor: click the map to set a position. */
   pick?: { pin: Pin | null; onPick: (pin: Pin) => void };
@@ -30,7 +32,7 @@ const MAX_ZOOM = 8; // times the "whole map fits" scale
  * size the map is shown at. The image and pins move together inside one
  * transformed layer; pins scale back down so they stay the same size.
  */
-export default function FlatMap({ map, places, selectedPlaceId, highlightIds = [], onSelectPlace, pick }: Props) {
+export default function FlatMap({ map, places, selectedPlaceId, highlightIds = [], openIds = [], onSelectPlace, pick }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<View | null>(null);
   const [fit, setFit] = useState(1);
@@ -108,7 +110,11 @@ export default function FlatMap({ map, places, selectedPlaceId, highlightIds = [
     return rect ? [rect.width / 2, rect.height / 2] : [0, 0];
   };
 
-  const pinned = places.filter((p): p is Place & { pin: Pin } => !!p.pin);
+  // Each place's pin on this map (a place can be on several maps)
+  const pinned = places.flatMap((p) => {
+    const pin = p.pins?.[map.id];
+    return pin ? [{ ...p, pin }] : [];
+  });
 
   return (
     <div
@@ -136,6 +142,7 @@ export default function FlatMap({ map, places, selectedPlaceId, highlightIds = [
                   'flat-pin',
                   p.id === selectedPlaceId && 'is-selected',
                   highlightIds.includes(p.id) && 'is-highlighted',
+                  openIds.includes(p.id) && 'opens-map',
                   pick && 'is-dimmed',
                 ]
                   .filter(Boolean)

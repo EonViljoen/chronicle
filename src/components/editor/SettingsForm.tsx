@@ -1,13 +1,12 @@
 import type { MapConfig, Timeline } from '../../types/timeline';
-import FlatMapSettings from './FlatMapSettings';
 import { updateTimeline } from '../../db/timelines';
 import Field from '../form/Field';
 import NumberInput from '../form/NumberInput';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
 
-// The calendar has its own tab (CalendarTab.tsx)
-type Settings = Pick<Timeline, 'title' | 'description' | 'map' | 'flatMap'>;
+// The calendar has its own tab (CalendarTab.tsx); flat maps have the Maps tab (MapsPanel.tsx)
+type Settings = Pick<Timeline, 'title' | 'description' | 'map'>;
 
 const DEFAULT_GALAXY: MapConfig = { type: 'galaxy3d', arms: 4, radius: 100, coreColor: '#ffd9a0', armColor: '#7aa6ff' };
 
@@ -21,7 +20,6 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
     title: timeline.title,
     description: timeline.description,
     map: timeline.map,
-    flatMap: timeline.flatMap,
   };
   const save = async (s: Settings) => {
     await updateTimeline(timeline.id, (t) => ({ ...t, ...s }));
@@ -44,7 +42,7 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
         <textarea rows={3} value={draft.description} onChange={(e) => patch({ description: e.target.value })} />
       </Field>
 
-      <Field label="3D starmap">
+      <Field label="3D starmap" hint="A spinning galaxy to place things on. Your own map pictures are added in the Maps tab.">
         <select value={map.type} onChange={(e) => patch({ map: e.target.value === 'galaxy3d' ? DEFAULT_GALAXY : { type: 'none' } })}>
           <option value="none">None</option>
           <option value="galaxy3d">3D galaxy</option>
@@ -65,8 +63,6 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
           </Field>
         </div>
       )}
-
-      <FlatMapSettings value={draft.flatMap} onChange={(flatMap) => patch({ flatMap })} />
 
       <FormActions isNew={false} dirty={dirty} valid={valid} saving={saving} onRevert={reset} />
     </form>

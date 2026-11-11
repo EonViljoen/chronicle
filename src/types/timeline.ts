@@ -13,8 +13,9 @@ import type { Theme } from './theme';
  * are upgraded on the way in; see lib/upgrade.ts.
  * 2: `dateFormat` became `calendar`; dates lost `kind` and `display`.
  * 3: categories were renamed factions (`factions`, `factionIds`).
+ * 4: one `flatMap` became a list of named `maps`; a place's `pin` became `pins` (one per map).
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /** The header and footer of an exported website. */
 export interface WebsiteSettings {
@@ -126,8 +127,11 @@ export interface Place {
   description: string;
   /** Position on the 3D starmap, or null if not placed yet. */
   position: [x: number, y: number, z: number] | null;
-  /** Position on the flat map image, as fractions of its width and height (0–1). */
-  pin?: [x: number, y: number] | null;
+  /**
+   * Positions on flat maps, by map id, as fractions of the image's width and
+   * height (0–1). A place can be on several maps, or on none.
+   */
+  pins?: Record<string, [x: number, y: number]>;
 }
 
 /** The map attached to a timeline. A discriminated union: check `type` first. */
@@ -141,16 +145,29 @@ export type MapConfig =
       armColor: string;
     };
 
+/** The id the 3D starmap goes by wherever maps are referred to (it isn't in `maps`). */
+export const STARMAP_ID = 'starmap';
+
 /**
  * A flat map: your own image (a drawn fantasy map, a galaxy chart…) that
- * places are pinned on. A timeline can have one alongside the 3D starmap.
+ * places are pinned on. A timeline has any number, alongside the 3D starmap.
+ *
+ * Maps nest like factions: a map can sit inside another map (`parentId`,
+ * which may be STARMAP_ID), opened by clicking one of the parent's places
+ * (`placeId`), e.g. galaxy → sector → planet → city. See lib/maps.ts.
  */
 export interface FlatMap {
+  id: string;
+  name: string;
   /** The picture, as a data: URL (uploaded) or a web address. */
   image: string;
   /** The picture's size in pixels, for its shape before it loads. */
   width: number;
   height: number;
+  /** The map this one sits inside. Unset = top level. */
+  parentId?: string;
+  /** The place on the parent map that opens this one. */
+  placeId?: string;
 }
 
 /** The 3D galaxy variant of MapConfig. */
@@ -182,9 +199,12 @@ export interface Timeline {
   eras: Era[];
   factions: Faction[];
   places: Place[];
+  /** The 3D starmap's settings (or none). */
   map: MapConfig;
-  /** Optional flat image map, alongside (or instead of) the 3D one. */
-  flatMap?: FlatMap;
+  /** Flat image maps, in the order you arranged them. */
+  maps: FlatMap[];
+  /** The map the viewer and map page start on: STARMAP_ID or a flat map's id. Unset = the first top-level one. */
+  masterMapId?: string;
   /** The theme's id: a built-in preset or one from your library. Unset = the site's default. */
   theme?: string;
   /**
