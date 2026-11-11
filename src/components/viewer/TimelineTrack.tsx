@@ -105,7 +105,10 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
               // One line per top-level faction, with its name
               laneList.map((lane, k) => (
                 <div key={lane.id ?? 'none'} className="lane" style={{ top: LANES_TOP + k * LANE_HEIGHT, '--lane-color': lane.color ?? 'var(--muted)' } as CSSProperties}>
-                  <span className="lane-label">{lane.name}</span>
+                  <span className="lane-label">
+                    {lane.imageUrl && <img className="faction-mark" src={lane.imageUrl} alt="" />}
+                    {lane.name}
+                  </span>
                   <div className="track-line lane-line" style={{ top: LANE_LINE }} aria-hidden="true" />
                 </div>
               ))

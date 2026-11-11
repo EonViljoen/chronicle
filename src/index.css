@@ -778,12 +778,20 @@ button.wiki-link { padding: 0; font: inherit; }
   flex: none; width: 112px; height: 112px; object-fit: cover; border-radius: 50%;
   border: 2px solid var(--accent); background: var(--surface);
 }
+.character-portrait.is-square { border-radius: var(--radius); }
 .character-portrait.is-small { width: 48px; height: 48px; border-width: 1px; }
 .character-portrait.is-empty {
   display: grid; place-items: center; color: var(--muted);
   font-family: var(--font-display); font-size: 2.4rem;
 }
 .character-portrait.is-small.is-empty { font-size: 1.2rem; }
+.faction-mark {
+  flex: none; width: 18px; height: 18px; border: 1px solid; border-radius: 4px; object-fit: cover; vertical-align: middle;
+}
+.faction-mark.is-big { width: 72px; height: 72px; border-width: 2px; border-radius: var(--radius); }
+.chip .faction-mark { width: 16px; height: 16px; margin: -2px 0; }
+.lane-label .faction-mark, .character-group-title .faction-mark { margin-right: 6px; }
+.character-group-title .faction-mark { width: 24px; height: 24px; }
 .chip-portrait { width: 18px; height: 18px; margin: -2px 0; border-radius: 50%; object-fit: cover; vertical-align: middle; }
 
 .history-head { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }

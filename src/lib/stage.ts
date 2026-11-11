@@ -80,6 +80,7 @@ export interface Lane {
   id?: string;
   name: string;
   color?: string;
+  imageUrl?: string;
 }
 
 /** The top-level faction an event sits under: its main faction's, else its first faction's. */
@@ -100,7 +101,7 @@ export function lanesFor(events: TimelineEvent[], factions: Faction[]): Lane[] {
   const used = new Set(events.flatMap((e) => [laneOf(e, factions) ?? '', ...otherLanes(e, factions)]));
   const lanes: Lane[] = factionTree(factions)
     .filter((row) => row.depth === 0 && used.has(row.faction.id))
-    .map(({ faction }) => ({ id: faction.id, name: faction.name, color: faction.color }));
+    .map(({ faction }) => ({ id: faction.id, name: faction.name, color: faction.color, imageUrl: faction.imageUrl }));
   if (used.has('')) lanes.push({ name: 'No faction' });
   return lanes;
 }

@@ -65,6 +65,7 @@
     {
       "id": "concord",
       "name": "The Concord",
+      "description": "Five towns of the Vale sworn to one oath at [[The Concord Is Sworn|the swearing]], with [[Brightvale]] as their capital.",
       "color": "#c9a227",
       "themeId": "parchment"
     },
@@ -89,6 +90,7 @@
     {
       "id": "crown",
       "name": "The Hollow Crown",
+      "description": "Kings of [[Hollowhold]], crowned in [[The Throne Hall]]. Founded by [[Aldric Vane]], they spent four hundred years trying to take the Vale.",
       "color": "#8e1b1b",
       "themeId": "gothic"
     },

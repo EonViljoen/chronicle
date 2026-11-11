@@ -113,6 +113,10 @@ export interface Faction {
   color: string;
   /** The faction this one sits under. Unset = top level. */
   parentId?: string;
+  /** Optional. Who they are: Markdown, with [[links]]. Shown on the faction's page. */
+  description?: string;
+  /** A picture (banner, crest, emblem): a data: URL (uploaded) or a web address. */
+  imageUrl?: string;
   /**
    * A theme (id) the page switches to when this faction is in focus: the
    * selected event's main faction, or the only faction filtered on. Unset =

@@ -3,6 +3,7 @@ import { Link, useBlocker, useSearchParams, type BlockerFunction } from 'react-r
 import type { Faction, Era, Place, Timeline, TimelineEvent } from '../types/timeline';
 import CharacterForm, { type CharacterDraft } from '../components/editor/CharacterForm';
 import { characterGroups } from '../lib/characters';
+import { FactionMark } from '../components/history/Chips';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
 import { allMaps, mapsWithPlace } from '../lib/maps';
@@ -232,7 +233,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
           renderRow={(c) => (
             <>
               {/* Sub-factions are indented under their parent */}
-              <span className="swatch" style={{ background: c.color, marginLeft: depthOf(c.id) * 16 }} />
+              <FactionMark faction={c} style={{ marginLeft: depthOf(c.id) * 16 }} />
               <span className="row-main">{c.name}</span>
               <span className="row-meta">{countUsage(timeline, 'factionIds', c.id)}</span>
             </>
@@ -240,7 +241,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
           save={saveFaction}
           remove={removeFaction}
           deleteWarning={(c) => factionDeleteWarning(timeline, c)}
-          renderForm={(p) => <FactionForm {...p} factions={timeline.factions} />}
+          renderForm={(p) => <FactionForm {...p} timeline={timeline} />}
         />
       )}
 

@@ -135,5 +135,10 @@ export function renameLinks<T extends Timeline>(after: T, before: Linkable, kind
       const description = fix(p.description);
       return description === p.description ? p : { ...p, description };
     }),
+    factions: after.factions.map((f) => {
+      if (!f.description) return f;
+      const description = fix(f.description);
+      return description === f.description ? f : { ...f, description };
+    }),
   };
 }

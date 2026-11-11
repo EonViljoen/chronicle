@@ -1,13 +1,16 @@
-import type { Faction } from '../../types/timeline';
+import type { Faction, Timeline } from '../../types/timeline';
 import { factionThemeId, factionTree, indentLabel, withDescendants } from '../../lib/factions';
 import { useThemes } from '../../db/themes';
 import { isPreset } from '../../themes';
 import Field from '../form/Field';
+import PictureField from '../form/PictureField';
+import MarkdownField from '../form/MarkdownField';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
 import type { FormProps } from './CollectionTab';
 
-export default function FactionForm({ original, isNew, onSave, onDelete, onDirtyChange, factions }: FormProps<Faction> & { factions: Faction[] }) {
+export default function FactionForm({ original, isNew, onSave, onDelete, onDirtyChange, timeline }: FormProps<Faction> & { timeline: Timeline }) {
+  const factions = timeline.factions;
   const { draft, patch, dirty, saving, submit, reset } = useDraft(original, onSave, onDirtyChange);
   const nameError = draft.name.trim() ? undefined : 'Give the faction a name';
 
@@ -30,7 +33,7 @@ export default function FactionForm({ original, isNew, onSave, onDelete, onDirty
   }
 
   return (
-    <form className="form" onSubmit={(e) => submit(e, (d) => ({ ...d, name: d.name.trim() }))}>
+    <form className="form" onSubmit={(e) => submit(e, (d) => ({ ...d, name: d.name.trim(), imageUrl: d.imageUrl?.trim() || undefined, description: d.description?.trim() || undefined }))}>
       <h2 className="form-title">{isNew ? 'New faction' : original.name}</h2>
 
       <Field label="Name" error={dirty ? nameError : undefined} hint="e.g. an army, a nation, a noble house, a guild">
@@ -49,6 +52,16 @@ export default function FactionForm({ original, isNew, onSave, onDelete, onDirty
       <Field label="Colour" hint="Colours the event's node and its filter chip">
         <input type="color" value={draft.color} onChange={(e) => patch({ color: e.target.value })} />
       </Field>
+
+      <MarkdownField label="Description" rows={5} value={draft.description ?? ''} onChange={(description) => patch({ description })} timeline={timeline} />
+
+      <PictureField
+        value={draft.imageUrl}
+        onChange={(imageUrl) => patch({ imageUrl })}
+        fallbackColor={draft.color}
+        square
+        hint="A crest, banner or emblem, shown on its page, its chips and in lanes. Upload one, or paste a web address."
+      />
 
       <Field
         label="Theme"

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import type { Character, Faction, Place, Timeline } from '../../types/timeline';
 import { factionPath } from '../../lib/factions';
@@ -9,6 +10,15 @@ import { factionPath } from '../../lib/factions';
 
 const pageOf = (timeline: Timeline, kind: 'characters' | 'factions' | 'places', id: string) =>
   `/t/${timeline.id}/${kind}/${encodeURIComponent(id)}`;
+
+/**
+ * A faction's picture if it has one, else its colour swatch. `big` is the
+ * size used at the top of its page.
+ */
+export function FactionMark({ faction, big = false, style }: { faction: Pick<Faction, 'color' | 'imageUrl'>; big?: boolean; style?: CSSProperties }) {
+  if (faction.imageUrl) return <img className={`faction-mark${big ? ' is-big' : ''}`} src={faction.imageUrl} alt="" style={{ borderColor: faction.color, ...style }} />;
+  return <span className={big ? 'history-swatch' : 'swatch'} style={{ background: faction.color, ...style }} aria-hidden="true" />;
+}
 
 export function CharacterChip({ timeline, character }: { timeline: Timeline; character: Character }) {
   const color = timeline.factions.find((f) => f.id === character.factionId)?.color;
@@ -27,7 +37,7 @@ export function FactionChip({ timeline, faction, main = false }: { timeline: Tim
       style={{ borderColor: faction.color }}
       title={`${factionPath(faction.id, timeline.factions)}${main ? ' (main faction)' : ''}`}
     >
-      <span className="swatch" style={{ background: faction.color }} /> {main && <span aria-hidden="true">★</span>} {faction.name}
+      <FactionMark faction={faction} /> {main && <span aria-hidden="true">★</span>} {faction.name}
       {main && <span className="sr-only">(main faction)</span>}
     </Link>
   );

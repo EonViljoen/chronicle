@@ -1,11 +1,10 @@
-import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Character, EventDate, Feat, Timeline } from '../../types/timeline';
 import { compareEvents, defaultSortKey, formatDate } from '../../lib/dates';
 import { factionTree, indentLabel } from '../../lib/factions';
 import { outsideLife } from '../../lib/characters';
-import { bigImageNote, readImage } from '../../lib/images';
 import Field from '../form/Field';
+import PictureField from '../form/PictureField';
 import MultiPicker from '../form/MultiPicker';
 import MarkdownField from '../form/MarkdownField';
 import { DateInput } from '../form/DateInputs';
@@ -35,8 +34,6 @@ const cleanDate = (d: EventDate): EventDate => (d.label === undefined ? d : { ..
 export default function CharacterForm({ original, isNew, onSave, onDelete, onDirtyChange, timeline }: FormProps<CharacterDraft> & { timeline: Timeline }) {
   const { draft, patch, dirty, saving, submit, reset } = useDraft(original, onSave, onDirtyChange);
   const calendar = timeline.calendar;
-  const [imageNote, setImageNote] = useState<{ text: string; error?: boolean } | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
 
   const events = [...timeline.events].sort(compareEvents);
   const linked = events.filter((e) => draft.eventIds.includes(e.id));
@@ -63,18 +60,6 @@ export default function CharacterForm({ original, isNew, onSave, onDelete, onDir
     return { sortKey, precision: 'exact', ...(calendar.type === 'freeform' && { label: '' }) };
   }
 
-  async function upload(file: File | undefined) {
-    if (!file) return;
-    try {
-      const { image } = await readImage(file);
-      patch({ imageUrl: image });
-      const big = bigImageNote(file);
-      setImageNote(big ? { text: big } : null);
-    } catch (e) {
-      setImageNote({ text: e instanceof Error ? e.message : String(e), error: true });
-    }
-  }
-
   const setFeat = (i: number, changes: Partial<Feat>) => patch({ feats: draft.feats.map((f, j) => (j === i ? { ...f, ...changes } : f)) });
 
   return (
@@ -97,34 +82,7 @@ export default function CharacterForm({ original, isNew, onSave, onDelete, onDir
         </select>
       </Field>
 
-      <Field label="Picture" group hint="Upload one, or paste a web address.">
-        <div className="character-picture-edit">
-          {draft.imageUrl ? <img className="character-portrait is-small" src={draft.imageUrl} alt="" /> : <div className="character-portrait is-small is-empty" aria-hidden="true">?</div>}
-          <div className="inline-inputs wrap">
-            <input
-              type="url"
-              aria-label="Picture address"
-              placeholder="https://…"
-              // A long uploaded data: URL isn't worth showing
-              value={draft.imageUrl?.startsWith('data:') ? '' : (draft.imageUrl ?? '')}
-              onChange={(e) => patch({ imageUrl: e.target.value })}
-            />
-            <button type="button" className="btn" onClick={() => fileInput.current?.click()}>Upload…</button>
-            {draft.imageUrl && <button type="button" className="btn" onClick={() => patch({ imageUrl: undefined })}>Remove</button>}
-          </div>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => {
-              void upload(e.target.files?.[0]);
-              e.target.value = ''; // so picking the same file again still works
-            }}
-          />
-        </div>
-        {imageNote && <span className={imageNote.error ? 'field-error' : 'field-hint'} role={imageNote.error ? 'alert' : undefined}>{imageNote.text}</span>}
-      </Field>
+      <PictureField value={draft.imageUrl} onChange={(imageUrl) => patch({ imageUrl })} />
 
       {/* Birth and death are optional: tick to give a date */}
       {(['born', 'died'] as const).map((which) => {

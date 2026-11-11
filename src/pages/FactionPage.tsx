@@ -1,11 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
 import type { Timeline } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
+import RichText from '../components/RichText';
 import HistoryHead from '../components/history/HistoryHead';
 import HistoryMap from '../components/history/HistoryMap';
 import Chronology from '../components/history/Chronology';
 import { eventEntries } from '../components/history/entries';
-import { CharacterChip, FactionChip, MissingItem } from '../components/history/Chips';
+import { CharacterChip, FactionChip, FactionMark, MissingItem } from '../components/history/Chips';
 import { useFactionTheme } from '../components/useFactionTheme';
 import { useThemeOverride } from '../components/themeOverride';
 import { membersOf } from '../lib/characters';
@@ -41,7 +42,7 @@ function FactionView({ timeline }: { timeline: Timeline }) {
         kind="Faction"
         title={faction.name}
         editSearch={`?tab=factions&item=${encodeURIComponent(faction.id)}`}
-        aside={<span className="history-swatch" style={{ background: faction.color }} aria-hidden="true" />}
+        aside={<FactionMark faction={faction} big />}
       >
         {parents.length > 0 && (
           <p className="history-life">
@@ -58,6 +59,11 @@ function FactionView({ timeline }: { timeline: Timeline }) {
 
       <div className="history-columns">
         <div className="history-main">
+          {faction.description && (
+            <div className="prose history-section">
+              <RichText text={faction.description} timeline={timeline} />
+            </div>
+          )}
           <section className="history-section">
             <h2 className="history-heading">History</h2>
             <Chronology

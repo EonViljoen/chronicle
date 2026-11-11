@@ -9,6 +9,7 @@ export interface CharacterGroup {
   /** "Imperium › Space Marines", or "Independent". */
   name: string;
   color?: string;
+  imageUrl?: string;
   characters: Character[];
 }
 
@@ -25,6 +26,7 @@ export function characterGroups(t: Pick<Timeline, 'characters' | 'factions'>): C
     factionId: faction.id,
     name: factionPath(faction.id, t.factions),
     color: faction.color,
+    imageUrl: faction.imageUrl,
     characters: t.characters.filter((c) => c.factionId === faction.id).sort(byName),
   }));
   groups.push({ name: 'Independent', characters: t.characters.filter((c) => !c.factionId || !known.has(c.factionId)).sort(byName) });

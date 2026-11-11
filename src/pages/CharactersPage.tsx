@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline } from '../types/timeline';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
+import { FactionMark } from '../components/history/Chips';
 import { characterGroups } from '../lib/characters';
 import { formatDate } from '../lib/dates';
 
@@ -31,6 +32,7 @@ function CharactersView({ timeline }: { timeline: Timeline }) {
       {groups.map((g) => (
         <section key={g.factionId ?? 'independent'} className="character-group" style={{ '--group-color': g.color ?? 'var(--border)' } as CSSProperties}>
           <h2 className="character-group-title">
+            {g.imageUrl && <FactionMark faction={{ color: g.color ?? '', imageUrl: g.imageUrl }} />}
             {g.factionId ? <Link to={`/t/${timeline.id}/factions/${encodeURIComponent(g.factionId)}`}>{g.name}</Link> : g.name}
           </h2>
           <ul className="character-grid">
