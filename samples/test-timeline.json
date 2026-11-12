@@ -2,7 +2,7 @@
   "id": "test-timeline",
   "schemaVersion": 6,
   "title": "Test: The Shattered Realms",
-  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, events that span time (one running into the next era), the 3D starmap and nested flat maps (galaxy, region, city). The setting is made up.",
+  "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, events that span time (one running into the next era), periods that hold other events (the Crown Wars, with a truce inside it), the 3D starmap and nested flat maps (galaxy, region, city). The setting is made up.",
   "calendar": {
     "type": "ages",
     "format": "{age} {year}",
@@ -648,12 +648,8 @@
       "summary": "Forty years of war across the Glass Sea.",
       "body": "Concord and Crown fight over the sea lanes. Fleets of both sides are lost on **the Glass Sea**.",
       "date": {
-        "sortKey": 640,
+        "sortKey": 650,
         "precision": "exact"
-      },
-      "endDate": {
-        "sortKey": 850,
-        "precision": "decade"
       },
       "factionIds": [
         "crown",
@@ -676,7 +672,19 @@
       ],
       "tags": [
         "war"
-      ]
+      ],
+      "kind": "period",
+      "includedIds": [
+        "winter-campaign",
+        "glass-night",
+        "truce-years",
+        "glass-treaty",
+        "wars-end"
+      ],
+      "endDate": {
+        "sortKey": 850,
+        "precision": "exact"
+      }
     },
     {
       "id": "glass-night",
@@ -1037,6 +1045,36 @@
       "tags": [
         "war"
       ]
+    },
+    {
+      "id": "truce-years",
+      "kind": "period",
+      "includedIds": [
+        "truce-hollowhold",
+        "raid-emberfall"
+      ],
+      "title": "The Uneasy Truce",
+      "summary": "Sixty years of peace that nobody trusted.",
+      "body": "From the [[Truce of Hollowhold]] until the [[Raid on Emberfall]] broke it.",
+      "date": {
+        "sortKey": 700,
+        "precision": "exact"
+      },
+      "endDate": {
+        "sortKey": 762,
+        "precision": "exact"
+      },
+      "factionIds": [
+        "crown",
+        "concord"
+      ],
+      "placeIds": [],
+      "characterIds": [],
+      "relatedIds": [],
+      "tags": [
+        "truce"
+      ],
+      "sources": []
     },
     {
       "id": "truce-hollowhold",

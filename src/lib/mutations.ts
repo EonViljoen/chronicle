@@ -1,5 +1,6 @@
 import type { Character, Faction, Era, FactionRelation, FlatMap, LorePage, Place, Relationship, Timeline, TimelineEvent } from '../types/timeline';
 import { renameLinks, type LinkKind } from './links';
+import { isPeriod, syncPeriods } from './periods';
 
 /*
  * Pure functions: each takes a timeline and returns a NEW timeline with one
@@ -199,25 +200,49 @@ export function moveMap(t: Timeline, id: string, direction: -1 | 1): Timeline {
 }
 
 /**
- * Saves an event and keeps "related" links two-way: if A lists B as related,
- * B lists A too, and unlinking on one side unlinks both.
+ * An event as the form edits it: the event plus the periods it's part of.
+ * Periods store what they include (`includedIds`), so saving writes
+ * `partOfIds` back onto them.
  */
-export function saveEvent(t: Timeline, event: TimelineEvent): Timeline {
+export type EventDraft = TimelineEvent & { partOfIds: string[] };
+
+/**
+ * Saves an event and keeps "related" links two-way: if A lists B as related,
+ * B lists A too, and unlinking on one side unlinks both. With `partOfIds`
+ * (from the form), the periods it's part of are updated to match, and
+ * periods' dates follow their events.
+ */
+export function saveEvent(t: Timeline, draft: TimelineEvent | EventDraft): Timeline {
+  const { partOfIds, ...event } = draft as EventDraft;
+  // A moment doesn't include anything; keep the fields off it
+  if (!isPeriod(event)) {
+    delete event.includedIds;
+    delete event.ownDates;
+  }
+  const partOf = partOfIds && new Set(partOfIds);
   const related = new Set(event.relatedIds);
   const events = upsert(t.events, event).map((e) => {
     if (e.id === event.id) return e;
+    let next = e;
     const linked = e.relatedIds.includes(event.id);
-    if (related.has(e.id) && !linked) return { ...e, relatedIds: [...e.relatedIds, event.id] };
-    if (!related.has(e.id) && linked) return { ...e, relatedIds: without(e.relatedIds, event.id) };
-    return e;
+    if (related.has(e.id) && !linked) next = { ...next, relatedIds: [...e.relatedIds, event.id] };
+    if (!related.has(e.id) && linked) next = { ...next, relatedIds: without(e.relatedIds, event.id) };
+    if (partOf && isPeriod(e)) {
+      const included = e.includedIds?.includes(event.id) ?? false;
+      if (partOf.has(e.id) && !included) next = { ...next, includedIds: [...(e.includedIds ?? []), event.id] };
+      if (!partOf.has(e.id) && included) next = { ...next, includedIds: without(e.includedIds ?? [], event.id) };
+    }
+    return next;
   });
-  return keepLinks(t, { ...t, events }, 'event', event.id, event.title);
+  return syncPeriods(keepLinks(t, { ...t, events }, 'event', event.id, event.title));
 }
 
-export const removeEvent = (t: Timeline, id: string): Timeline => ({
-  ...t,
-  events: t.events.filter((e) => e.id !== id).map((e) => ({ ...e, relatedIds: without(e.relatedIds, id) })),
-});
+/** Deletes an event. Related events and periods no longer list it, and periods' dates follow. */
+export const removeEvent = (t: Timeline, id: string): Timeline =>
+  syncPeriods({
+    ...t,
+    events: t.events.filter((e) => e.id !== id).map((e) => ({ ...e, relatedIds: without(e.relatedIds, id) })),
+  });
 
 /** How many events use a faction, place or character (for delete warnings). */
 export const countUsage = (t: Timeline, key: 'factionIds' | 'placeIds' | 'characterIds', id: string) =>

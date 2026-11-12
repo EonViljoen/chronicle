@@ -8,7 +8,7 @@ import { laneOf, lanesFor, otherLanes, spanBars, type SpanBar } from '../../lib/
 interface Props {
   /** The events of the era on show, already sorted by date. */
   events: TimelineEvent[];
-  /** Every event, sorted: spans that began in an earlier era still show here. */
+  /** Every event, sorted, periods included: spans and periods that began in an earlier era still show here. */
   allEvents: TimelineEvent[];
   /** One row per top-level faction instead of a single line. */
   lanes: boolean;
@@ -47,8 +47,11 @@ const LANES_TOP = 30;
  * (and stops short of the next event) rather than a dot.
  */
 function barBox(bar: SpanBar, n: number) {
-  const start = bar.from === -1 ? '0%' : `${((bar.from + 0.5) * 100) / n}%`;
-  const end = bar.to === n ? '100%' : `${((bar.to + 0.5) * 100) / n}%`;
+  // A period brackets its events: from a little before the first node to a little after the last
+  const lead = bar.period ? 0.18 : 0.5;
+  const tail = bar.period ? 0.82 : 0.5;
+  const start = bar.from === -1 ? '0%' : `${((bar.from + lead) * 100) / n}%`;
+  const end = bar.to === n ? '100%' : `${((bar.to + tail) * 100) / n}%`;
   return { left: start, width: `max(calc(${end} - ${start}), ${50 / n}%)` };
 }
 
@@ -77,12 +80,15 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
 
   // useEffect runs after render. Whenever the selection changes, bring that
   // node into view (only matters when the era is too long to fit).
+  const barRefs = useRef(new Map<string, HTMLButtonElement>());
   useEffect(() => {
     if (!selectedId) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    nodeRefs.current.get(selectedId)?.scrollIntoView({
+    // A period has no node: bring its bar into view instead
+    const node = nodeRefs.current.get(selectedId);
+    (node ?? barRefs.current.get(selectedId))?.scrollIntoView({
       behavior: reduceMotion ? 'auto' : 'smooth',
-      inline: 'center',
+      inline: node ? 'center' : 'nearest',
       block: 'nearest',
     });
   }, [selectedId]);
@@ -116,12 +122,13 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
               <div className="track-line" aria-hidden="true" />
             )}
 
-            {/* Bars for events with an end date (a war, a reign) */}
+            {/* Bars for events with an end date (a reign), and for periods (a war and its battles) */}
             {bars.map((bar) => {
               const lane = lanes ? Math.max(laneIndex(laneOf(bar.event, factions)), 0) : 0;
               const top = lanes ? LANES_TOP + lane * LANE_HEIGHT + LANE_LINE - 1 + bar.row * 6 : BARS_TOP + bar.row * BAR_ROW;
               const classes = [
                 'span-bar',
+                bar.period && 'is-period',
                 lanes && 'is-thin',
                 bar.from === -1 && 'is-from-before',
                 bar.to === n && 'goes-on',
@@ -131,6 +138,10 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
               return (
                 <button
                   key={bar.event.id}
+                  ref={(el) => {
+                    if (el) barRefs.current.set(bar.event.id, el);
+                    else barRefs.current.delete(bar.event.id);
+                  }}
                   className={classes}
                   style={{ ...barBox(bar, n), top, '--node-color': colorOf(bar.event) } as CSSProperties}
                   title={`${bar.event.title}: ${formatSpan(bar.event, calendar)}`}

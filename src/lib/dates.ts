@@ -196,7 +196,7 @@ export function formatSpan(event: Pick<TimelineEvent, 'date' | 'endDate'>, calen
   return event.endDate ? `${start} – ${formatDate(event.endDate, calendar)}` : start;
 }
 
-/** Sort comparator: by date, then title so ties are stable. */
+/** Sort comparator: by date, then a period before the events it holds, then title so ties are stable. */
 export function compareEvents(a: TimelineEvent, b: TimelineEvent): number {
-  return a.date.sortKey - b.date.sortKey || a.title.localeCompare(b.title);
+  return a.date.sortKey - b.date.sortKey || Number(b.kind === 'period') - Number(a.kind === 'period') || a.title.localeCompare(b.title);
 }

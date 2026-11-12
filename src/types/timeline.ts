@@ -263,6 +263,19 @@ export type GalaxyConfig = Extract<MapConfig, { type: 'galaxy3d' }>;
 
 export interface TimelineEvent {
   id: string;
+  /**
+   * Unset: a moment, drawn as a node on the track. 'period': a stretch of
+   * time that holds other events (a war and its battles): no node, only a bar
+   * under the track across the events it includes. See lib/periods.ts.
+   */
+  kind?: 'period';
+  /** A period's events (moments, or periods inside it). */
+  includedIds?: string[];
+  /**
+   * A period with events normally takes its dates from them (first to last).
+   * Set to keep its own dates instead, e.g. a war that began before its first battle.
+   */
+  ownDates?: boolean;
   title: string;
   /** One line, shown on hover. */
   summary: string;

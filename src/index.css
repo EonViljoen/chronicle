@@ -1056,3 +1056,24 @@ button.chip-tag { font: inherit; font-size: inherit; background: none; }
   .header-search kbd { display: none; }
   .header-search span { font-size: 1.1rem; }
 }
+
+/* ===== Periods: a stretch of time holding other events, drawn only as a bar ===== */
+/* Square ends with brackets, so a period reads differently from a span that starts at a node */
+.span-bar.is-period {
+  border-radius: 3px; border-left-width: 3px; border-right-width: 3px;
+  background: color-mix(in srgb, var(--node-color) 26%, var(--surface));
+  font-weight: 600; letter-spacing: 0.02em;
+}
+.span-bar.is-period.is-from-before { border-left-width: 1px; }
+.span-bar.is-period.goes-on { border-right-width: 1px; }
+.span-bar.is-period.is-thin { border: 0; height: 6px; border-radius: 1px; }
+.period-badge {
+  display: inline-block; margin-right: 6px; padding: 0 5px; border: 1px solid currentColor; border-radius: 3px;
+  font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase; vertical-align: 1px; color: var(--muted);
+}
+.event-panel-partof { margin: -4px 0 10px; font-size: 0.85rem; color: var(--muted); }
+.period-events { margin: 0; padding-left: 20px; }
+.period-events li { margin: 3px 0; }
+.period-events button { text-align: left; font: inherit; color: var(--text); }
+.period-events button:hover { color: var(--accent); }
+.swatch.is-period { width: 16px; height: 6px; border-radius: 1px; }

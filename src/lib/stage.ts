@@ -1,6 +1,7 @@
 import type { Era, Faction, TimelineEvent } from '../types/timeline';
 import type { EraSegment } from './eras';
 import { ancestry, factionTree, mainFactionOf } from './factions';
+import { isPeriod, periodMoments } from './periods';
 
 /*
  * Layout for the viewer's stage, as plain functions: which row a span's bar
@@ -21,16 +22,23 @@ export interface SpanBar {
   to: number;
   /** Which row of bars it's in, so bars don't overlap. */
   row: number;
+  /** A period: it brackets its events' nodes instead of starting at a node of its own. */
+  period?: boolean;
 }
 
 /**
  * The bars to draw for the era on show. `shown` is that era's events in
- * order; `all` is every event in order, to find spans that began earlier
- * and are still going. A bar reaches the last event that starts on or
- * before its end date.
+ * order (moments only); `all` is every event in order, periods included,
+ * to find spans that began earlier and are still going.
+ * - An event with an end date: a bar from its node to the last event that
+ *   starts on or before its end date.
+ * - A period: a bar across the events it includes (or, with none picked,
+ *   the events between its dates).
  */
 export function spanBars(shown: TimelineEvent[], all: TimelineEvent[]): SpanBar[] {
   if (shown.length === 0) return [];
+  const periods = all.filter(isPeriod);
+  all = all.filter((e) => !isPeriod(e));
   const first = shown[0].date.sortKey;
   const last = shown[shown.length - 1].date.sortKey;
   const lastCol = (end: number) => {
@@ -56,6 +64,34 @@ export function spanBars(shown: TimelineEvent[], all: TimelineEvent[]): SpanBar[
     if (!e.endDate) return;
     bars.push({ event: e, from: i, to: ends(e.endDate.sortKey, Math.max(i, lastCol(e.endDate.sortKey))) });
   });
+
+  // Periods: across the columns of their events here. Events of theirs in an
+  // earlier or later era make the bar come in from the left or run off the right.
+  const column = new Map(shown.map((e, i) => [e.id, i]));
+  const byId = new Map([...all, ...periods].map((e) => [e.id, e]));
+  for (const p of periods) {
+    const moments = periodMoments(p, byId);
+    let cols: number[];
+    let before: boolean;
+    let after: boolean;
+    if (moments.length > 0) {
+      cols = moments.map((m) => column.get(m.id)).filter((c): c is number => c !== undefined);
+      before = moments.some((m) => !column.has(m.id) && m.date.sortKey <= first);
+      after = moments.some((m) => !column.has(m.id) && m.date.sortKey >= last);
+    } else {
+      // No events picked: the events between its dates
+      const start = p.date.sortKey;
+      const end = (p.endDate ?? p.date).sortKey;
+      cols = shown.flatMap((e, i) => (e.date.sortKey >= start && e.date.sortKey <= end ? [i] : []));
+      before = start < first && all.some((e) => !column.has(e.id) && e.date.sortKey >= start && e.date.sortKey < first);
+      after = end > last && all.some((e) => !column.has(e.id) && e.date.sortKey > last && e.date.sortKey <= end);
+    }
+    // Not here at all (it only reaches events in other eras)
+    if (cols.length === 0 && !(before && after)) continue;
+    const from = before ? -1 : Math.min(...cols);
+    const to = after ? shown.length : Math.max(...cols);
+    bars.push({ event: p, from, to, period: true });
+  }
   return stack(bars);
 }
 
@@ -63,7 +99,9 @@ export function spanBars(shown: TimelineEvent[], all: TimelineEvent[]): SpanBar[
 function stack<T extends { from: number; to: number }>(bars: T[]): (T & { row: number })[] {
   const rowEnds: number[] = [];
   return [...bars]
-    .sort((a, b) => a.from - b.from || b.to - a.to)
+    // Starting together, the shorter goes first (nearer the events): a battle's
+    // campaign sits above the war that holds it
+    .sort((a, b) => a.from - b.from || a.to - b.to)
     .map((bar) => {
       let row = rowEnds.findIndex((end) => end < bar.from);
       if (row === -1) row = rowEnds.length;

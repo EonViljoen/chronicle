@@ -16,6 +16,7 @@ import ViewerToolbar from './ViewerToolbar';
 import EraStrip from './EraStrip';
 import { stripItems } from '../../lib/stage';
 import { allTags } from '../../lib/tags';
+import { isPeriod, periodMoments } from '../../lib/periods';
 
 /**
  * Owns the viewer's state and passes it down:
@@ -36,9 +37,27 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const [showMap, setShowMap] = usePref('viewer.showMap', true);
   const [lanes, setLanes] = usePref('viewer.lanes', false);
 
-  // useMemo: only re-sort when the events actually change
-  const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
-  const selected = events.find((e) => e.id === selectedId) ?? null;
+  // useMemo: only re-sort when the events actually change.
+  // `events` are the moments (nodes on the stage); periods are bars under them.
+  const allEvents = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
+  const events = useMemo(() => allEvents.filter((e) => !isPeriod(e)), [allEvents]);
+  const selected = allEvents.find((e) => e.id === selectedId) ?? null;
+
+  /**
+   * Where an event sits on the stage: itself for a moment; for a period, its
+   * first event (or the first one from its start date), so selecting a
+   * period shows its era and the arrows carry on from there.
+   */
+  const anchorOf = useCallback(
+    (event: TimelineEvent | undefined | null): TimelineEvent | undefined => {
+      if (!event || !isPeriod(event)) return event ?? undefined;
+      const moments = periodMoments(event, allEvents);
+      if (moments.length) return events.find((e) => moments.includes(e));
+      return events.find((e) => e.date.sortKey >= event.date.sortKey);
+    },
+    [allEvents, events],
+  );
+  const anchor = anchorOf(selected);
 
   // ----- Which map is shown -----
   // The starmap and flat maps; the map beside the timeline starts on the
@@ -94,7 +113,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   // shows one run: the selected event's. With nothing selected it stays on
   // the last one shown, so closing an event doesn't jump back to the start.
   const segments = useMemo(() => eraSegments(events, timeline.eras), [events, timeline.eras]);
-  const selectedIndex = selected ? events.indexOf(selected) : -1;
+  const selectedIndex = anchor ? events.indexOf(anchor) : -1;
   const selectedSegment = segments.findIndex((s) => selectedIndex >= s.startIndex && selectedIndex <= s.endIndex);
   const [lastSegment, setLastSegment] = useState(0);
   // Updating state during render (not in an effect) is React's recommended way
@@ -117,12 +136,15 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   /** The nearest visible event before/after `id` (or the first/last if none). */
   const neighbourOf = useCallback(
     (id: string | null, direction: 1 | -1): TimelineEvent | undefined => {
-      const found = id ? events.findIndex((e) => e.id === id) : -1;
+      const current = allEvents.find((e) => e.id === id);
+      // From a period, → goes to its first event and ← to the one before it
+      const fromPeriod = current && isPeriod(current);
+      const found = events.indexOf(anchorOf(current)!);
       const index = found !== -1 ? found : direction === 1 ? -1 : events.length;
-      const candidates = direction === 1 ? events.slice(index + 1) : events.slice(0, index).reverse();
+      const candidates = direction === 1 ? events.slice(fromPeriod ? index : index + 1) : events.slice(0, index).reverse();
       return candidates.find(isVisible);
     },
-    [events, isVisible],
+    [allEvents, events, anchorOf, isVisible],
   );
 
   // useCallback keeps the same function between renders, so the keyboard
@@ -256,7 +278,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
 
       <TimelineTrack
         events={shownEvents}
-        allEvents={events}
+        allEvents={allEvents}
         lanes={lanes && timeline.factions.length > 0}
         era={shown?.era}
         eraKey={shownSegment}

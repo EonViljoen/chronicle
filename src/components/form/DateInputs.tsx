@@ -188,10 +188,10 @@ export function SortKeyInput({ label, calendar, value, onChange, error }: SortKe
 
 const PRECISION_LABELS: Record<Exclude<DatePrecision, 'period'>, string> = {
   exact: 'Exact',
-  circa: 'Approximate',
-  decade: 'Within a decade',
-  century: 'Within a century',
-  millennium: 'Within a millennium',
+  circa: 'Approximate (c.)',
+  decade: 'Within a decade (c.)',
+  century: 'Within a century (c.)',
+  millennium: 'Within a millennium (c.)',
 };
 
 interface DateProps {
@@ -268,7 +268,7 @@ export function DateInput({ value, calendar, onChange, error, label = 'Date' }: 
           value={isPeriod ? 'exact' : precision}
           aria-label={label === 'Date' ? 'Precision' : `${label}: precision`}
           disabled={isPeriod && !textMode}
-          title={isPeriod && !textMode ? 'Only the period is known' : undefined}
+          title={isPeriod && !textMode ? 'Only the period is known' : 'How sure the date is. Anything but Exact adds "c." (circa) in front.'}
           onChange={(e) => onChange({ ...value, precision: e.target.value as DatePrecision })}
         >
           {(Object.keys(PRECISION_LABELS) as (keyof typeof PRECISION_LABELS)[]).map((p) => (

@@ -7,6 +7,8 @@ import { EditOnly } from '../EditOnly';
 import RichText from '../RichText';
 import SourceList from '../SourceList';
 import { CharacterChip, FactionChip, PlaceChip } from '../history/Chips';
+import { isPeriod, periodsOf } from '../../lib/periods';
+import { compareEvents } from '../../lib/dates';
 
 interface Props {
   timeline: Timeline;
@@ -27,6 +29,12 @@ export default function EventPanel({ timeline, event, onSelect, onClose, onTag }
     .sort((a, b) => Number(b.id === mainId) - Number(a.id === mainId));
   const places = timeline.places.filter((p) => event.placeIds.includes(p.id));
   const characters = timeline.characters.filter((c) => event.characterIds.includes(c.id));
+  // A period's events, in order; and the periods this event is part of
+  const included = (event.includedIds ?? [])
+    .map((id) => timeline.events.find((e) => e.id === id))
+    .filter((e): e is TimelineEvent => e !== undefined)
+    .sort(compareEvents);
+  const partOf = periodsOf(event.id, timeline.events);
   // Skip related ids that point at deleted events
   const related = event.relatedIds
     .map((id) => timeline.events.find((e) => e.id === id))
@@ -38,6 +46,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose, onTag }
       <header className="event-panel-head">
         <div>
           <p className="event-panel-date">
+            {isPeriod(event) && <span className="period-badge">Period</span>}
             {formatSpan(event, timeline.calendar)}
             {era && <span className="muted"> · {era.name}</span>}
           </p>
@@ -50,6 +59,18 @@ export default function EventPanel({ timeline, event, onSelect, onClose, onTag }
           <button className="btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>
+
+      {partOf.length > 0 && (
+        <p className="event-panel-partof">
+          Part of{' '}
+          {partOf.map((p, i) => (
+            <span key={p.id}>
+              {i > 0 && ', '}
+              <button type="button" className="link-btn wiki-link" onClick={() => onSelect(p.id)}>{p.title}</button>
+            </span>
+          ))}
+        </p>
+      )}
 
       {/* Each chip opens that faction's, place's or character's page */}
       {(factions.length > 0 || places.length > 0) && (
@@ -82,6 +103,25 @@ export default function EventPanel({ timeline, event, onSelect, onClose, onTag }
         {/* [[Links]] to other events select them here, without leaving the viewer */}
         {event.body ? <RichText text={event.body} timeline={timeline} onEventLink={onSelect} citations={{ prefix: `source-${event.id}`, count: event.sources.length }} /> : <p className="muted">{event.summary || 'No details yet.'}</p>}
       </div>
+
+      {isPeriod(event) && (
+        <section className="event-panel-section">
+          <h3>Includes</h3>
+          {included.length === 0 ? (
+            <p className="muted">No events picked: it covers the events between its dates.</p>
+          ) : (
+            <ol className="period-events">
+              {included.map((e) => (
+                <li key={e.id}>
+                  <button type="button" className="link-btn" onClick={() => onSelect(e.id)}>
+                    <span className="muted">{formatSpan(e, timeline.calendar)}</span> {isPeriod(e) && <span className="period-badge">Period</span>}{e.title}
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="event-panel-section">

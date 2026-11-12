@@ -5,6 +5,7 @@ import RelationForm from '../components/editor/RelationForm';
 import LoreForm from '../components/editor/LoreForm';
 import { RELATION_KINDS } from '../lib/relations';
 import { sortLore } from '../lib/lore';
+import { isPeriod, periodsOf } from '../lib/periods';
 import CharacterForm, { type CharacterDraft } from '../components/editor/CharacterForm';
 import { characterGroups } from '../lib/characters';
 import { FactionMark } from '../components/history/Chips';
@@ -36,6 +37,7 @@ import {
   removeLore,
   removeRelation,
   fromSide,
+  type EventDraft,
   saveCharacterFull,
   saveLore,
   saveRelation,
@@ -123,7 +125,11 @@ function Editor({ timeline }: { timeline: Timeline }) {
   const pinMapName = timeline.maps.find((m) => m.id === params.get('map'))?.name;
 
   // ----- Sorted lists -----
-  const events = useMemo(() => [...timeline.events].sort(compareEvents), [timeline.events]);
+  // Events with the periods they're part of (periods store that link, see saveEvent)
+  const events = useMemo<EventDraft[]>(
+    () => [...timeline.events].sort(compareEvents).map((e) => ({ ...e, partOfIds: periodsOf(e.id, timeline.events).map((p) => p.id) })),
+    [timeline.events],
+  );
   const eras = useMemo(() => [...timeline.eras].sort((a, b) => a.start - b.start), [timeline.eras]);
   // Factions in tree order: each one followed by its sub-factions
   const factionRows = useMemo(() => factionTree(timeline.factions), [timeline.factions]);
@@ -203,7 +209,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
       {tab === 'website' && <WebsiteTab timeline={timeline} onDirtyChange={setDirty} />}
 
       {tab === 'events' && (
-        <CollectionTab<TimelineEvent>
+        <CollectionTab<EventDraft>
           {...shared}
           items={events}
           noun="event"
@@ -214,7 +220,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
             const era = eraFor(e.date.sortKey, timeline.eras);
             return (
               <>
-                <span className="swatch" style={{ background: era?.color ?? 'transparent' }} />
+                <span className={`swatch${isPeriod(e) ? ' is-period' : ''}`} style={{ background: era?.color ?? 'transparent' }} title={isPeriod(e) ? 'Period' : undefined} />
                 <span className="row-main">{e.title}</span>
                 <span className="row-meta">{dateOf(e)}</span>
               </>
@@ -402,7 +408,7 @@ function placeDeleteWarning(timeline: Timeline, place: Place): string | undefine
 }
 
 /** A new event starts at the latest event's date, since timelines are often filled in order. */
-function blankEvent(timeline: Timeline, sortedEvents: TimelineEvent[]): TimelineEvent {
+function blankEvent(timeline: Timeline, sortedEvents: TimelineEvent[]): EventDraft {
   const last = sortedEvents[sortedEvents.length - 1];
   const date: TimelineEvent['date'] = {
     sortKey: last ? last.date.sortKey : defaultSortKey(timeline.calendar),
@@ -410,5 +416,5 @@ function blankEvent(timeline: Timeline, sortedEvents: TimelineEvent[]): Timeline
     // In a free-text calendar every date is a label
     ...(timeline.calendar.type === 'freeform' && { label: '' }),
   };
-  return { id: '', title: '', summary: '', body: '', date, factionIds: [], placeIds: [], characterIds: [], relatedIds: [], tags: [], sources: [] };
+  return { id: '', title: '', summary: '', body: '', date, factionIds: [], placeIds: [], characterIds: [], relatedIds: [], tags: [], sources: [], partOfIds: [] };
 }
