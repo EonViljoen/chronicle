@@ -45,6 +45,7 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 8. ✅ One era at a time with an era glow, landing page, Calendar tab, multiple flat maps nested like factions, Maps and Starmap tabs
 9. ✅ Characters, character / place / faction pages, `[[links]]` in text
 10. ✅ Era overview strip, lanes per faction, events that span time
+11. ✅ Tags, citations, lore pages, faction relations, character relationships and family trees, search everything
 
 ## To do
 
@@ -68,22 +69,19 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
   - **Linked to the rest:** a region can belong to a faction (taking its colour), have a description with `[[links]]`, and list the places inside it, worked out from their pins. Clicking a region shows its places and events; regions get their own page like places do.
   - **Over time (later):** an optional start and end date, so a region can appear, change hands or vanish as you move through eras. This builds towards "Faction territory over time" in the ideas below.
   - **Viewer:** a toggle to show or hide regions, so they don't crowd busy maps.
-- [ ] **Faction relations.** Record how factions stand with each other, and show it as a diagram.
-  - A **Relations** section on the faction form: pick another faction and a kind (ally, enemy, vassal / overlord, rival, trade partner, neutral…), with an optional note. Stored once per pair, so it shows from both sides; one-way kinds (vassal → overlord) keep their direction.
-  - Relations can change over time: an optional start and end date (or start and end events), so "allies until the Pact of Ash and Iron, enemies after" works. The viewer could then show relations as they stood at the selected event.
-  - A **relations diagram**: factions as nodes (with their pictures and colours), relations as lines styled by kind (solid green for allies, red for enemies, an arrow for vassals). Sub-factions grouped inside their parent. A page of its own (`/t/:id/relations`), plus a small version on each faction's page showing just its neighbours.
-  - Shown as a list on the faction's page too ("Allies: …, Enemies: …"), linking to the other factions.
-  - Deleting a faction removes its relations; [[links]] to factions keep working.
+- [x] **Faction relations.** A **Relations** tab in the editor records how factions stand with each other: allies, at war, rivals, trade, truce, or one serving another (one way). Each can have a start and end date and a note with `[[links]]`. The **Faction relations** page (`/t/:id/relations`) draws them as a diagram (factions with their pictures and colours, lines styled by kind) for all time or one era, with the list underneath; each faction's page lists its relations. Deleting a faction removes its relations.
 - [x] **Back up everything.** **Back up everything** on the timelines page downloads one JSON file with every timeline and theme in this browser; **Restore backup…** (or picking the file in **Import file…**) shows what's in it and asks what to do with timelines and themes already here: keep both, or replace them. The page reminds you when you last backed up. The file is versioned (`"kind": "chronicle-backup"`), ready to be uploaded to an account once accounts exist.
+- [x] **Sources and citations.** `[^1]` in an event's details (or a lore page) cites its first source, `[^2]` the second; they show as small raised numbers that jump to the source and make it flash. Sources are numbered, can be Markdown links, and the form warns about a citation with no source.
+- [x] **Lore pages.** Free-form pages that aren't an event, character, place or faction (a religion, a language, an artefact): a title, a category, a picture, text with `[[links]]` and citations, and sources. A **Lore** tab in the editor, a **Lore** page listing them by category, and `[[lore:Name]]` links. Each page shows the events that mention it; character, place, faction and lore pages all list what links to them (**Mentioned in**).
 - [x] **Shrink uploaded pictures.** Uploads are resized (maps to 4096 pixels across, portraits and crests to 640) and saved as WebP, keeping whichever is smaller; SVGs and GIFs stay as they are. **Settings → Pictures** shows how much room a timeline's pictures take and shrinks ones added before this.
 - [ ] **Undo / redo in the editor.** Keep the last few versions of the timeline in memory, so Ctrl+Z (and an Undo button) brings back a wrong edit or delete, and Ctrl+Shift+Z redoes it. Cleared when you leave the editor; backups cover the rest.
-- [ ] **Search everything.** A quick finder (Ctrl+K, and a search box in the header) across events, characters, places and factions, opening the event on the timeline or the item's page.
-- [ ] **Character relationships and family trees.** Links between characters (parent / child, spouse, sibling, mentor, rival…), shown on each character's page, with a family tree drawn from the parent and spouse links. Can share the diagram code with faction relations.
+- [x] **Search everything.** **Search** in the header (or Ctrl+K / ⌘K) opens a quick finder across events (title, text, date, `#tags`), characters, places, factions and lore pages. ↑ ↓ and Enter open the event on the timeline or the item's page; in the editor, the item's form.
+- [x] **Character relationships and family trees.** A **Relationships** list on the character form (parent / child, spouse, sibling, mentor / student, friend, rival, enemy), saved both ways. Each character's page groups them (Parents, Children, Rivals…) and draws a family tree from the parent and spouse links, a generation per row. The **Characters** page has a relationships diagram, sharing the diagram code with faction relations.
 - [ ] **Play mode.** Step through the timeline on its own, event by event and era by era, with the era glow and faction themes changing as it goes; pause, speed and a start point. For presenting a world.
 - [ ] **To-scale view.** An optional stage that spaces events by their real dates instead of evenly, so long gaps and busy periods show (like the character page's life strip), with zoom.
 - [ ] **Spreadsheet import (CSV).** Paste or upload rows (date, title, summary, faction, place…), match the columns, preview, and add them as events, creating missing factions and places.
 - [ ] **Print / PDF export.** A clean printable chronicle: eras as chapters, events in order, then character, faction and place pages, in the timeline's theme.
-- [ ] **Tags on events.** Free labels ("battle", "treaty", "birth") separate from factions, set in the event form, shown as chips and usable as a viewer filter.
+- [x] **Tags on events.** Free labels ("battle", "treaty") separate from factions, typed in the event form with suggestions from tags already used. They show as `# chips` in the info box (click one to filter by it), can be picked in the viewer's **Filter by tag…**, and match in search.
 - [ ] **Type check script and tests.** Add `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`; plain `tsc -p .` checks nothing, because `tsconfig.json` only lists references) and unit tests (Vitest) for the pure functions in `lib/`: dates, eras, factions, maps, mutations and above all `upgrade.ts`, since upgrades rewrite people's saved data.
 - [ ] **Accounts and cloud saving (Supabase).** Optional sign-in, so your timelines and themes are saved online and follow you between devices. One service does both the sign-in and the storage.
   - **Sign-in with Supabase Auth** (email magic link or password, Google, GitHub…). Using the app without an account keeps working exactly as now, saved in the browser.
@@ -99,8 +97,6 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 Not planned yet: possibilities to pick from. When one is chosen, it moves up to the to-do list.
 
 **Writing and worldbuilding**
-- **Sources and citations per claim.** Footnotes in event text (`[^1]`) that link to the event's sources list.
-- **Lore pages.** Free-form pages that aren't an event, character, place or faction (a religion, a language, an artefact), with `[[links]]` like everything else.
 - **Uncertain or disputed events.** Mark an event as legend, disputed or one side's account, with a different node style.
 - **Alternate versions.** Two accounts of the same event ("The Crown's telling" / "The Concord's telling"), switchable in the event panel.
 

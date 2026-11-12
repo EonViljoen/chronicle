@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { StripItem } from '../../lib/stage';
 
 interface Props {
@@ -19,8 +19,26 @@ interface Props {
  * there. Eras with no events show as thin slivers.
  */
 export default function EraStrip({ items, shownSegment, marker, canJump, onJump }: Props) {
+  // With many eras the strip scrolls sideways: keep the era on show in view.
+  // Only the strip scrolls (not the page), so moving through events never jumps the page.
+  // The first time it jumps straight there (a smooth scroll can be cut short
+  // while the page is still settling); after that it glides.
+  const strip = useRef<HTMLElement>(null);
+  const scrolledOnce = useRef(false);
+  useEffect(() => {
+    const el = strip.current;
+    const piece = el?.querySelector<HTMLElement>('.era-piece.is-current');
+    if (!el || !piece) return;
+    const behavior = scrolledOnce.current ? 'smooth' : 'instant';
+    scrolledOnce.current = true;
+    const left = piece.offsetLeft;
+    const right = left + piece.offsetWidth;
+    if (left < el.scrollLeft) el.scrollTo({ left: left - 24, behavior });
+    else if (right > el.scrollLeft + el.clientWidth) el.scrollTo({ left: right - el.clientWidth + 24, behavior });
+  }, [shownSegment]);
+
   return (
-    <nav className="era-strip" aria-label="Eras">
+    <nav ref={strip} className="era-strip" aria-label="Eras">
       {items.map((item) => {
         const current = item.segment === shownSegment;
         const name = item.era?.name ?? 'Outside any era';

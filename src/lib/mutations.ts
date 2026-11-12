@@ -1,4 +1,4 @@
-import type { Character, Faction, Era, FlatMap, Place, Timeline, TimelineEvent } from '../types/timeline';
+import type { Character, Faction, Era, FactionRelation, FlatMap, LorePage, Place, Relationship, Timeline, TimelineEvent } from '../types/timeline';
 import { renameLinks, type LinkKind } from './links';
 
 /*
@@ -26,7 +26,9 @@ function keepLinks(before: Timeline, after: Timeline, kind: LinkKind, id: string
   const old =
     kind === 'event'
       ? before.events.find((e) => e.id === id)?.title
-      : (kind === 'character' ? before.characters : kind === 'place' ? before.places : before.factions).find((x) => x.id === id)?.name;
+      : kind === 'lore'
+        ? before.lore.find((p) => p.id === id)?.title
+        : (kind === 'character' ? before.characters : kind === 'place' ? before.places : before.factions).find((x) => x.id === id)?.name;
   return old === undefined ? after : renameLinks(after, before, kind, old, newName);
 }
 
@@ -44,6 +46,7 @@ export function removeFaction(t: Timeline, id: string): Timeline {
       .filter((c) => c.id !== id)
       .map((c) => (c.parentId === id ? { ...c, parentId } : c)),
     characters: t.characters.map((c) => (c.factionId === id ? { ...c, factionId: parentId } : c)),
+    relations: t.relations.filter((r) => r.fromId !== id && r.toId !== id),
     events: t.events.map((e) => ({
       ...e,
       factionIds: without(e.factionIds, id),
@@ -81,12 +84,70 @@ export function saveCharacterWithEvents(t: Timeline, { eventIds, ...character }:
     }),
   };
 }
-/** Deletes a character. Events no longer list them. */
+/**
+ * A character's relationships as their form edits them: from their side,
+ * so "child of Aldric" is stored as Aldric → parent → them.
+ */
+export interface RelationshipDraft {
+  kind: Relationship['kind'] | 'child' | 'student';
+  otherId: string;
+}
+
+/** One relationship as seen from `id`'s side. */
+export function fromSide(r: Relationship, id: string): RelationshipDraft {
+  if (r.fromId === id) return { kind: r.kind, otherId: r.toId };
+  // The other end of a one-way link reads the other way round
+  const kind = r.kind === 'parent' ? 'child' : r.kind === 'mentor' ? 'student' : r.kind;
+  return { kind, otherId: r.fromId };
+}
+
+/** Back from a character's side to how it's stored. */
+function toStored({ kind, otherId }: RelationshipDraft, id: string): Relationship {
+  if (kind === 'child') return { kind: 'parent', fromId: otherId, toId: id };
+  if (kind === 'student') return { kind: 'mentor', fromId: otherId, toId: id };
+  return { kind, fromId: id, toId: otherId };
+}
+
+/** Is this the same link, whichever way round it was written? Two-way kinds match either way. */
+const sameLink = (a: Relationship, b: Relationship) =>
+  a.kind === b.kind &&
+  ((a.fromId === b.fromId && a.toId === b.toId) || (a.kind !== 'parent' && a.kind !== 'mentor' && a.fromId === b.toId && a.toId === b.fromId));
+
+/**
+ * Saves a character along with the events they're in and their
+ * relationships. Every relationship touching them is replaced by the
+ * form's list (duplicates and links to themselves are dropped).
+ */
+export function saveCharacterFull(
+  t: Timeline,
+  { relationships, ...character }: Character & { eventIds: string[]; relationships: RelationshipDraft[] },
+): Timeline {
+  const next = saveCharacterWithEvents(t, character);
+  const mine: Relationship[] = [];
+  for (const draft of relationships) {
+    if (!draft.otherId || draft.otherId === character.id) continue;
+    const r = toStored(draft, character.id);
+    if (!mine.some((m) => sameLink(m, r))) mine.push(r);
+  }
+  return {
+    ...next,
+    relationships: [...next.relationships.filter((r) => r.fromId !== character.id && r.toId !== character.id), ...mine],
+  };
+}
+
+/** Deletes a character. Events no longer list them, and their relationships go. */
 export const removeCharacter = (t: Timeline, id: string): Timeline => ({
   ...t,
   characters: t.characters.filter((c) => c.id !== id),
+  relationships: t.relationships.filter((r) => r.fromId !== id && r.toId !== id),
   events: t.events.map((e) => ({ ...e, characterIds: without(e.characterIds, id) })),
 });
+
+export const saveRelation = (t: Timeline, relation: FactionRelation): Timeline => ({ ...t, relations: upsert(t.relations, relation) });
+export const removeRelation = (t: Timeline, id: string): Timeline => ({ ...t, relations: t.relations.filter((r) => r.id !== id) });
+
+export const saveLore = (t: Timeline, page: LorePage): Timeline => keepLinks(t, { ...t, lore: upsert(t.lore, page) }, 'lore', page.id, page.title);
+export const removeLore = (t: Timeline, id: string): Timeline => ({ ...t, lore: t.lore.filter((p) => p.id !== id) });
 
 export const saveMap = (t: Timeline, map: FlatMap): Timeline => ({ ...t, maps: upsert(t.maps, map) });
 

@@ -15,6 +15,7 @@ import EventPanel from './EventPanel';
 import ViewerToolbar from './ViewerToolbar';
 import EraStrip from './EraStrip';
 import { stripItems } from '../../lib/stage';
+import { allTags } from '../../lib/tags';
 
 /**
  * Owns the viewer's state and passes it down:
@@ -74,6 +75,19 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const visible = useMemo(() => events.filter(isVisible), [events, isVisible]);
 
   const select = setSelectedId;
+  const tags = useMemo(() => allTags(timeline.events), [timeline.events]);
+
+  // Going to ?event=… while already here (search, a link) selects that event.
+  // Like above: remember the last value seen and adjust during render.
+  const paramEvent = params.get('event');
+  const [lastParamEvent, setLastParamEvent] = useState(paramEvent);
+  if (paramEvent !== lastParamEvent) {
+    setLastParamEvent(paramEvent);
+    if (paramEvent && paramEvent !== selectedId) setSelectedId(paramEvent);
+  }
+
+  /** A tag chip in the info box: filter to that tag. */
+  const filterTag = (tag: string) => setFilters((f) => (f.tags.includes(tag) ? f : { ...f, tags: [...f.tags, tag] }));
 
   // ----- Which era is on the stage -----
   // The events split into runs that share an era (eraSegments). The stage
@@ -204,7 +218,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   }
 
   const panel = selected ? (
-    <EventPanel key={selected.id} timeline={timeline} event={selected} onSelect={select} onClose={() => select(null)} />
+    <EventPanel key={selected.id} timeline={timeline} event={selected} onSelect={select} onClose={() => select(null)} onTag={filterTag} />
   ) : (
     <p className="viewer-hint muted">
       Select an event on the timeline, or use the arrows (← → on a keyboard; Shift+← → changes era).
@@ -230,6 +244,7 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
         onChange={setFilters}
         factions={timeline.factions}
         places={timeline.places}
+        tags={tags}
         visibleCount={visible.length}
         totalCount={events.length}
         onSearchEnter={nextMatch}

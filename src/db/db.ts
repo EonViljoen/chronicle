@@ -73,3 +73,15 @@ db.version(6)
         ref.value = upgradeTimeline(timeline);
       }),
   );
+
+// Version 7: tags, relations, relationships and lore (timeline schema 6).
+db.version(7)
+  .stores({ timelines: 'id, title, updatedAt', themes: 'id, name' })
+  .upgrade((tx) =>
+    tx
+      .table('timelines')
+      .toCollection()
+      .modify((timeline, ref) => {
+        ref.value = upgradeTimeline(timeline);
+      }),
+  );

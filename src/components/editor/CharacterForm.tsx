@@ -3,6 +3,8 @@ import type { Character, EventDate, Feat, Timeline } from '../../types/timeline'
 import { compareEvents, defaultSortKey, formatDate } from '../../lib/dates';
 import { factionTree, indentLabel } from '../../lib/factions';
 import { outsideLife } from '../../lib/characters';
+import type { RelationshipDraft } from '../../lib/mutations';
+import { SIDE_LABELS } from '../../lib/relations';
 import Field from '../form/Field';
 import PictureField from '../form/PictureField';
 import MultiPicker from '../form/MultiPicker';
@@ -14,10 +16,11 @@ import type { FormProps } from './CollectionTab';
 
 /**
  * A character as the form edits it: the character plus the events they're
- * in. Events store who's in them (`characterIds`), so saving writes
- * `eventIds` back onto the events (see saveCharacterWithEvents).
+ * in and their relationships. Events store who's in them (`characterIds`)
+ * and the timeline stores relationships, so saving writes both back (see
+ * saveCharacterFull).
  */
-export type CharacterDraft = Character & { eventIds: string[] };
+export type CharacterDraft = Character & { eventIds: string[]; relationships: RelationshipDraft[] };
 
 /** Trim text, and drop feats left without a name. */
 const clean = (c: CharacterDraft): CharacterDraft => ({
@@ -28,6 +31,7 @@ const clean = (c: CharacterDraft): CharacterDraft => ({
   born: c.born && cleanDate(c.born),
   died: c.died && cleanDate(c.died),
   feats: c.feats.map((f) => ({ name: f.name.trim(), description: f.description.trim() })).filter((f) => f.name),
+  relationships: c.relationships.filter((r) => r.otherId),
 });
 const cleanDate = (d: EventDate): EventDate => (d.label === undefined ? d : { ...d, label: d.label.trim() });
 
@@ -59,6 +63,10 @@ export default function CharacterForm({ original, isNew, onSave, onDelete, onDir
     const sortKey = near?.date.sortKey ?? draft.born?.sortKey ?? defaultSortKey(calendar);
     return { sortKey, precision: 'exact', ...(calendar.type === 'freeform' && { label: '' }) };
   }
+
+  const setLink = (i: number, changes: Partial<RelationshipDraft>) =>
+    patch({ relationships: draft.relationships.map((r, j) => (j === i ? { ...r, ...changes } : r)) });
+  const others = timeline.characters.filter((c) => c.id !== original.id).sort((a, b) => a.name.localeCompare(b.name));
 
   const setFeat = (i: number, changes: Partial<Feat>) => patch({ feats: draft.feats.map((f, j) => (j === i ? { ...f, ...changes } : f)) });
 
@@ -116,6 +124,31 @@ export default function CharacterForm({ original, isNew, onSave, onDelete, onDir
         <div>
           <button type="button" className="btn" onClick={() => patch({ feats: [...draft.feats, { name: '', description: '' }] })}>+ Add a feat</button>
         </div>
+      </fieldset>
+
+      <fieldset className="field feats-edit">
+        <legend className="field-label">Relationships</legend>
+        {draft.relationships.length === 0 && (
+          <p className="muted">{others.length ? 'Family, mentors, friends and foes. Parents and spouses make up their family tree.' : 'Add more characters to link them.'}</p>
+        )}
+        {draft.relationships.map((r, i) => (
+          <div key={i} className="inline-inputs">
+            <select aria-label={`Relationship ${i + 1}: kind`} value={r.kind} onChange={(e) => setLink(i, { kind: e.target.value as RelationshipDraft['kind'] })}>
+              {Object.entries(SIDE_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+            </select>
+            <select aria-label={`Relationship ${i + 1}: who`} value={r.otherId} onChange={(e) => setLink(i, { otherId: e.target.value })}>
+              <option value="">Pick a character…</option>
+              {others.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <button type="button" className="btn" aria-label={`Remove relationship ${i + 1}`} onClick={() => patch({ relationships: draft.relationships.filter((_, j) => j !== i) })}>✕</button>
+          </div>
+        ))}
+        {others.length > 0 && (
+          <div>
+            <button type="button" className="btn" onClick={() => patch({ relationships: [...draft.relationships, { kind: 'child', otherId: '' }] })}>+ Add a relationship</button>
+          </div>
+        )}
+        <span className="field-hint">Saved both ways: "Child of Aldric" also lists them under Children on Aldric's page.</span>
       </fieldset>
 
       <Field label="Events" group hint="The events they're in, which make up their life on the timeline. You can also add them from each event.">

@@ -110,6 +110,23 @@ function v4to5(t: V4Timeline): Timeline {
   };
 }
 
+// ---------- Version 5 -> 6: tags, relations, relationships, lore ----------
+
+type V5Timeline = Omit<Timeline, 'relations' | 'relationships' | 'lore' | 'events'> & {
+  events: (Omit<Timeline['events'][number], 'tags'> & { tags?: string[] })[];
+};
+
+function v5to6(t: V5Timeline): Timeline {
+  return {
+    ...t,
+    schemaVersion: 6,
+    relations: [],
+    relationships: [],
+    lore: [],
+    events: t.events.map((e) => ({ ...e, tags: e.tags ?? [] })),
+  };
+}
+
 /** Returns the timeline in the current shape. Already-current ones pass through unchanged. */
 export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
   let t: unknown = data;
@@ -117,14 +134,18 @@ export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
   if ((t as { schemaVersion: number }).schemaVersion < 3) t = v2to3(t as V2Timeline);
   if ((t as { schemaVersion: number }).schemaVersion < 4) t = v3to4(t as V3Timeline);
   if ((t as { schemaVersion: number }).schemaVersion < 5) t = v4to5(t as V4Timeline);
-  // Future steps go here: if (version < 6) t = v5to6(t) …
+  if ((t as { schemaVersion: number }).schemaVersion < 6) t = v5to6(t as V5Timeline);
+  // Future steps go here: if (version < 7) t = v6to7(t) …
   // A hand-made current file might leave lists out
   const current = t as Timeline;
   return {
     ...current,
     maps: current.maps ?? [],
     characters: (current.characters ?? []).map((c) => ({ ...c, description: c.description ?? '', feats: c.feats ?? [] })),
-    events: current.events.map((e) => (e.characterIds ? e : { ...e, characterIds: [] })),
+    relations: (current.relations ?? []).map((r) => ({ ...r, note: r.note ?? '' })),
+    relationships: current.relationships ?? [],
+    lore: (current.lore ?? []).map((p) => ({ ...p, category: p.category ?? '', body: p.body ?? '', sources: p.sources ?? [] })),
+    events: current.events.map((e) => (e.characterIds && e.tags && e.sources ? e : { ...e, characterIds: e.characterIds ?? [], tags: e.tags ?? [], sources: e.sources ?? [] })),
     schemaVersion: SCHEMA_VERSION,
   };
 }

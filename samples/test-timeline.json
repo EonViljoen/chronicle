@@ -1,6 +1,6 @@
 {
   "id": "test-timeline",
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "title": "Test: The Shattered Realms",
   "description": "A sample timeline that uses every feature: nested factions with themes, main factions, a named-ages calendar, eras (one long, one with a single event, one empty), events outside any era, every date precision, events that span time (one running into the next era), the 3D starmap and nested flat maps (galaxy, region, city). The setting is made up.",
   "calendar": {
@@ -424,6 +424,66 @@
           "description": ""
         }
       ]
+    },
+    {
+      "id": "isolde",
+      "name": "Isolde of Hollowhold",
+      "description": "Heir of [[Hollowhold]], whose marriage to [[Aldric Vane]] gave the Hollow Crown its seat.",
+      "factionId": "crown",
+      "born": {
+        "sortKey": 475,
+        "precision": "exact"
+      },
+      "died": {
+        "sortKey": 540,
+        "precision": "exact"
+      },
+      "feats": []
+    },
+    {
+      "id": "corwen-vane",
+      "name": "Corwen Vane",
+      "description": "Elder son of Aldric and Isolde. His marriage to [[Mirela Ashgrave]] sealed the [[Pact of Ash and Iron]].",
+      "factionId": "crown",
+      "born": {
+        "sortKey": 498,
+        "precision": "exact"
+      },
+      "died": {
+        "sortKey": 575,
+        "precision": "exact"
+      },
+      "feats": []
+    },
+    {
+      "id": "elsabet-vane",
+      "name": "Elsabet Vane",
+      "description": "Aldric's daughter, who never forgave her brother's Ashen bride.",
+      "factionId": "thornguard",
+      "born": {
+        "sortKey": 502,
+        "precision": "circa"
+      },
+      "died": {
+        "sortKey": 590,
+        "precision": "circa"
+      },
+      "feats": []
+    },
+    {
+      "id": "edda-vane",
+      "name": "Edda Vane",
+      "description": "Daughter of Corwen and Mirela. She left the Crown for the Vale, and her daughter [[Tamsin Reed]] fought against it.",
+      "factionId": "wardens",
+      "born": {
+        "sortKey": 547,
+        "precision": "exact"
+      },
+      "died": {
+        "sortKey": 630,
+        "precision": "exact"
+      },
+      "feats": []
     }
   ],
   "map": {
@@ -445,7 +505,7 @@
       "id": "first-fire",
       "title": "The First Fire",
       "summary": "Wanderers kindle a fire that never goes out.",
-      "body": "Long before anyone counted years, wanderers lit a fire at **Emberfall**. Every later age is counted from its light.\n\nThis entry uses a *free-text date*.",
+      "body": "Long before anyone counted years, wanderers lit a fire at **Emberfall**. Every later age is counted from its light.\n\nThis entry uses a *free-text date*.\n\nThe fire is still worshipped: see [[The Undying Fire]].[^1]",
       "date": {
         "sortKey": -200,
         "precision": "circa",
@@ -459,10 +519,14 @@
       ],
       "relatedIds": [],
       "sources": [
-        "The Ember Chronicle, book I"
+        "The Ember Chronicle, book I",
+        "[Sermons of the Ashen Rite](https://example.com/sermons)"
       ],
       "mainFactionId": "freeholds",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "myth"
+      ]
     },
     {
       "id": "vale-founded",
@@ -485,13 +549,16 @@
       ],
       "sources": [],
       "mainFactionId": "wardens",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "founding"
+      ]
     },
     {
       "id": "ashen-rite",
       "title": "The Ashen Rite",
       "summary": "An order forms to guard the First Fire.",
-      "body": "Keepers of the flame swear the *Ashen Rite*. The exact year is lost; the chroniclers agree on the decade.",
+      "body": "Keepers of the flame swear the *Ashen Rite*. The exact year is lost; the chroniclers agree on the decade.\n\nThe rite is the heart of [[The Undying Fire]] faith.[^1]",
       "date": {
         "sortKey": 240,
         "precision": "decade"
@@ -503,9 +570,14 @@
         "emberfall"
       ],
       "relatedIds": [],
-      "sources": [],
+      "sources": [
+        "Sermons of the Ashen Rite"
+      ],
       "mainFactionId": "ashen",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "ritual"
+      ]
     },
     {
       "id": "concord-sworn",
@@ -532,6 +604,10 @@
       "mainFactionId": "concord",
       "characterIds": [
         "wren"
+      ],
+      "tags": [
+        "treaty",
+        "founding"
       ]
     },
     {
@@ -561,6 +637,9 @@
       "mainFactionId": "crown",
       "characterIds": [
         "aldric-vane"
+      ],
+      "tags": [
+        "reign"
       ]
     },
     {
@@ -594,13 +673,16 @@
       "mainFactionId": "crown",
       "characterIds": [
         "tamsin-reed"
+      ],
+      "tags": [
+        "war"
       ]
     },
     {
       "id": "glass-night",
       "title": "The Glass Night",
       "summary": "The sea freezes clear in a single night.",
-      "body": "Both fleets are caught as the sea turns to glass. The war ends with no victor.\n\n[[Tamsin Reed]] fell here, the last of the wardens who had held the [[Battle of the Reeds|Reeds]].",
+      "body": "Both fleets are caught as the sea turns to glass. The war ends with no victor.\n\n[[Tamsin Reed]] fell here, the last of the wardens who had held the [[Battle of the Reeds|Reeds]]. Most of what we know comes from those who lived through it.[^1] One account says the sea glowed for a week.[^2]",
       "date": {
         "sortKey": 681,
         "precision": "exact"
@@ -616,10 +698,15 @@
         "crown-wars"
       ],
       "sources": [
-        "Accounts of the survivors"
+        "Accounts of the survivors",
+        "Letters of a Brightvale fisherman"
       ],
       "characterIds": [
         "tamsin-reed"
+      ],
+      "tags": [
+        "battle",
+        "disaster"
       ]
     },
     {
@@ -646,6 +733,9 @@
       "mainFactionId": "thornguard",
       "characterIds": [
         "oren-thorne"
+      ],
+      "tags": [
+        "oath"
       ]
     },
     {
@@ -673,6 +763,9 @@
       "mainFactionId": "lantern",
       "characterIds": [
         "ilse-lanternkeeper"
+      ],
+      "tags": [
+        "founding"
       ]
     },
     {
@@ -698,6 +791,9 @@
       "characterIds": [
         "ilse-lanternkeeper",
         "kael-skyborn"
+      ],
+      "tags": [
+        "disaster"
       ]
     },
     {
@@ -725,6 +821,9 @@
       "characterIds": [
         "ilse-lanternkeeper",
         "kael-skyborn"
+      ],
+      "tags": [
+        "diplomacy"
       ]
     },
     {
@@ -745,7 +844,10 @@
       "relatedIds": [],
       "sources": [],
       "mainFactionId": "exiles",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "exploration"
+      ]
     },
     {
       "id": "lume-bridge",
@@ -768,6 +870,9 @@
       "mainFactionId": "freeholds",
       "characterIds": [
         "wren"
+      ],
+      "tags": [
+        "building"
       ]
     },
     {
@@ -787,7 +892,11 @@
       "placeIds": [],
       "relatedIds": [],
       "sources": [],
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "disaster",
+        "plague"
+      ]
     },
     {
       "id": "siege-brightvale",
@@ -812,13 +921,17 @@
       "mainFactionId": "crown",
       "characterIds": [
         "aldric-vane"
+      ],
+      "tags": [
+        "battle",
+        "siege"
       ]
     },
     {
       "id": "pact-ash-iron",
       "title": "Pact of Ash and Iron",
       "summary": "The Ashen Order secretly bargains with the Crown.",
-      "body": "The Ashen Order secretly bargains with the Crown.",
+      "body": "The Ashen Order secretly bargains with the Crown.\n\nSealed by the marriage of [[Corwen Vane]] and [[Mirela Ashgrave]].",
       "date": {
         "sortKey": 545,
         "precision": "exact"
@@ -835,7 +948,11 @@
       "mainFactionId": "ashen",
       "characterIds": [
         "aldric-vane",
-        "mirela-ashgrave"
+        "mirela-ashgrave",
+        "corwen-vane"
+      ],
+      "tags": [
+        "treaty"
       ]
     },
     {
@@ -859,6 +976,9 @@
       "mainFactionId": "freeholds",
       "characterIds": [
         "mirela-ashgrave"
+      ],
+      "tags": [
+        "revolt"
       ]
     },
     {
@@ -882,6 +1002,9 @@
       "mainFactionId": "wardens",
       "characterIds": [
         "tamsin-reed"
+      ],
+      "tags": [
+        "battle"
       ]
     },
     {
@@ -910,6 +1033,9 @@
       "mainFactionId": "crown",
       "characterIds": [
         "tamsin-reed"
+      ],
+      "tags": [
+        "war"
       ]
     },
     {
@@ -931,7 +1057,10 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "treaty"
+      ]
     },
     {
       "id": "last-heir",
@@ -952,7 +1081,11 @@
       "relatedIds": [],
       "sources": [],
       "mainFactionId": "crown",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "coronation",
+        "reign"
+      ]
     },
     {
       "id": "raid-emberfall",
@@ -973,7 +1106,10 @@
       "relatedIds": [],
       "sources": [],
       "mainFactionId": "crown",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "battle"
+      ]
     },
     {
       "id": "archive-burns",
@@ -993,7 +1129,10 @@
       "relatedIds": [],
       "sources": [],
       "mainFactionId": "ashen",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "disaster"
+      ]
     },
     {
       "id": "glass-treaty",
@@ -1017,7 +1156,10 @@
       ],
       "sources": [],
       "mainFactionId": "concord",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "treaty"
+      ]
     },
     {
       "id": "wars-end",
@@ -1041,6 +1183,9 @@
       "mainFactionId": "concord",
       "characterIds": [
         "wren"
+      ],
+      "tags": [
+        "treaty"
       ]
     },
     {
@@ -1063,6 +1208,9 @@
       "mainFactionId": "lantern",
       "characterIds": [
         "ilse-lanternkeeper"
+      ],
+      "tags": [
+        "disaster"
       ]
     },
     {
@@ -1087,6 +1235,10 @@
       "mainFactionId": "exiles",
       "characterIds": [
         "kael-skyborn"
+      ],
+      "tags": [
+        "treaty",
+        "founding"
       ]
     },
     {
@@ -1113,6 +1265,9 @@
       "mainFactionId": "exiles",
       "characterIds": [
         "wren"
+      ],
+      "tags": [
+        "exploration"
       ]
     },
     {
@@ -1135,7 +1290,11 @@
       ],
       "relatedIds": [],
       "sources": [],
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "disaster",
+        "war"
+      ]
     },
     {
       "id": "far-future",
@@ -1154,7 +1313,10 @@
       "relatedIds": [],
       "sources": [],
       "mainFactionId": "lantern",
-      "characterIds": []
+      "characterIds": [],
+      "tags": [
+        "myth"
+      ]
     }
   ],
   "createdAt": 0,
@@ -1195,5 +1357,198 @@
       "placeId": "hollowhold"
     }
   ],
-  "masterMapId": "realms"
+  "masterMapId": "realms",
+  "relationships": [
+    {
+      "kind": "spouse",
+      "fromId": "aldric-vane",
+      "toId": "isolde"
+    },
+    {
+      "kind": "parent",
+      "fromId": "aldric-vane",
+      "toId": "corwen-vane"
+    },
+    {
+      "kind": "parent",
+      "fromId": "isolde",
+      "toId": "corwen-vane"
+    },
+    {
+      "kind": "parent",
+      "fromId": "aldric-vane",
+      "toId": "elsabet-vane"
+    },
+    {
+      "kind": "parent",
+      "fromId": "isolde",
+      "toId": "elsabet-vane"
+    },
+    {
+      "kind": "spouse",
+      "fromId": "corwen-vane",
+      "toId": "mirela-ashgrave"
+    },
+    {
+      "kind": "parent",
+      "fromId": "corwen-vane",
+      "toId": "edda-vane"
+    },
+    {
+      "kind": "parent",
+      "fromId": "mirela-ashgrave",
+      "toId": "edda-vane"
+    },
+    {
+      "kind": "parent",
+      "fromId": "edda-vane",
+      "toId": "tamsin-reed"
+    },
+    {
+      "kind": "rival",
+      "fromId": "elsabet-vane",
+      "toId": "mirela-ashgrave"
+    },
+    {
+      "kind": "mentor",
+      "fromId": "ilse-lanternkeeper",
+      "toId": "kael-skyborn"
+    },
+    {
+      "kind": "friend",
+      "fromId": "kael-skyborn",
+      "toId": "wren"
+    }
+  ],
+  "relations": [
+    {
+      "id": "freeholds-ally-wardens",
+      "kind": "ally",
+      "fromId": "freeholds",
+      "toId": "wardens",
+      "start": {
+        "sortKey": 12,
+        "precision": "exact"
+      },
+      "note": "Old friends since the [[Founding of Brightvale]]."
+    },
+    {
+      "id": "ashen-ally-crown",
+      "kind": "ally",
+      "fromId": "ashen",
+      "toId": "crown",
+      "start": {
+        "sortKey": 545,
+        "precision": "exact"
+      },
+      "end": {
+        "sortKey": 788,
+        "precision": "exact"
+      },
+      "note": "Sworn in the [[Pact of Ash and Iron]]; it ended when [[The Archive Burns|the archive burned]]."
+    },
+    {
+      "id": "freeholds-rival-crown",
+      "kind": "rival",
+      "fromId": "freeholds",
+      "toId": "crown",
+      "start": {
+        "sortKey": 568,
+        "precision": "exact"
+      },
+      "note": "Ever since [[The Freehold Revolt]]."
+    },
+    {
+      "id": "crown-war-concord",
+      "kind": "war",
+      "fromId": "crown",
+      "toId": "concord",
+      "start": {
+        "sortKey": 640,
+        "precision": "exact"
+      },
+      "end": {
+        "sortKey": 850,
+        "precision": "exact"
+      },
+      "note": "[[The Crown Wars]]."
+    },
+    {
+      "id": "crown-truce-concord",
+      "kind": "truce",
+      "fromId": "crown",
+      "toId": "concord",
+      "start": {
+        "sortKey": 700,
+        "precision": "exact"
+      },
+      "end": {
+        "sortKey": 762,
+        "precision": "exact"
+      },
+      "note": "Agreed at the [[Truce of Hollowhold]]; broken by the [[Raid on Emberfall]]."
+    },
+    {
+      "id": "thornguard-vassal-crown",
+      "kind": "vassal",
+      "fromId": "thornguard",
+      "toId": "crown",
+      "start": {
+        "sortKey": 902,
+        "precision": "exact"
+      },
+      "note": "Since the [[Oath of the Thornguard]]."
+    },
+    {
+      "id": "exiles-trade-concord",
+      "kind": "trade",
+      "fromId": "exiles",
+      "toId": "concord",
+      "start": {
+        "sortKey": 1309,
+        "precision": "exact"
+      },
+      "note": "Opened by [[First Contact at Brightvale]]."
+    },
+    {
+      "id": "exiles-war-crown",
+      "kind": "war",
+      "fromId": "exiles",
+      "toId": "crown",
+      "start": {
+        "sortKey": 2000,
+        "precision": "exact"
+      },
+      "note": "[[The Shattering]]."
+    }
+  ],
+  "lore": [
+    {
+      "id": "undying-fire",
+      "title": "The Undying Fire",
+      "category": "Religions",
+      "body": "The oldest faith of the realm holds that [[The First Fire]], lit at [[Emberfall]], is the world's heart, and that it will burn until the last age ends.[^1]\n\nIts priests became the [[Ashen Order]], who keep the flame and perform [[The Ashen Rite]] every hundred years.[^2]\n\n- **Symbol:** a ring of ash around a spark\n- **Holy place:** [[Emberfall]]",
+      "sources": [
+        "The Ember Chronicle, book I",
+        "Sermons of the Ashen Rite"
+      ]
+    },
+    {
+      "id": "vale-tongue",
+      "title": "Old Vale tongue",
+      "category": "Languages",
+      "body": "The speech of the first settlers of [[Brightvale]]. Most place names in the Vale come from it: *lume* (light) gives [[The Lume Bridge]] its name.\n\nThe [[Wardens of the Vale]] still swear their oaths in it.",
+      "sources": []
+    },
+    {
+      "id": "iron-circlet",
+      "title": "The Iron Circlet",
+      "category": "Artefacts",
+      "body": "The crown of [[The Hollow Crown]]: a plain iron band, hollow inside, said to hold ash from [[Emberfall]].[^1] [[Aldric Vane]] wore it first; it was lost in [[The Shattering]].[^2]",
+      "sources": [
+        "Inventory of the Throne Hall",
+        "Wren's tales (unreliable)"
+      ]
+    }
+  ]
 }

@@ -5,6 +5,7 @@ import { formatDate, formatSpan } from '../../lib/dates';
 import { mainFactionOf } from '../../lib/factions';
 import { EditOnly } from '../EditOnly';
 import RichText from '../RichText';
+import SourceList from '../SourceList';
 import { CharacterChip, FactionChip, PlaceChip } from '../history/Chips';
 
 interface Props {
@@ -12,10 +13,12 @@ interface Props {
   event: TimelineEvent;
   onSelect: (id: string) => void;
   onClose: () => void;
+  /** Clicking a tag: filter the timeline by it. */
+  onTag?: (tag: string) => void;
 }
 
 /** The info box for the selected event. */
-export default function EventPanel({ timeline, event, onSelect, onClose }: Props) {
+export default function EventPanel({ timeline, event, onSelect, onClose, onTag }: Props) {
   const era = eraFor(event.date.sortKey, timeline.eras);
   // The main faction first, marked with a star
   const mainId = mainFactionOf(event);
@@ -61,11 +64,23 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
         </div>
       )}
 
+      {event.tags.length > 0 && (
+        <div className="chips">
+          {event.tags.map((t) =>
+            onTag ? (
+              <button key={t} type="button" className="chip chip-link chip-tag" title={`Show only events tagged "${t}"`} onClick={() => onTag(t)}># {t}</button>
+            ) : (
+              <span key={t} className="chip chip-tag"># {t}</span>
+            ),
+          )}
+        </div>
+      )}
+
       {event.imageUrl && <img className="event-panel-image" src={event.imageUrl} alt="" />}
 
       <div className="prose">
         {/* [[Links]] to other events select them here, without leaving the viewer */}
-        {event.body ? <RichText text={event.body} timeline={timeline} onEventLink={onSelect} /> : <p className="muted">{event.summary || 'No details yet.'}</p>}
+        {event.body ? <RichText text={event.body} timeline={timeline} onEventLink={onSelect} citations={{ prefix: `source-${event.id}`, count: event.sources.length }} /> : <p className="muted">{event.summary || 'No details yet.'}</p>}
       </div>
 
       {related.length > 0 && (
@@ -81,16 +96,7 @@ export default function EventPanel({ timeline, event, onSelect, onClose }: Props
         </section>
       )}
 
-      {event.sources.length > 0 && (
-        <section className="event-panel-section">
-          <h3>Sources</h3>
-          <ul className="sources">
-            {event.sources.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <SourceList timeline={timeline} sources={event.sources} text={event.body} prefix={`source-${event.id}`} />
     </article>
   );
 }

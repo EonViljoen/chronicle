@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import SearchDialog from './SearchDialog';
 import { Link, Outlet, useMatch } from 'react-router-dom';
 import { brand } from '../brand';
 import { useTimeline } from '../db/timelines';
@@ -20,9 +21,26 @@ export default function Layout() {
       ? { to: '/', label: 'Home' }
       : null;
 
-  useEffect(() =>{
+  useEffect(() => {
     document.title = name;
   }, [name]);
+
+  // Search everything: Ctrl+K (⌘K on a Mac) anywhere in a timeline
+  const timeline = entry?.timeline;
+  const inEditor = useMatch('/t/:id/edit') !== null;
+  const [searching, setSearching] = useState(false);
+  useEffect(() => {
+    if (!timeline) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setSearching(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [timeline]);
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
   return (
     <div className="app">
@@ -39,8 +57,14 @@ export default function Layout() {
             </span>
             {isHome && <span className="brand-sub">{brand.tagline}</span>}
           </div>
+          {timeline && (
+            <button type="button" className="btn header-search" onClick={() => setSearching(true)} aria-keyshortcuts="Control+K Meta+K">
+              <span aria-hidden="true">⌕</span> Search <kbd>{isMac ? '⌘' : 'Ctrl+'}K</kbd>
+            </button>
+          )}
         </header>
       )}
+      {searching && timeline && <SearchDialog timeline={timeline} inEditor={inEditor} onClose={() => setSearching(false)} />}
       <main className="app-main">
         <Outlet />
       </main>

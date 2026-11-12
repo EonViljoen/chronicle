@@ -4,6 +4,7 @@ import TimelineGate from '../components/TimelineGate';
 import RichText from '../components/RichText';
 import HistoryHead from '../components/history/HistoryHead';
 import HistoryMap from '../components/history/HistoryMap';
+import MentionedIn from '../components/history/MentionedIn';
 import Chronology from '../components/history/Chronology';
 import { eventEntries } from '../components/history/entries';
 import { CharacterChip, FactionChip, FactionMark, MissingItem } from '../components/history/Chips';
@@ -11,6 +12,7 @@ import { useFactionTheme } from '../components/useFactionTheme';
 import { useThemeOverride } from '../components/themeOverride';
 import { membersOf } from '../lib/characters';
 import { ancestry, mainFactionOf, withDescendants } from '../lib/factions';
+import { RELATION_KINDS, relationDates, relationLabel, relationsOf } from '../lib/relations';
 
 export default function FactionPage() {
   return <TimelineGate>{(timeline) => <FactionView timeline={timeline} />}</TimelineGate>;
@@ -34,6 +36,7 @@ function FactionView({ timeline }: { timeline: Timeline }) {
   const children = timeline.factions.filter((f) => f.parentId === faction.id).sort((a, b) => a.name.localeCompare(b.name));
   const members = membersOf(faction.id, timeline);
   const nameOf = (id: string) => timeline.factions.find((f) => f.id === id)?.name;
+  const relations = relationsOf(faction.id, timeline);
 
   return (
     <div className="page history-page">
@@ -93,6 +96,25 @@ function FactionView({ timeline }: { timeline: Timeline }) {
               </div>
             </section>
           )}
+          {relations.length > 0 && (
+            <section className="history-section">
+              <h2 className="history-heading">Relations</h2>
+              <ul className="relation-list is-compact">
+                {relations.map(({ relation: r, otherId, isFrom }) => {
+                  const other = timeline.factions.find((f) => f.id === otherId);
+                  const dates = relationDates(r, timeline);
+                  return (
+                    <li key={r.id} className="relation-row">
+                      <span className="relation-key" style={{ background: RELATION_KINDS[r.kind].color }} aria-hidden="true" />
+                      <span>{relationLabel(r, isFrom)}</span> {other && <FactionChip timeline={timeline} faction={other} />}
+                      {dates && <span className="muted"> {dates}</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+              <Link className="link-btn" to={`/t/${timeline.id}/relations`}>All relations →</Link>
+            </section>
+          )}
           <section className="history-section">
             <h2 className="history-heading">People</h2>
             {members.length === 0 ? (
@@ -103,6 +125,7 @@ function FactionView({ timeline }: { timeline: Timeline }) {
               </div>
             )}
           </section>
+          <MentionedIn timeline={timeline} kind="faction" id={faction.id} />
         </aside>
       </div>
 

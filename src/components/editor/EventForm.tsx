@@ -7,6 +7,8 @@ import { factionPath, factionTree } from '../../lib/factions';
 import Field from '../form/Field';
 import MultiPicker from '../form/MultiPicker';
 import MarkdownField from '../form/MarkdownField';
+import TagInput from '../form/TagInput';
+import { allTags } from '../../lib/tags';
 import { DateInput } from '../form/DateInputs';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
@@ -22,6 +24,7 @@ const clean = (e: TimelineEvent): TimelineEvent => ({
   date: e.date.label === undefined ? e.date : { ...e.date, label: e.date.label.trim() },
   endDate: e.endDate && (e.endDate.label === undefined ? e.endDate : { ...e.endDate, label: e.endDate.label.trim() }),
   sources: e.sources.map((s) => s.trim()).filter(Boolean),
+  tags: [...new Set(e.tags)],
   // Only keep a main faction that's still one of the event's factions
   mainFactionId: e.mainFactionId && e.factionIds.includes(e.mainFactionId) ? e.mainFactionId : undefined,
 });
@@ -113,7 +116,11 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
         />
       </Field>
 
-      <MarkdownField label="Details" value={draft.body} onChange={(body) => patch({ body })} timeline={timeline} />
+      <Field label="Tags" group hint={'Free labels like "battle" or "treaty", separate from factions. Press Enter after each. The viewer can filter by them.'}>
+        <TagInput label="Add a tag" value={draft.tags} onChange={(tags) => patch({ tags })} suggestions={allTags(timeline.events)} />
+      </Field>
+
+      <MarkdownField label="Details" value={draft.body} onChange={(body) => patch({ body })} timeline={timeline} sourceCount={draft.sources.map((s) => s.trim()).filter(Boolean).length} />
 
       <Field label="Places" group hint={timeline.places.length === 0 ? 'Add places in the Places tab' : undefined}>
         <MultiPicker
@@ -154,7 +161,7 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
         />
       </Field>
 
-      <Field label="Sources" hint="One per line, e.g. a book title">
+      <Field label="Sources" hint="One per line, e.g. a book title or [a title](https://…). Write [^1] in the details to cite the first, [^2] the second…">
         <textarea rows={3} value={draft.sources.join('\n')} onChange={(e) => patch({ sources: e.target.value.split('\n') })} />
       </Field>
 

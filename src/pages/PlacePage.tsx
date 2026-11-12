@@ -4,6 +4,7 @@ import TimelineGate from '../components/TimelineGate';
 import RichText from '../components/RichText';
 import HistoryHead from '../components/history/HistoryHead';
 import HistoryMap from '../components/history/HistoryMap';
+import MentionedIn from '../components/history/MentionedIn';
 import Chronology from '../components/history/Chronology';
 import { eventEntries } from '../components/history/entries';
 import { CharacterChip, FactionChip, MissingItem } from '../components/history/Chips';
@@ -75,6 +76,7 @@ function PlaceView({ timeline }: { timeline: Timeline }) {
               </div>
             </section>
           )}
+          <MentionedIn timeline={timeline} kind="place" id={place.id} />
         </aside>
       </div>
 

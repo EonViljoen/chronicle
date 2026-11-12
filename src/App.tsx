@@ -11,6 +11,9 @@ import CharactersPage from './pages/CharactersPage';
 import CharacterPage from './pages/CharacterPage';
 import PlacePage from './pages/PlacePage';
 import FactionPage from './pages/FactionPage';
+import LoreIndexPage from './pages/LoreIndexPage';
+import LorePage from './pages/LorePage';
+import RelationsPage from './pages/RelationsPage';
 
 /*
  * Routes. `Layout` wraps every page (header etc.) and renders the matched
@@ -30,6 +33,9 @@ const routes = [
       { path: '/t/:id/characters/:itemId', element: <CharacterPage /> },
       { path: '/t/:id/places/:itemId', element: <PlacePage /> },
       { path: '/t/:id/factions/:itemId', element: <FactionPage /> },
+      { path: '/t/:id/relations', element: <RelationsPage /> },
+      { path: '/t/:id/lore', element: <LoreIndexPage /> },
+      { path: '/t/:id/lore/:itemId', element: <LorePage /> },
     ],
   },
 ];

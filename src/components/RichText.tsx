@@ -2,6 +2,7 @@ import Markdown, { defaultUrlTransform, type Components } from 'react-markdown';
 import { Link } from 'react-router-dom';
 import type { Timeline } from '../types/timeline';
 import { linkHref, linkify, parseLinkHref } from '../lib/links';
+import { citify, parseCiteHref, showSource } from '../lib/citations';
 
 interface Props {
   text: string;
@@ -11,19 +12,36 @@ interface Props {
    * selects it instead of navigating, since the viewer owns its selection.
    */
   onEventLink?: (id: string) => void;
+  /**
+   * Turns on [^1] citations: `prefix` is the id the sources list gives each
+   * source (`${prefix}-1`…), see <SourceList>; `count` is how many there are.
+   */
+  citations?: { prefix: string; count: number };
 }
 
-/** Keeps our `link:` addresses; everything else gets react-markdown's usual safety check. */
-const urlTransform = (url: string) => (url.startsWith('link:') ? url : defaultUrlTransform(url));
+/** Keeps our `link:` and `cite:` addresses; everything else gets react-markdown's usual safety check. */
+const urlTransform = (url: string) => (url.startsWith('link:') || url.startsWith('cite:') ? url : defaultUrlTransform(url));
 
 /**
- * Markdown with [[links]] (see lib/links.ts). The links are turned into
- * Markdown links first, then this component's `a` renderer turns them into
- * router links, so they open without reloading the page.
+ * Markdown with [[links]] (see lib/links.ts) and [^1] citations (see
+ * lib/citations.ts). Both are turned into Markdown links first, then this
+ * component's `a` renderer turns them into router links and raised numbers,
+ * so they work without reloading the page.
  */
-export default function RichText({ text, timeline, onEventLink }: Props) {
+export default function RichText({ text, timeline, onEventLink, citations }: Props) {
   const components: Components = {
     a: ({ href = '', children }) => {
+      const cite = parseCiteHref(href);
+      if (cite !== null) {
+        if (!citations || cite < 1 || cite > citations.count) {
+          return <sup className="cite is-broken" title={`There's no source ${cite}`}>{cite}</sup>;
+        }
+        return (
+          <sup className="cite">
+            <button type="button" className="link-btn" aria-label={`Source ${cite}`} onClick={() => showSource(`${citations.prefix}-${cite}`)}>{cite}</button>
+          </sup>
+        );
+      }
       const link = parseLinkHref(href);
       // An ordinary web link
       if (!link) return <a href={href} target="_blank" rel="noreferrer">{children}</a>;
@@ -38,8 +56,7 @@ export default function RichText({ text, timeline, onEventLink }: Props) {
   };
   return (
     <Markdown urlTransform={urlTransform} components={components}>
-      {linkify(text, timeline)}
+      {citify(linkify(text, timeline))}
     </Markdown>
   );
 }
-

@@ -7,6 +7,8 @@ interface Props {
   onChange: (filters: Filters) => void;
   factions: Faction[];
   places: Place[];
+  /** Every tag in the timeline, most used first. */
+  tags: string[];
   visibleCount: number;
   totalCount: number;
   /** Enter in the search box: jump to the next match. */
@@ -24,7 +26,7 @@ interface Props {
  * Factions are picked from a dropdown (the whole tree, indented); each
  * picked one shows as a chip with × to remove it.
  */
-export default function ViewerToolbar({ filters, onChange, factions, places, visibleCount, totalCount, onSearchEnter, showMap, onToggleMap, lanes, onToggleLanes }: Props) {
+export default function ViewerToolbar({ filters, onChange, factions, places, tags, visibleCount, totalCount, onSearchEnter, showMap, onToggleMap, lanes, onToggleLanes }: Props) {
   const place = places.find((p) => p.id === filters.placeId);
   const set = (changes: Partial<Filters>) => onChange({ ...filters, ...changes });
 
@@ -36,6 +38,7 @@ export default function ViewerToolbar({ filters, onChange, factions, places, vis
   const pickable = factionTree(factions).filter((row) => !covered.has(row.faction.id));
   const addFaction = (id: string) => id && set({ factionIds: [...filters.factionIds, id] });
   const removeFaction = (id: string) => set({ factionIds: filters.factionIds.filter((c) => c !== id) });
+  const pickableTags = tags.filter((t) => !filters.tags.includes(t));
 
   return (
     <div className="viewer-toolbar">
@@ -65,6 +68,14 @@ export default function ViewerToolbar({ filters, onChange, factions, places, vis
             ))}
           </select>
         )}
+        {pickableTags.length > 0 && (
+          <select className="faction-filter" value="" aria-label="Filter by tag" onChange={(e) => e.target.value && set({ tags: [...filters.tags, e.target.value] })}>
+            <option value="">Filter by tag…</option>
+            {pickableTags.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        )}
         {lanes !== null && (
           <button className="btn view-toggle" aria-pressed={lanes} onClick={onToggleLanes} title="One row per top-level faction">
             {lanes ? 'Single line' : 'Lanes by faction'}
@@ -77,7 +88,7 @@ export default function ViewerToolbar({ filters, onChange, factions, places, vis
         )}
       </div>
 
-      {(picked.length > 0 || place) && (
+      {(picked.length > 0 || place || filters.tags.length > 0) && (
         <div className="filter-bar" role="group" aria-label="Filters">
           {place && (
             <span className="chip chip-place-filter">
@@ -89,6 +100,12 @@ export default function ViewerToolbar({ filters, onChange, factions, places, vis
             <span key={c.id} className="chip" style={{ borderColor: c.color }} title={factionPath(c.id, factions)}>
               <span className="swatch" style={{ background: c.color }} /> {c.name}
               <button className="chip-remove" aria-label={`Stop filtering by ${c.name}`} onClick={() => removeFaction(c.id)}>×</button>
+            </span>
+          ))}
+          {filters.tags.map((t) => (
+            <span key={t} className="chip chip-tag">
+              # {t}
+              <button className="chip-remove" aria-label={`Stop filtering by tag ${t}`} onClick={() => set({ tags: filters.tags.filter((x) => x !== t) })}>×</button>
             </span>
           ))}
           {hasFilters(filters) && (

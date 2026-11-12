@@ -15,8 +15,9 @@ import type { Theme } from './theme';
  * 3: categories were renamed factions (`factions`, `factionIds`).
  * 4: one `flatMap` became a list of named `maps`; a place's `pin` became `pins` (one per map).
  * 5: `characters`, and events' `characterIds`.
+ * 6: events' `tags`; `relations` (between factions), `relationships` (between characters) and `lore` pages.
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 /** The header and footer of an exported website. */
 export interface WebsiteSettings {
@@ -165,6 +166,56 @@ export interface Character {
   feats: Feat[];
 }
 
+/**
+ * How two factions stand with each other, e.g. at war or allied.
+ * - ally, war, rival, trade, truce: two-way, so the order doesn't matter
+ * - vassal: one-way, `fromId` serves `toId`
+ */
+export type RelationKind = 'ally' | 'war' | 'rival' | 'trade' | 'truce' | 'vassal';
+
+/** A relation between two factions, optionally from one date to another. */
+export interface FactionRelation {
+  id: string;
+  kind: RelationKind;
+  fromId: string;
+  toId: string;
+  /** When it began. Unset = from the start (or unknown). */
+  start?: EventDate;
+  /** When it ended. Unset = still going (or unknown). */
+  end?: EventDate;
+  /** Optional. Markdown, with [[links]]. */
+  note: string;
+}
+
+/**
+ * A link between two characters.
+ * - parent: one-way, `fromId` is a parent of `toId` (this draws the family tree)
+ * - mentor: one-way, `fromId` taught `toId`
+ * - spouse, sibling, friend, rival, enemy: two-way
+ */
+export type RelationshipKind = 'parent' | 'spouse' | 'sibling' | 'mentor' | 'friend' | 'rival' | 'enemy';
+
+export interface Relationship {
+  kind: RelationshipKind;
+  fromId: string;
+  toId: string;
+}
+
+/**
+ * A free-form page that isn't an event, character, place or faction: a
+ * religion, a language, an artefact, a custom. Linkable with [[links]].
+ */
+export interface LorePage {
+  id: string;
+  title: string;
+  /** Pages are listed under their category, e.g. "Religions". Empty = "Other". */
+  category: string;
+  /** Markdown, with [[links]] and [^1] citations of `sources`. */
+  body: string;
+  imageUrl?: string;
+  sources: string[];
+}
+
 /** The 3D starmap's settings. A discriminated union: check `type` first. */
 export type MapConfig =
   | { type: 'none' }
@@ -232,6 +283,9 @@ export interface TimelineEvent {
   /** The characters in the event. */
   characterIds: string[];
   relatedIds: string[];
+  /** Free labels ("battle", "treaty"), separate from factions. */
+  tags: string[];
+  /** Where it comes from. [^1] in the details cites the first one. */
   sources: string[];
 }
 
@@ -245,6 +299,12 @@ export interface Timeline {
   factions: Faction[];
   places: Place[];
   characters: Character[];
+  /** How factions stand with each other. */
+  relations: FactionRelation[];
+  /** Family and other links between characters. */
+  relationships: Relationship[];
+  /** Free-form pages. */
+  lore: LorePage[];
   /** The 3D starmap's settings (or none). */
   map: MapConfig;
   /** Flat image maps, in the order you arranged them. */

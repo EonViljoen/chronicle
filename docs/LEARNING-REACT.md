@@ -196,12 +196,18 @@ wh40k-timeline/
     │   ├── CharactersPage.tsx  /t/:id/characters : everyone, by faction
     │   ├── CharacterPage.tsx   /t/:id/characters/:itemId : a life on the timeline
     │   ├── PlacePage.tsx       /t/:id/places/:itemId : a place's history
-    │   └── FactionPage.tsx     /t/:id/factions/:itemId : a faction's history
+    │   ├── FactionPage.tsx     /t/:id/factions/:itemId : a faction's history
+    │   ├── RelationsPage.tsx   /t/:id/relations : faction relations as a diagram
+    │   ├── LoreIndexPage.tsx   /t/:id/lore : every lore page, by category
+    │   └── LorePage.tsx        /t/:id/lore/:itemId : one lore page
     └── components/
         ├── Layout.tsx          Header + <Outlet />
         ├── TimelineCard.tsx    One card on the home page
         ├── TimelineGate.tsx    Loads the timeline in the URL, handles "not found"
-        ├── RichText.tsx        Markdown with [[links]] turned into router links
+        ├── RichText.tsx        Markdown with [[links]] and [^1] citations
+        ├── SourceList.tsx      An event's or lore page's numbered sources
+        ├── SearchDialog.tsx    Search everything (Ctrl+K)
+        ├── diagram/            The relations diagram and the family tree
         ├── history/            The pieces of the character, place and faction pages
         ├── viewer/             The horizontal timeline and info box
         ├── editor/             The editor's tabs and forms
@@ -1302,6 +1308,17 @@ The starmap is drawn by three.js, which needs real colour values rather than CSS
 2. **Render links your way.** `react-markdown` takes a `components` prop: your own component for each HTML tag. RichText's `a` reads the `link:` address and returns a router `<Link>`, so the page changes without a reload. (`urlTransform` keeps those addresses; by default react-markdown drops unknown ones for safety.)
 
 Renaming something rewrites the `[[links]]` to its old name (`renameLinks`, called from the save functions), so links don't break.
+
+### Relations, lore, tags and search
+
+Schema 6 added a few more things, all built from pieces you've already seen:
+
+- **Tags** are a plain `string[]` on each event. `components/form/TagInput.tsx` is a small controlled input: it keeps the text being typed in its own state and hands finished tags to the form through `onChange`. The viewer's filter got one more field (`tags` in `lib/filters.ts`).
+- **Citations** work like `[[links]]`: `lib/citations.ts` turns `[^1]` into a Markdown link with a made-up `cite:1` address, and `RichText`'s `a` renderer draws it as a raised number. `SourceList` gives each source an `id`, so the number can scroll to it.
+- **Lore pages** are one more collection (`timeline.lore`), so the editor tab is just another `<CollectionTab>`, and `[[lore:Name]]` was one more kind in `lib/links.ts`. `backlinks()` searches every text for links to a page; that's the **Mentioned in** list.
+- **Relations** between factions are their own list (`timeline.relations`), each with an id, so they get a `<CollectionTab>` too. Relationships between characters are edited *from a character's side* ("Child of Aldric") but stored one way (Aldric → parent → them): `fromSide` and `toStored` in `lib/mutations.ts` translate, the same idea as `saveCharacterWithEvents`.
+- **Diagrams** (`components/diagram/`) are plain SVG made by React: positions are worked out in JavaScript (`lib/relations.ts` for the family tree) and each line or circle is a JSX element. No chart library.
+- **Search** (`components/SearchDialog.tsx`) uses the browser's own `<dialog>`: `showModal()` gives it a backdrop, keeps focus inside and closes on Esc. One lesson from building it: the first version called `dialog.close()` in its effect's cleanup. In development, StrictMode runs effects twice (see [section 10](#strictmode-runs-effects-twice-in-development)), so the cleanup closed the dialog, which fired its `close` event, which called `onClose`, and the search shut the moment it opened. Removing an element closes its dialog anyway, so the cleanup wasn't needed at all.
 
 ## 19. Pure update functions and immutability
 

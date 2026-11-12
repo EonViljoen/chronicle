@@ -6,6 +6,8 @@ import { EditOnly } from '../components/EditOnly';
 import { FactionMark } from '../components/history/Chips';
 import { characterGroups } from '../lib/characters';
 import { formatDate } from '../lib/dates';
+import NetworkDiagram from '../components/diagram/NetworkDiagram';
+import { RELATIONSHIP_KINDS } from '../lib/relations';
 
 export default function CharactersPage() {
   return <TimelineGate>{(timeline) => <CharactersView timeline={timeline} />}</TimelineGate>;
@@ -29,6 +31,7 @@ function CharactersView({ timeline }: { timeline: Timeline }) {
       </div>
 
       {groups.length === 0 && <p className="muted">No characters yet.</p>}
+      <RelationshipMap timeline={timeline} />
       {groups.map((g) => (
         <section key={g.factionId ?? 'independent'} className="character-group" style={{ '--group-color': g.color ?? 'var(--border)' } as CSSProperties}>
           <h2 className="character-group-title">
@@ -63,5 +66,38 @@ function CharactersView({ timeline }: { timeline: Timeline }) {
         </section>
       ))}
     </div>
+  );
+}
+
+/** Everyone with a relationship, as a diagram (shown once there are a few). */
+function RelationshipMap({ timeline }: { timeline: Timeline }) {
+  const { relationships } = timeline;
+  if (relationships.length < 2) return null;
+  const involved = new Set(relationships.flatMap((r) => [r.fromId, r.toId]));
+  const people = timeline.characters.filter((c) => involved.has(c.id));
+  const nameOf = (id: string) => timeline.characters.find((c) => c.id === id)?.name ?? '?';
+  const kinds = (Object.keys(RELATIONSHIP_KINDS) as (keyof typeof RELATIONSHIP_KINDS)[]).filter((k) => relationships.some((r) => r.kind === k));
+  return (
+    <details className="relationship-map">
+      <summary>Relationships</summary>
+      <NetworkDiagram
+        label="Character relationships"
+        nodes={people.map((c) => ({
+          id: c.id,
+          label: c.name,
+          color: timeline.factions.find((f) => f.id === c.factionId)?.color ?? 'var(--surface-2)',
+          imageUrl: c.imageUrl,
+          to: `/t/${timeline.id}/characters/${encodeURIComponent(c.id)}`,
+        }))}
+        edges={relationships.map((r, i) => ({
+          id: String(i),
+          from: r.fromId,
+          to: r.toId,
+          style: RELATIONSHIP_KINDS[r.kind],
+          title: `${nameOf(r.fromId)}: ${RELATIONSHIP_KINDS[r.kind].label.toLowerCase()} of ${nameOf(r.toId)}`,
+        }))}
+        legend={kinds.map((k) => RELATIONSHIP_KINDS[k])}
+      />
+    </details>
   );
 }

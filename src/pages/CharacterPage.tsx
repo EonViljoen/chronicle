@@ -4,6 +4,7 @@ import TimelineGate from '../components/TimelineGate';
 import RichText from '../components/RichText';
 import HistoryHead from '../components/history/HistoryHead';
 import HistoryMap from '../components/history/HistoryMap';
+import MentionedIn from '../components/history/MentionedIn';
 import Chronology from '../components/history/Chronology';
 import LifeStrip from '../components/history/LifeStrip';
 import { eventEntries, type ChronologyEntry } from '../components/history/entries';
@@ -12,6 +13,9 @@ import { useFactionTheme } from '../components/useFactionTheme';
 import { useThemeOverride } from '../components/themeOverride';
 import { ageAt, eventsOf } from '../lib/characters';
 import { formatDate } from '../lib/dates';
+import { relationshipsOf, SIDE_HEADINGS } from '../lib/relations';
+import FamilyTree from '../components/diagram/FamilyTree';
+import type { RelationshipDraft } from '../lib/mutations';
 
 export default function CharacterPage() {
   return <TimelineGate>{(timeline) => <CharacterView timeline={timeline} />}</TimelineGate>;
@@ -38,9 +42,15 @@ function CharacterView({ timeline }: { timeline: Timeline }) {
       ? [{ key: 'died', sortKey: character.died.sortKey, date: formatDate(character.died, calendar), title: 'Died', marker: true, note: ageAt(character, calendar) && `Aged ${ageAt(character, calendar)}` }]
       : []),
   ];
-  // People they shared events with
+  // Their relationships, grouped: "Parents", "Children", "Rivals"…
+  const links = relationshipsOf(character.id, timeline);
+  const linkGroups = (Object.keys(SIDE_HEADINGS) as RelationshipDraft['kind'][])
+    .map((kind) => ({ kind, people: links.filter((l) => l.side.kind === kind).map((l) => l.other) }))
+    .filter((g) => g.people.length > 0);
+  const linkedIds = new Set(links.map((l) => l.other.id));
+  // People they shared events with (and aren't already listed above)
   const alongside = timeline.characters
-    .filter((c) => c.id !== character.id && events.some((e) => e.characterIds.includes(c.id)))
+    .filter((c) => c.id !== character.id && !linkedIds.has(c.id) && events.some((e) => e.characterIds.includes(c.id)))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
@@ -79,6 +89,8 @@ function CharacterView({ timeline }: { timeline: Timeline }) {
             </div>
           )}
 
+          {familyTreeSection(timeline, character.id)}
+
           <section className="history-section">
             <h2 className="history-heading">Life on the timeline</h2>
             <LifeStrip entries={entries} eras={timeline.eras} />
@@ -105,6 +117,15 @@ function CharacterView({ timeline }: { timeline: Timeline }) {
             </section>
           )}
 
+          {linkGroups.map((g) => (
+            <section key={g.kind} className="history-section">
+              <h2 className="history-heading">{SIDE_HEADINGS[g.kind]}</h2>
+              <div className="chips">
+                {g.people.map((c) => <CharacterChip key={c.id} timeline={timeline} character={c} />)}
+              </div>
+            </section>
+          ))}
+
           {alongside.length > 0 && (
             <section className="history-section">
               <h2 className="history-heading">Alongside</h2>
@@ -113,10 +134,23 @@ function CharacterView({ timeline }: { timeline: Timeline }) {
               </div>
             </section>
           )}
+          <MentionedIn timeline={timeline} kind="character" id={character.id} />
         </aside>
       </div>
 
       <HistoryMap timeline={timeline} placeIds={[...new Set(events.flatMap((e) => e.placeIds))]} />
     </div>
+  );
+}
+
+/** The family tree, when they have any parent or spouse links. */
+function familyTreeSection(timeline: Timeline, id: string) {
+  const hasFamily = timeline.relationships.some((r) => (r.kind === 'parent' || r.kind === 'spouse') && (r.fromId === id || r.toId === id));
+  if (!hasFamily) return null;
+  return (
+    <section className="history-section">
+      <h2 className="history-heading">Family tree</h2>
+      <FamilyTree timeline={timeline} characterId={id} />
+    </section>
   );
 }

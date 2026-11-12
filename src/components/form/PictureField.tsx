@@ -11,22 +11,26 @@ interface Props {
   hint?: string;
   /** A square preview (a crest) instead of a round one (a portrait). */
   square?: boolean;
+  /** Longest side to shrink uploads to. Portraits and crests are shown small. */
+  maxSide?: number;
+  /** A wide preview (a lore page's picture) instead of a small round one. */
+  wide?: boolean;
 }
 
 /**
  * A picture for a character or faction: upload a file (stored in the
  * timeline as a data: URL) or paste a web address, with a small preview.
  */
-export default function PictureField({ value, onChange, fallbackColor, hint = 'Upload one, or paste a web address.', square = false }: Props) {
-  const shape = square ? ' is-square' : '';
+export default function PictureField({ value, onChange, fallbackColor, hint = 'Upload one, or paste a web address.', square = false, maxSide = PORTRAIT_SIZE, wide = false }: Props) {
+  const shape = wide ? ' is-wide' : square ? ' is-square' : '';
   const [note, setNote] = useState<{ text: string; error?: boolean } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   async function upload(file: File | undefined) {
     if (!file) return;
     try {
-      // Portraits and crests are shown small, so they're shrunk a lot
-      const { image, note } = await readImage(file, PORTRAIT_SIZE);
+      // Portraits and crests are shown small, so by default they're shrunk a lot
+      const { image, note } = await readImage(file, maxSide);
       onChange(image);
       setNote(note ? { text: note } : null);
     } catch (e) {
