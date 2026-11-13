@@ -40,16 +40,33 @@ function cycleLayout(format: string) {
 }
 
 function CalendarFields({ calendar, value, label, periodAllowed = false, isPeriod = false, onChange }: CalendarFieldsProps) {
-  const parts = splitKey(value, calendar);
-  const emit = (next: DateParts, period = false) => onChange(joinKey(next, calendar), period);
+  // A year can have a decimal part ("7.5", "65000000.1 years before"). It only orders events that
+  // share a year: the date still shows the whole year. It's kept when the other boxes change.
+  const whole = calendar.type === 'freeform' ? value : Math.trunc(value);
+  const fraction = Math.abs(value - whole);
+  const parts = splitKey(whole, calendar);
+  const yearOf = (p: DateParts) => (p.type === 'years' || p.type === 'freeform' ? p.n : p.year);
+  const withYear = (p: DateParts, year: number): DateParts => (p.type === 'years' || p.type === 'freeform' ? { ...p, n: year } : { ...p, year });
+  // The year box's number, decimal part included (rounded, so 7.003 doesn't show as 7.00299999)
+  const shownYear = (p: DateParts) => Math.round((yearOf(p) + fraction) * 1e6) / 1e6;
+  const emit = (next: DateParts, period = false, frac = fraction) => {
+    const key = joinKey(next, calendar);
+    // Part of the way to the next year along, whichever way the years count
+    const step = frac ? joinKey(withYear(next, yearOf(next) + 1), calendar) - key : 0;
+    onChange(key + frac * step, period);
+  };
+  /** A typed year, maybe with a decimal part. */
+  const emitTyped = (year: number, base: DateParts) => emit(withYear(base, Math.floor(year)), false, year - Math.floor(year));
   // The year box reports undefined when emptied; that means "only the period is known"
   const emitYear = (year: number | undefined, base: DateParts) =>
-    year === undefined ? onChange(periodStart(value, calendar), true) : emit({ ...base, year } as DateParts);
+    year === undefined ? onChange(periodStart(value, calendar), true) : emitTyped(year, base);
+  /** Just under the next whole number, so the last year of an age or cycle can still take a decimal. */
+  const below = (n: number) => n + 1 - 1e-6;
 
   if (parts.type === 'years' && calendar.type === 'years') {
     return (
       <span className="inline-inputs">
-        <NumberInput className="w-md" value={parts.n} min={0} aria-label={`${label}: year`} onChange={(n) => n !== undefined && emit({ ...parts, n })} />
+        <NumberInput className="w-md" value={shownYear(parts)} min={0} integer={false} aria-label={`${label}: year`} onChange={(n) => n !== undefined && emitTyped(n, parts)} />
         <select
           value={parts.before ? 'before' : 'after'}
           aria-label={`${label}: before or after year 0`}
@@ -83,9 +100,10 @@ function CalendarFields({ calendar, value, label, periodAllowed = false, isPerio
         </select>
         <NumberInput
           className="w-md"
-          value={isPeriod ? undefined : parts.year}
+          value={isPeriod ? undefined : shownYear(parts)}
           min={1}
-          max={before || isLast ? undefined : ages[parts.age].length}
+          max={before || isLast ? undefined : below(ages[parts.age].length)}
+          integer={false}
           allowEmpty={periodAllowed && !before}
           placeholder={periodAllowed ? 'year?' : undefined}
           aria-label={before ? `${label}: years before` : `${label}: year${periodAllowed ? ' (leave empty if unknown)' : ''}`}
@@ -106,9 +124,10 @@ function CalendarFields({ calendar, value, label, periodAllowed = false, isPerio
       <NumberInput
         key="year"
         className="w-sm"
-        value={isPeriod ? undefined : parts.year}
+        value={isPeriod ? undefined : shownYear(parts)}
         min={0}
-        max={calendar.length - 1}
+        max={below(calendar.length - 1)}
+        integer={false}
         allowEmpty={periodAllowed}
         placeholder={periodAllowed ? '?'.repeat(width) : undefined}
         aria-label={`${label}: year${periodAllowed ? ' (leave empty if unknown)' : ''}`}
@@ -135,7 +154,7 @@ function CalendarFields({ calendar, value, label, periodAllowed = false, isPerio
         {before ? (
           // Grouped so the boxes never wrap apart on narrow screens
           <span className="inline-inputs">
-            <NumberInput className="w-lg" value={parts.year} min={1} aria-label={`${label}: years before ${firstCycle}`} onChange={(year) => year !== undefined && emit({ ...parts, year })} />
+            <NumberInput className="w-lg" value={shownYear(parts)} min={1} integer={false} aria-label={`${label}: years before ${firstCycle}`} onChange={(year) => year !== undefined && emitTyped(year, parts)} />
             <span className="muted">years before {firstCycle}</span>
           </span>
         ) : (
@@ -158,7 +177,7 @@ function CalendarFields({ calendar, value, label, periodAllowed = false, isPerio
   }
 
   // Free-text calendar: the number only sets the order
-  return <NumberInput className="w-md" value={value} aria-label={`${label}: order number`} onChange={(n) => n !== undefined && onChange(n, false)} />;
+  return <NumberInput className="w-md" value={value} integer={false} aria-label={`${label}: order number`} onChange={(n) => n !== undefined && onChange(n, false)} />;
 }
 
 // ---------- SortKeyInput ----------
@@ -245,7 +264,7 @@ export function DateInput({ value, calendar, onChange, error, label = 'Date' }: 
             <NumberInput
               className="w-md"
               value={sortKey}
-              aria-label={`${label}: order number`}
+              integer={false} aria-label={`${label}: order number`}
               title="Order number"
               onChange={(n) => n !== undefined && onChange({ ...value, sortKey: n })}
             />

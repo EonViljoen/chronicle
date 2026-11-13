@@ -146,6 +146,9 @@ export function joinKey(parts: DateParts, calendar: Calendar): number {
 
 /** The label for a sortKey, e.g. for era start/end markers. */
 export function formatKey(key: number, calendar: Calendar): string {
+  // A decimal part only orders events within the same year: 30007.002 is still 007.M31, and
+  // -65000000.1 is still 65M years before M1 (just a little further back)
+  if (calendar.type !== 'freeform') key = Math.trunc(key);
   const parts = splitKey(key, calendar);
   if (parts.type === 'years' && calendar.type === 'years') {
     return fill(parts.before ? calendar.before : calendar.after, { n: formatYears(parts.n) });
@@ -176,7 +179,7 @@ export function formatPeriod(key: number, calendar: Calendar): string {
 
 /** The sortKey a period date sits at: the start of its age or cycle. */
 export function periodStart(key: number, calendar: Calendar): number {
-  const parts = splitKey(key, calendar);
+  const parts = splitKey(Math.trunc(key), calendar);
   if (parts.type === 'ages' && parts.age >= 0) return joinKey({ ...parts, year: 1 }, calendar);
   if (parts.type === 'cycles' && parts.cycle > 0) return joinKey({ ...parts, year: 0 }, calendar);
   return key;
