@@ -81,13 +81,18 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
   // useEffect runs after render. Whenever the selection changes, bring that
   // node into view (only matters when the era is too long to fit).
   const barRefs = useRef(new Map<string, HTMLButtonElement>());
+  // The first scroll (opening a link to an event) jumps straight there: a smooth
+  // scroll started while the page is still settling can be cut short
+  const scrolledOnce = useRef(false);
   useEffect(() => {
     if (!selectedId) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const smooth = scrolledOnce.current && !reduceMotion;
+    scrolledOnce.current = true;
     // A period has no node: bring its bar into view instead
     const node = nodeRefs.current.get(selectedId);
     (node ?? barRefs.current.get(selectedId))?.scrollIntoView({
-      behavior: reduceMotion ? 'auto' : 'smooth',
+      behavior: smooth ? 'smooth' : 'auto',
       inline: node ? 'center' : 'nearest',
       block: 'nearest',
     });
