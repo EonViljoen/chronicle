@@ -297,7 +297,8 @@ input {
 @keyframes era-in { from { opacity: 0; } }
 
 .track-line {
-  position: absolute; left: 0; right: 0; top: 112px; height: 2px;
+  /* `top` is the line's centre (translateY), so a theme's thicker line stays centred where the dots are */
+  position: absolute; left: 0; right: 0; top: 113px; height: 2px; transform: translateY(-50%);
   background: linear-gradient(90deg, transparent, var(--muted) 8%, var(--muted) 92%, transparent);
   opacity: 0.6;
 }
@@ -327,7 +328,10 @@ input {
   height: 18px; line-height: 18px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .node-dot {
-  width: 18px; height: 18px; margin-top: 30px; border-radius: 50%;
+  /* --dot is the dot's size. The margin puts its centre on the line whatever the size:
+     the line's centre (113px) is 41px below where the dot starts (node top 44 + date 18 + gap 10) */
+  --dot: 18px;
+  width: var(--dot); height: var(--dot); margin-top: calc(41px - var(--dot) / 2); border-radius: 50%;
   border: 3px solid var(--node-color); background: var(--bg);
   transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
 }
@@ -422,6 +426,26 @@ input {
 .row-meta { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
 .row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .back-link { display: none; margin-bottom: 12px; color: var(--muted); }
+
+/* Events folded into their eras */
+.sections-toggle { align-self: flex-end; font-size: 0.78rem; color: var(--muted); }
+.rows-section + .rows-section, li:not(.rows-section) + .rows-section { margin-top: 2px; }
+.rows-section-head {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  list-style: none; font-family: var(--font-display); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.03em;
+  position: sticky; top: 0; z-index: 1; background: var(--surface);
+}
+.rows-section-head::-webkit-details-marker { display: none; }
+/* A chevron that turns when the era is open */
+.rows-section-head::before {
+  content: ''; flex: none; width: 6px; height: 6px; margin-right: -2px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform 0.15s;
+}
+details[open] > .rows-section-head::before { transform: rotate(45deg); }
+.rows-section-head:hover { background: var(--surface-2); }
+.rows-section-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.rows-section-head .swatch { border-radius: 3px; }
+.rows-section > details > .rows { overflow: visible; padding-left: 10px; margin-left: 13px; border-left: 1px solid var(--border); }
 
 @media (max-width: 760px) {
   .collection { grid-template-columns: 1fr; }
@@ -623,7 +647,7 @@ a.chip { text-decoration: none; }
 
 /* Node shapes. Each state repeats the shape's transform, since transform is one property */
 :root[data-node='square'] .node-dot { border-radius: 2px; }
-:root[data-node='diamond'] .node-dot { border-radius: 2px; width: 16px; height: 16px; transform: rotate(45deg); }
+:root[data-node='diamond'] .node-dot { --dot: 16px; border-radius: 2px; transform: rotate(45deg); }
 :root[data-node='diamond'] .node:hover .node-dot { transform: rotate(45deg) scale(1.25); }
 :root[data-node='diamond'] .node.is-selected .node-dot { transform: rotate(45deg) scale(1.45); }
 
@@ -929,23 +953,25 @@ a.life-dot:hover { background: var(--accent); }
 .span-bar.is-thin { z-index: 0; height: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--node-color); opacity: 0.75; }
 .span-bar.is-thin.is-dimmed { opacity: 0.15; }
 
-/* ===== Lanes: one row per top-level faction ===== */
+/* ===== Lanes: one row per faction (a child faction gets its own) ===== */
 .lane { position: absolute; left: 0; right: 0; height: 112px; border-bottom: 1px dashed color-mix(in srgb, var(--lane-color) 30%, transparent); }
 .lane-label {
   position: absolute; top: 4px; left: 4px; z-index: 1; padding-left: 8px;
   border-left: 3px solid var(--lane-color); font-size: 0.72rem; font-weight: 700;
   letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--lane-color) 55%, var(--text));
 }
+.lane-parents { margin-right: 5px; font-weight: 600; opacity: 0.6; }
 .lane-line { background: linear-gradient(90deg, transparent, var(--lane-color) 4%, var(--lane-color) 96%, transparent); opacity: 0.45; }
 /* Compact nodes for lanes: smaller date, dot and title */
 .node.is-compact { gap: 4px; }
 .node.is-compact .node-date { font-size: 0.66rem; }
-.node.is-compact .node-dot { width: 14px; height: 14px; margin-top: 0; border-width: 2px; }
+/* In a lane the line's centre (LANE_LINE 44) is 2px below where the dot starts (LANE_NODE 20 + date 18 + gap 4) */
+.node.is-compact .node-dot { --dot: 14px; margin-top: calc(2px - var(--dot) / 2); border-width: 2px; }
 .node.is-compact .node-title { font-size: 0.68rem; }
 .node.is-compact.is-selected .node-date { font-size: 0.82rem; }
 .node.is-compact.is-selected .node-title { font-size: 0.85rem; }
 .lane-ghost {
-  position: absolute; left: calc((var(--i) + 0.5) * 100% / var(--n)); width: 8px; height: 8px; margin: -3px 0 0 -4px;
+  position: absolute; left: calc((var(--i) + 0.5) * 100% / var(--n)); width: 8px; height: 8px; margin: -4px 0 0 -4px;
   border: 1px solid var(--node-color); border-radius: 50%; background: var(--bg); opacity: 0.6; pointer-events: auto;
 }
 .lane-ghost.is-dimmed { opacity: 0.15; }

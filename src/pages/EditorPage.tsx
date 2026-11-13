@@ -216,6 +216,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
           blank={() => blankEvent(timeline, events)}
           nameOf={(e) => e.title}
           matches={(e, q) => e.title.toLowerCase().includes(q) || dateOf(e).toLowerCase().includes(q) || e.tags.some((t) => t.includes(q))}
+          sectionOf={(e) => eraFor(e.date.sortKey, timeline.eras)}
           renderRow={(e) => {
             const era = eraFor(e.date.sortKey, timeline.eras);
             return (

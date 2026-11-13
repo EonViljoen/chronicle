@@ -77,7 +77,7 @@ export default function ViewerToolbar({ filters, onChange, factions, places, tag
           </select>
         )}
         {lanes !== null && (
-          <button className="btn view-toggle" aria-pressed={lanes} onClick={onToggleLanes} title="One row per top-level faction">
+          <button className="btn view-toggle" aria-pressed={lanes} onClick={onToggleLanes} title="One row per faction">
             {lanes ? 'Single line' : 'Lanes by faction'}
           </button>
         )}

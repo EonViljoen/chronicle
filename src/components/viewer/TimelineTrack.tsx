@@ -10,7 +10,7 @@ interface Props {
   events: TimelineEvent[];
   /** Every event, sorted, periods included: spans and periods that began in an earlier era still show here. */
   allEvents: TimelineEvent[];
-  /** One row per top-level faction instead of a single line. */
+  /** One row per faction (child factions get their own) instead of a single line. */
   lanes: boolean;
   /** The era on show; undefined for events outside every era. */
   era: Era | undefined;
@@ -113,11 +113,12 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
         <div className="track-scroller">
           <div className={`track${lanes ? ' is-lanes' : ''}`} style={{ '--n': n, height } as CSSProperties}>
             {lanes ? (
-              // One line per top-level faction, with its name
+              // One line per faction, with its name (and its parents, for a child faction)
               laneList.map((lane, k) => (
                 <div key={lane.id ?? 'none'} className="lane" style={{ top: LANES_TOP + k * LANE_HEIGHT, '--lane-color': lane.color ?? 'var(--muted)' } as CSSProperties}>
                   <span className="lane-label">
                     {lane.imageUrl && <img className="faction-mark" src={lane.imageUrl} alt="" />}
+                    {lane.parents && <span className="lane-parents">{lane.parents} ›</span>}
                     {lane.name}
                   </span>
                   <div className="track-line lane-line" style={{ top: LANE_LINE }} aria-hidden="true" />
@@ -130,7 +131,7 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
             {/* Bars for events with an end date (a reign), and for periods (a war and its battles) */}
             {bars.map((bar) => {
               const lane = lanes ? Math.max(laneIndex(laneOf(bar.event, factions)), 0) : 0;
-              const top = lanes ? LANES_TOP + lane * LANE_HEIGHT + LANE_LINE - 1 + bar.row * 6 : BARS_TOP + bar.row * BAR_ROW;
+              const top = lanes ? LANES_TOP + lane * LANE_HEIGHT + LANE_LINE - 2 + bar.row * 6 /* a 4px bar centred on the line */ : BARS_TOP + bar.row * BAR_ROW;
               const classes = [
                 'span-bar',
                 bar.period && 'is-period',

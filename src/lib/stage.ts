@@ -112,34 +112,51 @@ function stack<T extends { from: number; to: number }>(bars: T[]): (T & { row: n
 
 // ---------- Lanes ----------
 
-/** One row of the lanes view: a top-level faction, or events with no faction. */
+/** One row of the lanes view: a faction (parent or child), or events with no faction. */
 export interface Lane {
-  /** The top-level faction's id; undefined for "No faction". */
+  /** The faction's id; undefined for "No faction". */
   id?: string;
   name: string;
+  /** For a child faction, the factions above it: "Imperium › Space Marines" shows "Imperium" small. */
+  parents?: string;
   color?: string;
   imageUrl?: string;
 }
 
-/** The top-level faction an event sits under: its main faction's, else its first faction's. */
+/** The faction id if it still exists (a deleted faction's events go to "No faction"). */
+const known = (id: string | undefined, factions: Faction[]) => (id && factions.some((f) => f.id === id) ? id : undefined);
+
+/**
+ * The lane an event sits in: its own faction's, at whatever depth. An event of
+ * the Space Marines goes in the Space Marines lane; only events of the Imperium
+ * itself go in the Imperium lane. Its main faction, else its first faction.
+ */
 export function laneOf(event: TimelineEvent, factions: Faction[]): string | undefined {
-  const id = mainFactionOf(event) ?? event.factionIds[0];
-  return id ? ancestry(id, factions)[0]?.id : undefined;
+  return known(mainFactionOf(event) ?? event.factionIds[0], factions);
 }
 
-/** The other top-level factions an event involves: they get a faint dot in their lane. */
+/** The other factions an event involves: they get a faint dot in their lane. */
 export function otherLanes(event: TimelineEvent, factions: Faction[]): string[] {
   const own = laneOf(event, factions);
-  const roots = event.factionIds.map((id) => ancestry(id, factions)[0]?.id).filter((id): id is string => !!id && id !== own);
-  return [...new Set(roots)];
+  return [...new Set(event.factionIds.filter((id) => id !== own && known(id, factions)))];
 }
 
-/** The lanes for these events, in the faction tree's order, with "No faction" last. Empty lanes are left out. */
+/** The lanes for these events, in the faction tree's order (a parent above its children), with "No faction" last. Empty lanes are left out. */
 export function lanesFor(events: TimelineEvent[], factions: Faction[]): Lane[] {
   const used = new Set(events.flatMap((e) => [laneOf(e, factions) ?? '', ...otherLanes(e, factions)]));
   const lanes: Lane[] = factionTree(factions)
-    .filter((row) => row.depth === 0 && used.has(row.faction.id))
-    .map(({ faction }) => ({ id: faction.id, name: faction.name, color: faction.color, imageUrl: faction.imageUrl }));
+    .filter((row) => used.has(row.faction.id))
+    .map(({ faction }) => {
+      const chain = ancestry(faction.id, factions);
+      return {
+        id: faction.id,
+        name: faction.name,
+        parents: chain.length > 1 ? chain.slice(0, -1).map((f) => f.name).join(' › ') : undefined,
+        color: faction.color,
+        // A child without its own picture shows its nearest parent's
+        imageUrl: [...chain].reverse().find((f) => f.imageUrl)?.imageUrl,
+      };
+    });
   if (used.has('')) lanes.push({ name: 'No faction' });
   return lanes;
 }
