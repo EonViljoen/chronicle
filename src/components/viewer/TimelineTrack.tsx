@@ -159,16 +159,22 @@ export default function TimelineTrack({ events, allEvents, lanes, era, eraKey, c
               );
             })}
 
-            {/* In lanes, a faint dot where an event also involves another lane's faction */}
+            {/* In lanes, an event with several factions shows in each of their lanes too,
+                in that faction's colour. Clicking any copy picks the event, so all of them light up. */}
             {lanes &&
               events.flatMap((event, i) =>
                 otherLanes(event, factions).map((laneId) => (
-                  <span
+                  <TimelineNode
                     key={`${event.id}-${laneId}`}
-                    className={`lane-ghost${isVisible(event) ? '' : ' is-dimmed'}`}
-                    style={{ '--i': i, top: LANES_TOP + laneIndex(laneId) * LANE_HEIGHT + LANE_LINE, '--node-color': colorOf(event) } as CSSProperties}
-                    title={`Also in: ${event.title}`}
-                    aria-hidden="true"
+                    copy
+                    event={event}
+                    dateLabel={formatDate(event.date, calendar)}
+                    index={i}
+                    top={LANES_TOP + laneIndex(laneId) * LANE_HEIGHT + LANE_NODE}
+                    color={colorById.get(laneId) ?? colorOf(event)}
+                    selected={event.id === selectedId}
+                    dimmed={!isVisible(event)}
+                    onSelect={onSelect}
                   />
                 )),
               )}

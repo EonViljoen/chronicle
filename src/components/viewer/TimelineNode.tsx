@@ -12,7 +12,12 @@ interface Props {
   selected: boolean;
   dimmed: boolean;
   onSelect: (id: string) => void;
-  ref: Ref<HTMLButtonElement>;
+  ref?: Ref<HTMLButtonElement>;
+  /**
+   * Lanes: this is the event's copy in another of its factions' lanes. It works the
+   * same, but Tab skips it so the keyboard visits each event once.
+   */
+  copy?: boolean;
 }
 
 /**
@@ -20,7 +25,7 @@ interface Props {
  * In React 19 `ref` is a normal prop, so the parent can grab this button
  * to scroll it into view.
  */
-export default function TimelineNode({ event, dateLabel, index, top, color, selected, dimmed, onSelect, ref }: Props) {
+export default function TimelineNode({ event, dateLabel, index, top, color, selected, dimmed, onSelect, ref, copy }: Props) {
   const approximate = event.date.precision !== 'exact' && event.date.precision !== 'period';
   const classes = ['node', selected && 'is-selected', dimmed && 'is-dimmed', approximate && 'is-approx', top !== undefined && 'is-compact']
     .filter(Boolean)
@@ -34,6 +39,7 @@ export default function TimelineNode({ event, dateLabel, index, top, color, sele
       style={{ '--i': index, '--node-color': color, top } as CSSProperties}
       onClick={() => onSelect(event.id)}
       aria-pressed={selected}
+      tabIndex={copy ? -1 : undefined}
       title={event.summary || event.title}
     >
       <span className="node-date">{dateLabel}</span>

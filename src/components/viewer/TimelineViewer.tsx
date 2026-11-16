@@ -213,13 +213,14 @@ export default function TimelineViewer({ timeline }: { timeline: Timeline }) {
   const marker = shown && selectedSegment === shownSegment ? (selectedIndex - shown.startIndex + 0.5) / (shown.endIndex - shown.startIndex + 1) : null;
 
   // ----- Faction themes -----
-  // The selected event's main faction sets the theme; with nothing selected
-  // (or no theme for it), a filter on exactly one faction does. Sub-factions
-  // without a theme use their nearest parent's (factionThemeId).
+  // The selected event's main faction sets the theme; with nothing selected (or no theme
+  // for it), a filter on exactly one faction does. Sub-factions without a theme use their
+  // nearest parent's (factionThemeId). The timeline's settings can turn both off.
+  const factionThemes = !timeline.disableFactionThemeOverride;
   const themeOf = useFactionTheme(timeline);
-  const focusTheme =
-    themeOf(selected ? mainFactionOf(selected) : undefined) ??
-    themeOf(filters.factionIds.length === 1 ? filters.factionIds[0] : undefined);
+  const focusTheme = factionThemes
+    ? (themeOf(selected ? mainFactionOf(selected) : undefined) ?? themeOf(filters.factionIds.length === 1 ? filters.factionIds[0] : undefined))
+    : null;
   useThemeOverride(focusTheme);
 
   // "3 / 14" when the selected event is visible

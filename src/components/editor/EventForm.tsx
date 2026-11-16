@@ -5,7 +5,7 @@ import { containersOf, isPeriod, periodMoments, previewPeriodDates } from '../..
 import { compareEvents, formatDate, formatSpan } from '../../lib/dates';
 import { eraFor } from '../../lib/eras';
 import { outsideLife } from '../../lib/characters';
-import { factionPath, factionTree } from '../../lib/factions';
+import { factionPath, factionTree, mainFactionOf } from '../../lib/factions';
 import Field from '../form/Field';
 import MultiPicker from '../form/MultiPicker';
 import MarkdownField from '../form/MarkdownField';
@@ -27,8 +27,8 @@ const clean = (e: EventDraft): EventDraft => ({
   endDate: e.endDate && (e.endDate.label === undefined ? e.endDate : { ...e.endDate, label: e.endDate.label.trim() }),
   sources: e.sources.map((s) => s.trim()).filter(Boolean),
   tags: [...new Set(e.tags)],
-  // Only keep a main faction that's still one of the event's factions
-  mainFactionId: e.mainFactionId && e.factionIds.includes(e.mainFactionId) ? e.mainFactionId : undefined,
+  // An only faction is the main one; else keep a main faction that's still one of the event's factions
+  mainFactionId: mainFactionOf(e),
 });
 
 export default function EventForm({ original, isNew, onSave, onDelete, onDirtyChange, timeline }: FormProps<EventDraft> & { timeline: Timeline }) {
@@ -157,7 +157,7 @@ export default function EventForm({ original, isNew, onSave, onDelete, onDirtyCh
           }))}
           value={draft.factionIds}
           onChange={(factionIds) => patch({ factionIds })}
-          primaryId={draft.mainFactionId}
+          primaryId={mainFactionOf(draft)}
           onPrimaryChange={(mainFactionId) => patch({ mainFactionId })}
           primaryLabel="main faction"
         />

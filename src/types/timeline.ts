@@ -335,6 +335,8 @@ export interface Timeline {
   themeDefs?: Theme[];
   /** Settings for "Export website", remembered for the next export. */
   website?: WebsiteSettings;
+  /** True: picking an event or filtering to one faction keeps the timeline's theme instead of switching to the faction's. */
+  disableFactionThemeOverride?: boolean;
   events: TimelineEvent[];
   createdAt: number;
   updatedAt: number;

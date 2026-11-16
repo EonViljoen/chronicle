@@ -28,7 +28,10 @@ export default function MultiPicker({ label, options, value, onChange, placehold
         <div className="chips">
           {selected.map((o) => (
             <span key={o.id} className={`chip${o.id === primaryId ? ' is-primary' : ''}`}>
-              {onPrimaryChange && (
+              {onPrimaryChange && selected.length === 1 ? (
+                // An only one is always the main one: a star, but nothing to click
+                <span className="chip-star is-fixed" role="img" title={`The only one is always the ${primaryLabel}`} aria-label={`${o.label} is the ${primaryLabel}`}>★</span>
+              ) : onPrimaryChange && (
                 <button
                   type="button"
                   className="chip-star"

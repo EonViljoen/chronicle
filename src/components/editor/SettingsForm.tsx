@@ -5,7 +5,7 @@ import FormActions from './FormActions';
 import { useDraft } from './useDraft';
 
 // The rest has its own tabs: Calendar (CalendarTab.tsx), Maps (MapsPanel.tsx), Starmap (StarmapTab.tsx)
-type Settings = Pick<Timeline, 'title' | 'description'>;
+type Settings = Pick<Timeline, 'title' | 'description'> & { disableFactionThemeOverride: boolean };
 
 interface Props {
   timeline: Timeline;
@@ -16,6 +16,7 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
   const original: Settings = {
     title: timeline.title,
     description: timeline.description,
+    disableFactionThemeOverride: timeline.disableFactionThemeOverride ?? false,
   };
   const save = async (s: Settings) => {
     await updateTimeline(timeline.id, (t) => ({ ...t, ...s }));
@@ -35,6 +36,21 @@ export default function SettingsForm({ timeline, onDirtyChange }: Props) {
 
       <Field label="Description">
         <textarea rows={3} value={draft.description} onChange={(e) => patch({ description: e.target.value })} />
+      </Field>
+
+      <Field
+        label="Faction themes"
+        group
+        hint="Normally, clicking an event switches to its main faction's theme, and filtering to one faction switches to that faction's. Tick this to always keep the timeline's own theme."
+      >
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={draft.disableFactionThemeOverride}
+            onChange={(e) => patch({ disableFactionThemeOverride: e.target.checked })}
+          />{' '}
+          Disable faction theme override
+        </label>
       </Field>
 
       <FormActions isNew={false} dirty={dirty} valid={valid} saving={saving} onRevert={reset} />

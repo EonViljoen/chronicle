@@ -101,9 +101,16 @@ export function expandFactions(ids: string[], factions: Faction[]): string[] {
 /** Indents a name for a <select> option, since options can't be styled. */
 export const indentLabel = (row: TreeRow) => `${'   '.repeat(row.depth)}${row.depth ? '└ ' : ''}${row.faction.name}`;
 
-/** The event's main faction id, if it's set and still one of its factions. */
+/**
+ * The event's main faction id: its only faction, if it has just one; else the one
+ * marked main, if that's still one of its factions. No factions: none.
+ */
 export const mainFactionOf = (event: { factionIds: string[]; mainFactionId?: string }) =>
-  event.mainFactionId && event.factionIds.includes(event.mainFactionId) ? event.mainFactionId : undefined;
+  event.factionIds.length === 1
+    ? event.factionIds[0]
+    : event.mainFactionId && event.factionIds.includes(event.mainFactionId)
+      ? event.mainFactionId
+      : undefined;
 
 /**
  * The theme id a faction uses: its own, else the nearest parent's that has
