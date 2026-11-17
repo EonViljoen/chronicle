@@ -2,7 +2,8 @@ import { Suspense, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Place, Timeline } from '../../types/timeline';
 import { mapPath, mapTree, allMaps } from '../../lib/maps';
-import { GalaxyMap } from '../map/LazyGalaxyMap';
+import { GalaxyMap, PlanetMap } from '../map/LazyGalaxyMap';
+import { fromLatLong, toLatLong } from '../../lib/planets';
 import FlatMap from '../map/FlatMap';
 import Field from '../form/Field';
 import NumberInput from '../form/NumberInput';
@@ -134,7 +135,11 @@ export default function PlaceForm({ original, isNew, onSave, onDelete, onDirtyCh
         <Field
           label="On your maps"
           group
-          hint="Pick a map, then click it to pin the place there. A place can be on any number of maps. Scroll to zoom, drag to move around."
+          hint={
+            pickMap.kind === 'planet'
+              ? 'Pick a map, then click the globe to pin the place there, or type its latitude and longitude. Drag to turn the planet, scroll to zoom.'
+              : 'Pick a map, then click it to pin the place there. A place can be on any number of maps. Scroll to zoom, drag to move around.'
+          }
         >
           {/* One button per map; ✓ marks the maps the place is pinned on */}
           {flatMaps.length > 1 && (
@@ -148,19 +153,33 @@ export default function PlaceForm({ original, isNew, onSave, onDelete, onDirtyCh
                   title={mapPath(m.id, entries)}
                   onClick={() => setPickMapId(m.id)}
                 >
-                  {pins[m.id] ? '✓ ' : ''}{m.name}
+                  {pins[m.id] ? '✓ ' : ''}{m.kind === 'planet' ? '◍ ' : ''}{m.name}
                 </button>
               ))}
             </div>
           )}
           <div className="map-picker">
-            <FlatMap
-              key={pickMap.id}
-              map={pickMap}
-              places={timeline.places.filter((p) => p.id !== original.id)}
-              pick={{ pin: pins[pickMap.id] ?? null, onPick: (pin) => setPin(pickMap.id, pin) }}
-            />
+            {pickMap.kind === 'planet' ? (
+              <Suspense fallback={<p className="map-loading">Loading the planet…</p>}>
+                <PlanetMap
+                  key={pickMap.id}
+                  map={pickMap}
+                  places={timeline.places.filter((p) => p.id !== original.id)}
+                  pick={{ pin: pins[pickMap.id] ?? null, onPick: (pin) => setPin(pickMap.id, pin) }}
+                />
+              </Suspense>
+            ) : (
+              <FlatMap
+                key={pickMap.id}
+                map={pickMap}
+                places={timeline.places.filter((p) => p.id !== original.id)}
+                pick={{ pin: pins[pickMap.id] ?? null, onPick: (pin) => setPin(pickMap.id, pin) }}
+              />
+            )}
           </div>
+          {pickMap.kind === 'planet' && (
+            <LatLongInputs pin={pins[pickMap.id] ?? null} onChange={(pin) => setPin(pickMap.id, pin)} />
+          )}
           {pins[pickMap.id] && (
             <div>
               <button type="button" className="btn" onClick={() => setPin(pickMap.id, null)}>Remove from {pickMap.name}</button>
@@ -171,5 +190,40 @@ export default function PlaceForm({ original, isNew, onSave, onDelete, onDirtyCh
 
       <FormActions isNew={isNew} dirty={dirty} valid={!nameError} saving={saving} onRevert={reset} onDelete={onDelete} />
     </form>
+  );
+}
+
+/** Latitude and longitude boxes for a pin on a planet (north and east are positive). */
+function LatLongInputs({ pin, onChange }: { pin: [number, number] | null; onChange: (pin: [number, number]) => void }) {
+  const [lat, long] = pin ? toLatLong(pin) : [0, 0];
+  const round1 = (n: number) => Math.round(n * 100) / 100;
+  return (
+    <div className="inline-inputs wrap coords">
+      <label className="coord">
+        <span className="muted">Latitude</span>
+        <NumberInput
+          className="w-md"
+          integer={false}
+          min={-90}
+          max={90}
+          value={pin ? round1(lat) : undefined}
+          onChange={(v) => v !== undefined && onChange(fromLatLong(v, long))}
+          aria-label="Latitude, degrees north (negative for south)"
+        />
+      </label>
+      <label className="coord">
+        <span className="muted">Longitude</span>
+        <NumberInput
+          className="w-md"
+          integer={false}
+          min={-180}
+          max={180}
+          value={pin ? round1(long) : undefined}
+          onChange={(v) => v !== undefined && onChange(fromLatLong(lat, v))}
+          aria-label="Longitude, degrees east (negative for west)"
+        />
+      </label>
+      <span className="field-hint">North and east are positive.</span>
+    </div>
   );
 }

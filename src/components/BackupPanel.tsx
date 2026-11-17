@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useAccount } from '../cloud/account';
 import { downloadBackup, lastBackupAt, readBackup, restoreBackup, type ClashMode, type ReadBackup } from '../db/backup';
 
 interface Props {
@@ -71,6 +72,7 @@ export default function BackupPanel({ pending, onPendingChange }: Props) {
     }
   }
 
+  const signedIn = !!useAccount().user;
   const clashes = pending ? pending.clashes.timelines + pending.clashes.themes : 0;
 
   return (
@@ -79,7 +81,11 @@ export default function BackupPanel({ pending, onPendingChange }: Props) {
         <p className="backup-status">
           <strong>Backup:</strong>{' '}
           {last ? `last backed up ${ago(last)}.` : 'never backed up from this browser.'}{' '}
-          <span className="muted">Everything lives in this browser; a backup file keeps it safe and moves it to another computer.</span>
+          <span className="muted">
+            {signedIn
+              ? 'Your timelines are also saved to your account; a backup file is an extra copy you keep yourself.'
+              : 'Everything lives in this browser; a backup file keeps it safe and moves it to another computer.'}
+          </span>
         </p>
         <div className="toolbar-actions">
           <button className="btn" onClick={() => void backUp()}>Back up everything</button>

@@ -3,18 +3,18 @@ import type { Timeline } from '../types/timeline';
 /*
  * [[Links]] in text. Writing [[Siege of Brightvale]] in an event's details
  * (or a character's or place's description) links to the thing with that
- * name: an event first, then a character, a place, a faction, a lore page.
+ * name: an event first, then a character, a place, a faction, a lore page, a map region.
  *
  * - [[Siege of Brightvale|the siege]] shows "the siege" but links the same way
  * - [[place:Brightvale]] picks the kind when two things share a name
- *   (kinds: event, character, place, faction, lore)
+ *   (kinds: event, character, place, faction, lore, region)
  *
  * Names match without caring about upper and lower case. A link that matches
  * nothing still shows its text, marked as a broken link.
  */
 
-export type LinkKind = 'event' | 'character' | 'place' | 'faction' | 'lore';
-const KINDS: LinkKind[] = ['event', 'character', 'place', 'faction', 'lore'];
+export type LinkKind = 'event' | 'character' | 'place' | 'faction' | 'lore' | 'region';
+const KINDS: LinkKind[] = ['event', 'character', 'place', 'faction', 'lore', 'region'];
 
 /** What a [[link]] points at. */
 export interface LinkTarget {
@@ -28,11 +28,11 @@ const LINK = /\[\[([^[\]|\n]+?)(?:\|([^[\]\n]+?))?\]\]/g;
 
 /** Splits "place:Brightvale" into its kind and name (no kind = any). */
 function splitTarget(target: string): { kind?: LinkKind; name: string } {
-  const m = /^(event|character|place|faction|lore):(.+)$/i.exec(target.trim());
+  const m = /^(event|character|place|faction|lore|region):(.+)$/i.exec(target.trim());
   return m ? { kind: m[1].toLowerCase() as LinkKind, name: m[2].trim() } : { name: target.trim() };
 }
 
-type Linkable = Pick<Timeline, 'events' | 'characters' | 'places' | 'factions' | 'lore'>;
+type Linkable = Pick<Timeline, 'events' | 'characters' | 'places' | 'factions' | 'lore'> & Partial<Pick<Timeline, 'regions'>>;
 
 /** Every linkable thing of a kind, as [id, name] pairs. */
 function namesOf(t: Linkable, kind: LinkKind): [string, string][] {
@@ -47,6 +47,8 @@ function namesOf(t: Linkable, kind: LinkKind): [string, string][] {
       return t.factions.map((f) => [f.id, f.name]);
     case 'lore':
       return t.lore.map((p) => [p.id, p.title]);
+    case 'region':
+      return (t.regions ?? []).map((r) => [r.id, r.name]);
   }
 }
 
@@ -88,7 +90,7 @@ export function linkify(text: string, t: Linkable): string {
 
 /** Reads a `link:` address back. `missing` carries the name that didn't match. */
 export function parseLinkHref(href: string): { kind: LinkKind | 'missing'; id: string } | null {
-  const m = /^link:(event|character|place|faction|lore|missing):(.*)$/.exec(href);
+  const m = /^link:(event|character|place|faction|lore|region|missing):(.*)$/.exec(href);
   return m ? { kind: m[1] as LinkKind | 'missing', id: decodeURIComponent(m[2]) } : null;
 }
 
@@ -151,6 +153,10 @@ export function renameLinks<T extends Timeline>(after: T, before: Linkable, kind
       const note = fix(r.note);
       return note === r.note ? r : { ...r, note };
     }),
+    regions: after.regions.map((r) => {
+      const description = fix(r.description);
+      return description === r.description ? r : { ...r, description };
+    }),
   };
 }
 
@@ -174,6 +180,7 @@ export function backlinks(t: Timeline, kind: LinkKind, id: string): Backlink[] {
     ...t.places.filter((p) => linksTo(p.description)).map((p) => ({ kind: 'place' as const, id: p.id, name: p.name })),
     ...t.factions.filter((f) => linksTo(f.description)).map((f) => ({ kind: 'faction' as const, id: f.id, name: f.name })),
     ...t.lore.filter((p) => linksTo(p.body)).map((p) => ({ kind: 'lore' as const, id: p.id, name: p.title })),
+    ...t.regions.filter((r) => linksTo(r.description)).map((r) => ({ kind: 'region' as const, id: r.id, name: r.name })),
   ];
   return found.filter((b) => !(b.kind === kind && b.id === id));
 }

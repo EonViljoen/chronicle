@@ -14,6 +14,8 @@ import FactionPage from './pages/FactionPage';
 import LoreIndexPage from './pages/LoreIndexPage';
 import LorePage from './pages/LorePage';
 import RelationsPage from './pages/RelationsPage';
+import RegionPage from './pages/RegionPage';
+import AccountPage from './pages/AccountPage';
 
 /*
  * Routes. `Layout` wraps every page (header etc.) and renders the matched
@@ -26,6 +28,7 @@ const routes = [
     children: [
       { path: '/', element: <HomePage /> },
       { path: '/timelines', element: <TimelinesPage /> },
+      { path: '/account', element: <AccountPage /> },
       { path: '/t/:id', element: <ViewerPage /> },
       { path: '/t/:id/edit', element: <EditorPage /> },
       { path: '/t/:id/map', element: <MapPage /> },
@@ -33,6 +36,7 @@ const routes = [
       { path: '/t/:id/characters/:itemId', element: <CharacterPage /> },
       { path: '/t/:id/places/:itemId', element: <PlacePage /> },
       { path: '/t/:id/factions/:itemId', element: <FactionPage /> },
+      { path: '/t/:id/regions/:itemId', element: <RegionPage /> },
       { path: '/t/:id/relations', element: <RelationsPage /> },
       { path: '/t/:id/lore', element: <LoreIndexPage /> },
       { path: '/t/:id/lore/:itemId', element: <LorePage /> },

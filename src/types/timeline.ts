@@ -16,8 +16,9 @@ import type { Theme } from './theme';
  * 4: one `flatMap` became a list of named `maps`; a place's `pin` became `pins` (one per map).
  * 5: `characters`, and events' `characterIds`.
  * 6: events' `tags`; `relations` (between factions), `relationships` (between characters) and `lore` pages.
+ * 7: map `regions`; flat maps can be planets (`kind: 'planet'`).
  */
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 /** The header and footer of an exported website. */
 export interface WebsiteSettings {
@@ -247,7 +248,16 @@ export const STARMAP_ID = 'starmap';
 export interface FlatMap {
   id: string;
   name: string;
-  /** The picture, as a data: URL (uploaded) or a web address. */
+  /**
+   * Unset: a flat picture. 'planet': the picture is a planet's surface,
+   * wrapped round a 3D globe (a 2:1 "equirectangular" picture, like a world
+   * map). Pins work the same: x is the longitude and y the latitude, as
+   * fractions (0 = 180° W / 90° N, 1 = 180° E / 90° S).
+   */
+  kind?: 'planet';
+  /** How a planet looks. Only for planets. */
+  planet?: PlanetLook;
+  /** The picture, as a data: URL (uploaded or generated) or a web address. */
   image: string;
   /** The picture's size in pixels, for its shape before it loads. */
   width: number;
@@ -256,6 +266,66 @@ export interface FlatMap {
   parentId?: string;
   /** The place on the parent map that opens this one. */
   placeId?: string;
+}
+
+/** A planet's look, apart from its surface picture. */
+export interface PlanetLook {
+  /** The glow round the edge: a colour, 'theme' (the theme's accent) or 'none'. */
+  atmosphere: string;
+  rings: boolean;
+  ringColor: string;
+  clouds: boolean;
+  /** Set when the surface was generated rather than uploaded, so it can be drawn again with other settings. */
+  generated?: SurfaceSettings;
+}
+
+/** The settings a generated planet surface was drawn with (see lib/planets.ts). */
+export interface SurfaceSettings {
+  /** The same seed always draws the same continents. */
+  seed: number;
+  sea: string;
+  land: string;
+  /** Mountains and high ground. */
+  high: string;
+  /** How much of the surface is sea, in percent. */
+  water: number;
+  /** Ice caps at the poles. */
+  ice: boolean;
+}
+
+/**
+ * The shape of a region:
+ * - polygon: on a flat map or a planet, corners as fractions of the picture (0–1), like pins
+ * - slice:   on the starmap, a pie-shaped segment of the galaxy, from one angle to another
+ *            (degrees, 0 = towards +X, counting anticlockwise seen from above) between two
+ *            distances from the centre
+ * - cloud:   on the starmap, a glowing cloud round a point, for a single feature (a storm, a nebula)
+ */
+export type RegionShape =
+  | { type: 'polygon'; points: [x: number, y: number][] }
+  | { type: 'slice'; from: number; to: number; inner: number; outer: number }
+  | { type: 'cloud'; center: [x: number, y: number, z: number]; radius: number };
+
+/**
+ * A named area on a map: a province, a segment of a galaxy, a storm. The
+ * places inside it are worked out from their pins (see lib/regions.ts).
+ */
+export interface Region {
+  id: string;
+  name: string;
+  /** The map it's drawn on: a flat map's or planet's id, or STARMAP_ID. */
+  mapId: string;
+  shape: RegionShape;
+  /** The faction holding it. Its colour is used unless `color` is set. */
+  factionId?: string;
+  /** Its own colour. Unset = the faction's, else the theme's accent. */
+  color?: string;
+  /** How strongly it's filled in, 0–1. */
+  fill: number;
+  /** Where its name sits, as fractions like a pin (flat maps and planets). Unset = the middle. */
+  labelAt?: [x: number, y: number];
+  /** Optional. Markdown, with [[links]]. */
+  description: string;
 }
 
 /** The 3D galaxy variant of MapConfig. */
@@ -318,6 +388,8 @@ export interface Timeline {
   relationships: Relationship[];
   /** Free-form pages. */
   lore: LorePage[];
+  /** Named areas on the maps. */
+  regions: Region[];
   /** The 3D starmap's settings (or none). */
   map: MapConfig;
   /** Flat image maps, in the order you arranged them. */

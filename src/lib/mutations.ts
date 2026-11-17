@@ -1,4 +1,4 @@
-import type { Character, Faction, Era, FactionRelation, FlatMap, LorePage, Place, Relationship, Timeline, TimelineEvent } from '../types/timeline';
+import type { Character, Faction, Era, FactionRelation, FlatMap, LorePage, Place, Region, Relationship, Timeline, TimelineEvent } from '../types/timeline';
 import { renameLinks, type LinkKind } from './links';
 import { isPeriod, syncPeriods } from './periods';
 
@@ -29,7 +29,9 @@ function keepLinks(before: Timeline, after: Timeline, kind: LinkKind, id: string
       ? before.events.find((e) => e.id === id)?.title
       : kind === 'lore'
         ? before.lore.find((p) => p.id === id)?.title
-        : (kind === 'character' ? before.characters : kind === 'place' ? before.places : before.factions).find((x) => x.id === id)?.name;
+        : kind === 'region'
+          ? before.regions.find((r) => r.id === id)?.name
+          : (kind === 'character' ? before.characters : kind === 'place' ? before.places : before.factions).find((x) => x.id === id)?.name;
   return old === undefined ? after : renameLinks(after, before, kind, old, newName);
 }
 
@@ -48,6 +50,8 @@ export function removeFaction(t: Timeline, id: string): Timeline {
       .map((c) => (c.parentId === id ? { ...c, parentId } : c)),
     characters: t.characters.map((c) => (c.factionId === id ? { ...c, factionId: parentId } : c)),
     relations: t.relations.filter((r) => r.fromId !== id && r.toId !== id),
+    // Its regions keep their shape, held by the parent faction (or no one)
+    regions: t.regions.map((r) => (r.factionId === id ? { ...r, factionId: parentId } : r)),
     events: t.events.map((e) => ({
       ...e,
       factionIds: without(e.factionIds, id),
@@ -150,17 +154,28 @@ export const removeRelation = (t: Timeline, id: string): Timeline => ({ ...t, re
 export const saveLore = (t: Timeline, page: LorePage): Timeline => keepLinks(t, { ...t, lore: upsert(t.lore, page) }, 'lore', page.id, page.title);
 export const removeLore = (t: Timeline, id: string): Timeline => ({ ...t, lore: t.lore.filter((p) => p.id !== id) });
 
+export const saveRegion = (t: Timeline, region: Region): Timeline =>
+  keepLinks(t, { ...t, regions: upsert(t.regions, region) }, 'region', region.id, region.name);
+export const removeRegion = (t: Timeline, id: string): Timeline => ({ ...t, regions: t.regions.filter((r) => r.id !== id) });
+
+/** Removes the regions drawn on a map (when the map goes, or the starmap is turned off). */
+export const removeRegionsOn = (t: Timeline, mapId: string): Timeline => ({ ...t, regions: t.regions.filter((r) => r.mapId !== mapId) });
+
+/**
+ * Saves a flat map. A map that changes between flat and planet keeps its
+ * pins (they're fractions of the picture either way); its regions too.
+ */
 export const saveMap = (t: Timeline, map: FlatMap): Timeline => ({ ...t, maps: upsert(t.maps, map) });
 
 /**
- * Deletes a flat map. Places lose their pin on it; maps inside it move up to
+ * Deletes a flat map. Places lose their pin on it, its regions go; maps inside it move up to
  * its parent (like sub-factions), no longer opened from a place; and if it
  * was the master map, the timeline starts on its first top-level map again.
  */
 export function removeMap(t: Timeline, id: string): Timeline {
   const parentId = t.maps.find((m) => m.id === id)?.parentId;
   return {
-    ...t,
+    ...removeRegionsOn(t, id),
     maps: t.maps.filter((m) => m.id !== id).map((m) => (m.parentId === id ? { ...m, parentId, placeId: undefined } : m)),
     masterMapId: t.masterMapId === id ? undefined : t.masterMapId,
     places: t.places.map((p) => {

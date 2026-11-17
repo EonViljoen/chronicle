@@ -4,8 +4,8 @@ import type { Timeline } from '../types/timeline';
 import { searchTimeline } from '../lib/search';
 import type { LinkKind } from '../lib/links';
 
-const KIND_LABEL: Record<LinkKind, string> = { event: 'Event', character: 'Character', place: 'Place', faction: 'Faction', lore: 'Lore' };
-const KIND_ICON: Record<LinkKind, string> = { event: '◆', character: '☺', place: '⌖', faction: '⚑', lore: '❡' };
+const KIND_LABEL: Record<LinkKind, string> = { event: 'Event', character: 'Character', place: 'Place', faction: 'Faction', lore: 'Lore', region: 'Region' };
+const KIND_ICON: Record<LinkKind, string> = { event: '◆', character: '☺', place: '⌖', faction: '⚑', lore: '❡', region: '▱' };
 
 interface Props {
   timeline: Timeline;

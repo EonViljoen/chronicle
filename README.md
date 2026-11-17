@@ -15,7 +15,11 @@ npm run dev
 
 ## How data is stored
 
-Everything is saved in your browser (IndexedDB). There are no accounts and no server. Use **Back up everything** on the timelines page to save every timeline and theme in one file (and **Restore backup…** to load it), or **Export** to save one timeline for sharing, and **Import file…** to load one.
+Everything is saved in your browser (IndexedDB), and works offline. Without an account, that's the only place it lives: there's no server.
+
+If the copy of Chronicle you're using has accounts turned on (see **Accounts and cloud saving** below), signing in also saves your timelines and themes, pictures included, to your account, so they follow you between devices. The browser keeps working as the main copy, and changes upload in the background. Signed-in data is stored with Supabase, and only you can read it. Exported websites never have accounts.
+
+Use **Back up everything** on the timelines page to save every timeline and theme in one file (and **Restore backup…** to load it), or **Export** to save one timeline for sharing, and **Import file…** to load one.
 
 ## Publishing a timeline as a website
 
@@ -28,6 +32,25 @@ A site can reuse this code with its own name, look and content, without editing 
 - **Branding:** set `VITE_BRAND_NAME`, `VITE_BRAND_TAGLINE`, `VITE_BRAND_MARK`, `VITE_BRAND_FOOTER`, `VITE_DEFAULT_THEME`, `VITE_SEED_URL`, `VITE_PUBLISHED`, `VITE_READ_ONLY` and `VITE_DEMO_URL` in a `.env` file. See `src/brand.ts`.
 - **Published timelines:** list timeline files in `VITE_PUBLISHED`. Every visitor sees them read-only, loaded fresh on each visit, so replacing a file updates the site. Add `VITE_READ_ONLY=true` to hide creating and editing entirely.
 - **Themes:** build them in the app (**Edit → Theme**): colours, fonts, node shapes and ornaments, starting from a built-in preset. Export a theme to share it; exported timelines carry their theme.
+
+## Accounts and cloud saving
+
+Optional, and off unless you set it up. With it on, people can sign in (email and password, an emailed sign-in link, or providers like Google and GitHub) and their timelines and themes are saved to their account as well as their browser.
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. In its **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql). It creates the `timelines` and `themes` tables, a private `pictures` bucket, and row-level security so each person can only read and write their own data.
+3. Copy `.env.example` to `.env.local` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_…` key, from **Settings → API Keys** or the project's **Connect** button; an older project's `anon` key works too). It's public by design; row-level security is what keeps data private. Never use the secret key: it gets past every rule.
+4. Under **Authentication → URL Configuration**, add your site's address (and `http://localhost:5180` for development) as the Site URL and a Redirect URL, so sign-in links and providers can come back to it.
+5. Optional: turn on providers under **Authentication → Providers** and list them in `VITE_SUPABASE_PROVIDERS` (e.g. `google,github`) to get a button for each.
+
+How it works (see `src/cloud/`):
+
+- **Local-first.** The browser database stays the working copy, so the app is as fast as before and works offline. While signed in, changes upload a few seconds after you make them, and changes from other devices download when the window gets focus, comes back online, and every minute.
+- **Conflicts.** If the same timeline was changed on two devices, the one saved last wins.
+- **Pictures** go to Supabase Storage, in a folder of the person's own, each stored once; in the browser they stay inside the timeline as before.
+- **First sign-in on a device** asks whether to upload the timelines already in that browser, or keep them there only (they can be uploaded later from the account page).
+- **Signing out** can also remove the account's timelines from the browser, for shared computers.
+- **Without the keys** (and on exported websites and read-only sites) none of it loads, and the Supabase library is never downloaded.
 
 ## Stack
 
@@ -46,6 +69,7 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 9. ✅ Characters, character / place / faction pages, `[[links]]` in text
 10. ✅ Era overview strip, lanes per faction, events that span time
 11. ✅ Tags, citations, lore pages, faction relations, character relationships and family trees, search everything
+12. ✅ Planets, map regions, accounts and cloud saving
 
 ## To do
 
@@ -56,22 +80,19 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 - [x] **Characters.** A **Characters** tab, grouped by faction (or Independent): name, picture (uploaded or a web address), faction, birth and death dates, a description and feats. Events list the characters in them, set from either side. Each character has a page with their life on the timeline: a to-scale strip across the eras, and every event from birth to death. A **Characters** page lists everyone.
 - [x] **Place and faction pages.** Every place and faction has a page with its history (every event linked to it, in order, under era headings), the people and factions involved, and its maps with the places marked. A faction's page includes its sub-factions' events and takes on its theme. Factions can have a description (with `[[links]]`) and a picture (a crest or banner), shown on their page; the picture also shows on chips, lanes and the characters list. Chips in the event panel open these pages.
 - [x] **Links in event text.** `[[Siege of Brightvale]]` in an event's details (or a character's, place's or faction's description, or a feat) links to the event, character, place or faction with that name. `[[Name|other text]]` changes the text shown; `[[place:Name]]` picks the kind. Renaming something updates the links to it, and links that match nothing are listed under the field.
-- [ ] **Planets.** Render a 3D planet as a kind of map, like the starmap, so places can be pinned on a globe (e.g. Starmap › Sector › a planet › a city map).
-  - A planet map type alongside the starmap and flat maps, nestable like any map (opened from a place on its parent map).
-  - Settings for its look: a surface picture wrapped round the sphere (or a generated one), colours from the theme, atmosphere, rings, maybe clouds.
-  - Places pinned by latitude and longitude, by clicking the globe; it turns to face the selected place.
+- [x] **Planets.** A map can be a planet: its picture wraps round a 3D globe (drag to turn, scroll to zoom). **+ Add a planet** in the Maps tab generates a surface (continents from a seed, with sea, land and mountain colours, how much is sea, and ice caps; **Another one** rolls a new seed), or use a picture of your own, twice as wide as tall like a world map; any flat map can be switched to a planet and back. Its look: an atmosphere glowing in the theme's colour or your own, clouds and rings. Planets nest like any map, opened from a place on the starmap or another map. Places are pinned by clicking the globe or typing latitude and longitude (a pin's fractions are its longitude and latitude, so a planet's pins also work on its flat picture), and the globe turns to face the selected place or region.
 - [x] **Era overview strip.** A thin bar above the stage with every era, each as wide as its number of events (empty eras show as slivers), marking the era on show and the selected event. Click an era to jump to it. It replaced the row of era buttons.
 - [x] **Lanes per faction.** **Lanes by faction** in the viewer's toolbar gives each faction its own row (a child faction gets its own, under its parent; the parent's lane holds only events of the parent itself), so parallel stories sit side by side; every event keeps its column, so what happened at the same point lines up. An event sits in its main faction's lane and also shows in full in the lane of every other faction it involves; clicking any of them picks the event, which lights up in every lane. Remembered per browser.
 - [x] **Events that span time.** An event can have an end date (a war, a reign): it shows as "C.A. 140 – C.A. 350" and is drawn as a bar under the stage, reaching the last event before it ended. A span that began in an earlier era comes in from the left; one that outlasts the era runs off the right.
 - [x] **Periods.** An event can be a **Period** instead of a **Moment**: a stretch of time that holds other events, like a war and its battles. It has no node; it's a bar under the track, bracketing the events it includes (picked in its **Includes**, or from each event's **Part of**). Its dates come from its first and last event unless you set its own; with no events picked it covers the events between its dates. Periods can hold periods, which stack as bars. The info box lists a period's events, and each event says which periods it's part of. At the same date, a period sorts before its events.
-- [ ] **Map regions.** Named areas drawn on a map: a galaxy split into administrative segments, a kingdom's provinces, or a single feature like a storm, a nebula or a cursed wasteland.
-  - **On flat maps:** draw a region as a shape (click points to make a polygon, drag them to adjust), with a name, colour, fill strength and label position. Pins stay on top.
-  - **On the 3D starmap:** a region as a slice of the galaxy (from one angle to another, between two distances from the centre, like a pie segment), or a glowing cloud around a point for a single feature; both in the region's colour, with its name floating over it.
-  - **Linked to the rest:** a region can belong to a faction (taking its colour), have a description with `[[links]]`, and list the places inside it, worked out from their pins. Clicking a region shows its places and events; regions get their own page like places do.
-  - **Over time (later):** an optional start and end date, so a region can appear, change hands or vanish as you move through eras. This builds towards "Faction territory over time" in the ideas below.
-  - **Viewer:** a toggle to show or hide regions, so they don't crowd busy maps.
+- [x] **Map regions.** Named areas on a map, in a **Regions** tab in the editor: a province, a sector of the galaxy, a storm.
+  - **On flat maps and planets:** an outline drawn by clicking corners (drag to move one, double-click to remove it), with its name placed in the middle or wherever you click. A planet's regions are drawn on its flat surface picture and painted onto the globe.
+  - **On the 3D starmap:** a slice of the galaxy (from one angle to another, between two distances from the centre) or a glowing cloud round a point, both in the region's colour with its name floating over it.
+  - **Linked to the rest:** a region can be held by a faction (taking its colour, unless it has its own), with a fill strength and a description with `[[links]]` (and `[[region:Name]]` links to it). The places inside are worked out from their pins. Clicking a region on the map page shows its places and their events; each region has a page with its history, and place and faction pages list their regions. Search finds them.
+  - **Viewer:** a **Regions** button on every map shows or hides them, remembered per browser.
+  - **Later:** start and end dates, so a region can appear, change hands or vanish as you move through eras (towards "Faction territory over time" in the ideas below).
 - [x] **Faction relations.** A **Relations** tab in the editor records how factions stand with each other: allies, at war, rivals, trade, truce, or one serving another (one way). Each can have a start and end date and a note with `[[links]]`. The **Faction relations** page (`/t/:id/relations`) draws them as a diagram (factions with their pictures and colours, lines styled by kind) for all time or one era, with the list underneath; each faction's page lists its relations. Deleting a faction removes its relations.
-- [x] **Back up everything.** **Back up everything** on the timelines page downloads one JSON file with every timeline and theme in this browser; **Restore backup…** (or picking the file in **Import file…**) shows what's in it and asks what to do with timelines and themes already here: keep both, or replace them. The page reminds you when you last backed up. The file is versioned (`"kind": "chronicle-backup"`), ready to be uploaded to an account once accounts exist.
+- [x] **Back up everything.** **Back up everything** on the timelines page downloads one JSON file with every timeline and theme in this browser; **Restore backup…** (or picking the file in **Import file…**) shows what's in it and asks what to do with timelines and themes already here: keep both, or replace them. The page reminds you when you last backed up. The file is versioned (`"kind": "chronicle-backup"`), and works alongside accounts as a copy you keep yourself.
 - [x] **Sources and citations.** `[^1]` in an event's details (or a lore page) cites its first source, `[^2]` the second; they show as small raised numbers that jump to the source and make it flash. Sources are numbered, can be Markdown links, and the form warns about a citation with no source.
 - [x] **Lore pages.** Free-form pages that aren't an event, character, place or faction (a religion, a language, an artefact): a title, a category, a picture, text with `[[links]]` and citations, and sources. A **Lore** tab in the editor, a **Lore** page listing them by category, and `[[lore:Name]]` links. Each page shows the events that mention it; character, place, faction and lore pages all list what links to them (**Mentioned in**).
 - [x] **Shrink uploaded pictures.** Uploads are resized (maps to 4096 pixels across, portraits and crests to 640) and saved as WebP, keeping whichever is smaller; SVGs and GIFs stay as they are. **Settings → Pictures** shows how much room a timeline's pictures take and shrinks ones added before this.
@@ -84,14 +105,7 @@ Vite · React · TypeScript · React Router · Dexie (IndexedDB). three.js via r
 - [ ] **Print / PDF export.** A clean printable chronicle: eras as chapters, events in order, then character, faction and place pages, in the timeline's theme.
 - [x] **Tags on events.** Free labels ("battle", "treaty") separate from factions, typed in the event form with suggestions from tags already used. They show as `# chips` in the info box (click one to filter by it), can be picked in the viewer's **Filter by tag…**, and match in search.
 - [ ] **Type check script and tests.** Add `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`; plain `tsc -p .` checks nothing, because `tsconfig.json` only lists references) and unit tests (Vitest) for the pure functions in `lib/`: dates, eras, factions, maps, mutations and above all `upgrade.ts`, since upgrades rewrite people's saved data.
-- [ ] **Accounts and cloud saving (Supabase).** Optional sign-in, so your timelines and themes are saved online and follow you between devices. One service does both the sign-in and the storage.
-  - **Sign-in with Supabase Auth** (email magic link or password, Google, GitHub…). Using the app without an account keeps working exactly as now, saved in the browser.
-  - **Storage in Supabase** (Postgres): a `timelines` and a `themes` table keyed by `auth.uid()`, with row-level security so people only ever read and write their own. Map pictures move to Supabase Storage (a per-user folder, with its own policies) instead of living inside the timeline as `data:` URLs.
-  - **Keys:** only the public anon key goes in the app (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`); row-level security is what keeps data private. With no keys set, the app runs without accounts, so self-hosted and branded sites don't need Supabase.
-  - **Local-first:** keep Dexie as the working copy and sync in the background, so the app stays fast and works offline. Decide how to handle edits from two devices (last save wins per timeline is the simple start).
-  - **On first sign-in,** offer to upload the timelines already in this browser.
-  - **Unchanged:** exported websites stay static and read-only, with no sign-in. Later, sharing a timeline with other accounts (view or edit) becomes possible.
-  - Update "How data is stored" above and the privacy wording: data would no longer only live in the browser for signed-in users.
+- [x] **Accounts and cloud saving (Supabase).** Optional sign-in, so timelines, themes and their pictures are saved to an account and follow you between devices. Local-first, with sync in the background; the last save wins per timeline; first sign-in offers to upload what's already in the browser. Off without Supabase keys, and never on exported websites. See **Accounts and cloud saving** above for setting it up. Later: sharing a timeline with other accounts (view or edit).
 
 ## Ideas
 

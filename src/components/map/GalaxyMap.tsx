@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber';
-import { CameraControls, CameraControlsImpl, Html, Stars } from '@react-three/drei';
+import { CameraControls, CameraControlsImpl, Html, Line, Stars } from '@react-three/drei';
 import { AdditiveBlending, CanvasTexture, Color, DoubleSide } from 'three';
 import type { GalaxyConfig, Place } from '../../types/timeline';
 import { useThemePalette } from '../../themes/palette';
 import { generateGalaxy } from './galaxy';
+import { starmapLabel, sweep, type RegionView } from '../../lib/regions';
 
 /*
  * react-three-fiber lets you write three.js scenes as JSX. Lowercase tags
@@ -34,9 +35,13 @@ interface Props {
   onSelectPlace?: (id: string) => void;
   /** Placement mode for the editor: click the galaxy to set a position. */
   pick?: { position: Place['position']; onPick: (position: Vec3) => void };
+  /** Regions: slices of the galaxy and glowing clouds. */
+  regions?: RegionView[];
+  selectedRegionId?: string | null;
+  onSelectRegion?: (id: string) => void;
 }
 
-export default function GalaxyMap({ config, places, selectedPlaceId, highlightIds = [], openIds = [], onSelectPlace, pick }: Props) {
+export default function GalaxyMap({ config, places, selectedPlaceId, highlightIds = [], openIds = [], onSelectPlace, pick, regions = [], selectedRegionId, onSelectRegion }: Props) {
   const placed = places.filter((p): p is Place & { position: Vec3 } => p.position !== null);
   const selected = placed.find((p) => p.id === selectedPlaceId);
   const interactive = !pick && onSelectPlace !== undefined;
@@ -57,6 +62,15 @@ export default function GalaxyMap({ config, places, selectedPlaceId, highlightId
         <Stars radius={700} depth={300} count={5000} factor={7} fade speed={0.4} />
         <GalaxyPoints config={colored} />
         <CoreGlow color={colored.coreColor} size={config.radius * 0.9} />
+
+        {regions.map((r) => (
+          <RegionShape3d
+            key={r.id}
+            region={r}
+            selected={r.id === selectedRegionId}
+            onSelect={!pick && onSelectRegion ? () => onSelectRegion(r.id) : undefined}
+          />
+        ))}
 
         {placed.map((place) => (
           <PlaceMarker
@@ -136,6 +150,92 @@ function CoreGlow({ color, size }: { color: string; size: number }) {
     <sprite scale={[size, size, 1]}>
       <spriteMaterial map={texture} color={color} transparent opacity={0.55} depthWrite={false} blending={AdditiveBlending} />
     </sprite>
+  );
+}
+
+// ---------- Regions ----------
+
+/** The corners of a slice's outline, on the galactic plane. */
+function sliceOutline(from: number, span: number, inner: number, outer: number): Vec3[] {
+  const steps = Math.max(8, Math.round(span / 3));
+  const arc = (r: number, reverse: boolean) =>
+    Array.from({ length: steps + 1 }, (_, i) => {
+      const a = ((from + (span * (reverse ? steps - i : i)) / steps) * Math.PI) / 180;
+      return [Math.cos(a) * r, 0.05, -Math.sin(a) * r] as Vec3;
+    });
+  const points = [...arc(outer, false), ...arc(inner, true)];
+  return [...points, points[0]];
+}
+
+/**
+ * A region on the starmap: a slice is a flat, tinted pie segment of the
+ * disc (ringGeometry draws round from +X towards +Y; tilted flat, +Y points
+ * to −Z, matching lib/regions.ts); a cloud is a soft glow round a point.
+ */
+function RegionShape3d({ region, selected, onSelect }: { region: RegionView; selected: boolean; onSelect?: () => void }) {
+  const texture = useMemo(makeGlowTexture, []);
+  const shape = region.shape;
+  const click = onSelect
+    ? {
+        onClick: (e: ThreeEvent<MouseEvent>) => {
+          if (e.delta > 4) return;
+          e.stopPropagation();
+          onSelect();
+        },
+        onPointerOver: () => (document.body.style.cursor = 'pointer'),
+        onPointerOut: () => (document.body.style.cursor = ''),
+      }
+    : { raycast: () => null };
+  const label = starmapLabel(shape);
+
+  return (
+    <group>
+      {shape.type === 'slice' && (
+        <>
+          <mesh rotation-x={-Math.PI / 2} {...click}>
+            <ringGeometry args={[shape.inner, shape.outer, 64, 1, (shape.from * Math.PI) / 180, (sweep(shape.from, shape.to) * Math.PI) / 180]} />
+            <meshBasicMaterial color={region.color} transparent opacity={Math.min(0.9, region.fill)} side={DoubleSide} depthWrite={false} />
+          </mesh>
+          <Line
+            points={sliceOutline(shape.from, sweep(shape.from, shape.to), shape.inner, shape.outer)}
+            color={region.color}
+            lineWidth={selected ? 2.5 : 1.2}
+            dashed={selected}
+            dashSize={3}
+            gapSize={2}
+            transparent
+            opacity={0.9}
+          />
+        </>
+      )}
+      {shape.type === 'cloud' && (
+        <>
+          <sprite position={shape.center} scale={[shape.radius * 2.6, shape.radius * 2.6, 1]}>
+            <spriteMaterial map={texture} color={region.color} transparent opacity={Math.min(1, 0.25 + region.fill)} depthWrite={false} blending={AdditiveBlending} />
+          </sprite>
+          {/* An invisible ball to click on */}
+          <mesh position={shape.center} {...click}>
+            <sphereGeometry args={[shape.radius, 16, 16]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
+          {selected && (
+            <mesh position={shape.center} rotation-x={-Math.PI / 2}>
+              <ringGeometry args={[shape.radius * 0.97, shape.radius, 64]} />
+              <meshBasicMaterial color={region.color} side={DoubleSide} transparent opacity={0.9} />
+            </mesh>
+          )}
+        </>
+      )}
+      <Html center position={label} zIndexRange={[10, 0]} style={{ pointerEvents: onSelect ? 'auto' : 'none' }}>
+        {onSelect ? (
+          <button type="button" className={`region-label is-button${selected ? ' is-selected' : ''}`} style={{ color: region.color }} onClick={onSelect}>
+            {region.name}
+          </button>
+        ) : (
+          <span className="region-label" style={{ color: region.color }}>{region.name}</span>
+        )}
+      </Html>
+    </group>
   );
 }
 

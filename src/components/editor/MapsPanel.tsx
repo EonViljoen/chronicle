@@ -1,10 +1,14 @@
-import { useRef, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { STARMAP_ID, type FlatMap, type Timeline } from '../../types/timeline';
+import { STARMAP_ID, type FlatMap, type PlanetLook, type SurfaceSettings, type Timeline } from '../../types/timeline';
 import { updateTimeline } from '../../db/timelines';
 import { allMaps, indentMapLabel, isPlacedOn, mapPath, mapTree, mapWithDescendants, masterMapId } from '../../lib/maps';
 import { canMoveMap, moveMap, removeMap, saveMap } from '../../lib/mutations';
 import { readImage } from '../../lib/images';
+import { DEFAULT_SURFACE, defaultLook, generateSurface, randomSeed } from '../../lib/planets';
+import { regionCount } from '../../lib/regions';
+import NumberInput from '../form/NumberInput';
+import { PlanetMap } from '../map/LazyGalaxyMap';
 import Field from '../form/Field';
 import FormActions from './FormActions';
 import { useDraft } from './useDraft';
@@ -56,11 +60,20 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
     }
   }
 
+  /** A new planet starts with a generated surface; a picture of your own can replace it. */
+  function addPlanet() {
+    setNote(null);
+    const generated: SurfaceSettings = { ...DEFAULT_SURFACE, seed: randomSeed() };
+    setNewMap({ id: crypto.randomUUID(), name: 'New planet', kind: 'planet', planet: defaultLook(generated), ...generateSurface(generated) });
+  }
+
   function remove(map: FlatMap) {
     const inside = timeline.maps.filter((m) => m.parentId === map.id).length;
     const pinned = timeline.places.filter((p) => p.pins?.[map.id]).length;
+    const regions = regionCount(timeline, map.id);
     const lines = [
       `Delete the map "${map.name}"?`,
+      regions > 0 && `Its ${regions} region${regions === 1 ? '' : 's'} will be deleted too.`,
       pinned > 0 && `${pinned} place${pinned === 1 ? '' : 's'} will lose ${pinned === 1 ? 'its' : 'their'} pin on it (the places themselves stay).`,
       inside > 0 && `${inside} map${inside === 1 ? '' : 's'} inside it will move up a level.`,
     ];
@@ -86,14 +99,17 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
         <div>
           <h2 id="maps-title" className="form-title">Maps</h2>
           <p className="muted">
-            Your own map pictures, plus the 3D starmap if it's on (Starmap tab). A map can sit inside another, opened by clicking one of its
-            places. Pin places on a map in the Places tab.
+            Your own map pictures, planets (a globe, from a picture or generated), plus the 3D starmap if it's on (Starmap tab). A map can sit
+            inside another, opened by clicking one of its places. Pin places on a map in the Places tab; draw areas in the Regions tab.
           </p>
         </div>
         <div className="toolbar-actions">
           {/* One form at a time: finish or close the open one first */}
           <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={editing !== null}>
             + Add a map…
+          </button>
+          <button type="button" className="btn" onClick={addPlanet} disabled={editing !== null}>
+            + Add a planet
           </button>
           <input
             ref={fileInput}
@@ -118,11 +134,15 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
               const opener = map.placeId ? timeline.places.find((p) => p.id === map.placeId) : undefined;
               return (
                 <li key={map.id} className={`map-row${editing?.map.id === map.id ? ' is-selected' : ''}`} style={{ paddingLeft: 10 + depth * 22 }}>
-                  {flat ? <img className="map-thumb" src={flat.image} alt="" /> : <span className="map-thumb map-thumb-3d" aria-hidden="true">✦</span>}
+                  {flat ? (
+                    <img className={`map-thumb${flat.kind === 'planet' ? ' is-planet' : ''}`} src={flat.image} alt="" />
+                  ) : (
+                    <span className="map-thumb map-thumb-3d" aria-hidden="true">✦</span>
+                  )}
                   <span className="map-row-main">
                     <strong>{map.name}</strong>
                     <span className="muted">
-                      {!flat ? '3D starmap · set up in the Starmap tab' : `${flat.width} × ${flat.height} px`}
+                      {!flat ? '3D starmap · set up in the Starmap tab' : flat.kind === 'planet' ? `Planet · ${flat.planet?.generated ? 'generated surface' : 'your picture'}` : `${flat.width} × ${flat.height} px`}
                       {opener && ` · opens from ${opener.name}`}
                       {map.id === masterMapId(timeline) && ' · start map'}
                     </span>
@@ -225,7 +245,8 @@ function MapForm({ timeline, original, isNew, onSave, onCancel, onDirtyChange }:
     setReplaceError(null);
     try {
       const { image, width, height } = await readImage(file);
-      patch({ image, width, height });
+      // Your own picture replaces a generated surface
+      patch({ image, width, height, ...(draft.planet && { planet: { ...draft.planet, generated: undefined } }) });
     } catch (e) {
       setReplaceError(e instanceof Error ? e.message : String(e));
     }
@@ -250,7 +271,16 @@ function MapForm({ timeline, original, isNew, onSave, onCancel, onDirtyChange }:
       </div>
 
       <div className="map-form-body">
-        <img className="map-form-picture" src={draft.image} alt="" />
+        {draft.kind === 'planet' ? (
+          // A live preview: the look settings show as you change them
+          <div className="map-form-globe">
+            <Suspense fallback={<p className="map-loading">Loading the planet…</p>}>
+              <PlanetMap map={draft} places={timeline.places} />
+            </Suspense>
+          </div>
+        ) : (
+          <img className="map-form-picture" src={draft.image} alt="" />
+        )}
         <div className="map-form-fields">
           <Field label="Name" error={nameError}>
             <input value={draft.name} onChange={(e) => patch({ name: e.target.value })} autoFocus={isNew} />
@@ -293,10 +323,28 @@ function MapForm({ timeline, original, isNew, onSave, onCancel, onDirtyChange }:
             </Field>
           )}
 
-          <Field label="Picture" group>
+          <Field label="Shown as" hint={draft.kind === 'planet' ? 'The picture wraps round a globe: use one twice as wide as it is tall, like a world map.' : undefined}>
+            <select
+              value={draft.kind ?? 'flat'}
+              onChange={(e) =>
+                e.target.value === 'planet'
+                  ? patch({ kind: 'planet', planet: draft.planet ?? defaultLook() })
+                  : patch({ kind: undefined, planet: undefined })
+              }
+            >
+              <option value="flat">A flat map</option>
+              <option value="planet">A planet (a 3D globe)</option>
+            </select>
+          </Field>
+
+          <Field label={draft.kind === 'planet' ? 'Surface picture' : 'Picture'} group>
             <div className="inline-inputs wrap">
-              <span className="muted">{draft.width} × {draft.height} px</span>
-              <button type="button" className="btn" onClick={() => fileInput.current?.click()}>Replace…</button>
+              <span className="muted">
+                {draft.width} × {draft.height} px{draft.planet?.generated ? ' · generated' : ''}
+              </span>
+              <button type="button" className="btn" onClick={() => fileInput.current?.click()}>
+                {draft.kind === 'planet' ? 'Use your own picture…' : 'Replace…'}
+              </button>
             </div>
             <input
               ref={fileInput}
@@ -310,11 +358,121 @@ function MapForm({ timeline, original, isNew, onSave, onCancel, onDirtyChange }:
             />
             {replaceError && <p className="field-error" role="alert">{replaceError}</p>}
           </Field>
+
+          {draft.kind === 'planet' && draft.planet && (
+            <PlanetFields
+              look={draft.planet}
+              onLook={(planet) => patch({ planet })}
+              onSurface={(generated, picture) => patch({ ...picture, planet: { ...draft.planet!, generated } })}
+            />
+          )}
         </div>
       </div>
 
       {/* A new map counts as unsaved from the start, so Create works straight away */}
       <FormActions isNew={isNew} dirty={dirty} valid={!nameError} saving={saving} onRevert={reset} />
     </form>
+  );
+}
+
+/** A planet's look: its generated surface (if it has one), atmosphere, clouds and rings. */
+function PlanetFields({
+  look,
+  onLook,
+  onSurface,
+}: {
+  look: PlanetLook;
+  onLook: (look: PlanetLook) => void;
+  onSurface: (settings: SurfaceSettings, picture: { image: string; width: number; height: number }) => void;
+}) {
+  // Surface settings being changed, before they're drawn
+  const [surface, setSurface] = useState<SurfaceSettings>(look.generated ?? DEFAULT_SURFACE);
+  const [drawing, setDrawing] = useState(false);
+  const changed = JSON.stringify(surface) !== JSON.stringify(look.generated);
+  const setLook = (part: Partial<PlanetLook>) => onLook({ ...look, ...part });
+
+  function draw(settings: SurfaceSettings) {
+    setSurface(settings);
+    setDrawing(true);
+    // Let "Drawing…" show before the (blocking) drawing starts
+    setTimeout(() => {
+      onSurface(settings, generateSurface(settings));
+      setDrawing(false);
+    }, 30);
+  }
+
+  const atmosphereKind = look.atmosphere === 'none' || look.atmosphere === 'theme' ? look.atmosphere : 'custom';
+
+  return (
+    <>
+      <Field
+        label="Generated surface"
+        group
+        hint={look.generated ? 'Continents drawn from the seed. The same seed always gives the same planet.' : 'This planet uses your own picture. Draw a surface to replace it.'}
+      >
+        <div className="inline-inputs wrap planet-surface">
+          <label className="coord">
+            <span className="muted">Seed</span>
+            <NumberInput className="w-md" min={1} value={surface.seed} onChange={(v) => v !== undefined && setSurface({ ...surface, seed: v })} aria-label="Seed" />
+          </label>
+          <label className="coord">
+            <span className="muted">Sea %</span>
+            <NumberInput className="w-sm" min={0} max={100} value={surface.water} onChange={(v) => v !== undefined && setSurface({ ...surface, water: v })} aria-label="How much is sea, percent" />
+          </label>
+          <label className="coord">
+            <span className="muted">Sea</span>
+            <input type="color" value={surface.sea} onChange={(e) => setSurface({ ...surface, sea: e.target.value })} aria-label="Sea colour" />
+          </label>
+          <label className="coord">
+            <span className="muted">Land</span>
+            <input type="color" value={surface.land} onChange={(e) => setSurface({ ...surface, land: e.target.value })} aria-label="Land colour" />
+          </label>
+          <label className="coord">
+            <span className="muted">Heights</span>
+            <input type="color" value={surface.high} onChange={(e) => setSurface({ ...surface, high: e.target.value })} aria-label="Mountain colour" />
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={surface.ice} onChange={(e) => setSurface({ ...surface, ice: e.target.checked })} /> Ice caps
+          </label>
+        </div>
+        <div className="inline-inputs wrap">
+          <button type="button" className="btn btn-primary" disabled={drawing || (!changed && !!look.generated)} onClick={() => draw(surface)}>
+            {drawing ? 'Drawing…' : look.generated ? 'Draw it' : 'Draw a surface'}
+          </button>
+          <button type="button" className="btn" disabled={drawing} onClick={() => draw({ ...surface, seed: randomSeed() })}>
+            Another one
+          </button>
+        </div>
+      </Field>
+
+      <Field label="Atmosphere" group>
+        <div className="inline-inputs wrap">
+          <select
+            aria-label="Atmosphere"
+            value={atmosphereKind}
+            onChange={(e) => setLook({ atmosphere: e.target.value === 'custom' ? '#7fb2ff' : e.target.value })}
+          >
+            <option value="theme">Glow in the theme's colour</option>
+            <option value="custom">Glow in a colour of your own</option>
+            <option value="none">None</option>
+          </select>
+          {atmosphereKind === 'custom' && (
+            <input type="color" value={look.atmosphere} onChange={(e) => setLook({ atmosphere: e.target.value })} aria-label="Atmosphere colour" />
+          )}
+        </div>
+      </Field>
+
+      <Field label="Sky" group>
+        <div className="inline-inputs wrap">
+          <label className="check">
+            <input type="checkbox" checked={look.clouds} onChange={(e) => setLook({ clouds: e.target.checked })} /> Clouds
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={look.rings} onChange={(e) => setLook({ rings: e.target.checked })} /> Rings
+          </label>
+          {look.rings && <input type="color" value={look.ringColor} onChange={(e) => setLook({ ringColor: e.target.value })} aria-label="Ring colour" />}
+        </div>
+      </Field>
+    </>
   );
 }

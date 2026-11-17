@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AccountButton from '../components/AccountButton';
 import { Link } from 'react-router-dom';
 import { brand } from '../brand';
 import { useTimelines } from '../db/timelines';
@@ -33,6 +34,9 @@ function Landing() {
 
   return (
     <div className="landing">
+      <div className="landing-account">
+        <AccountButton />
+      </div>
       <section className="landing-hero">
         <h1>{brand.name}</h1>
         <p className="landing-lead">

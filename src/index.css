@@ -745,6 +745,25 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
   border: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 35%, transparent);
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35); pointer-events: none;
 }
+/* Map regions on flat maps: an SVG in picture fractions, under the pins */
+.region-layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.region-shape { stroke-width: 2; vector-effect: non-scaling-stroke; stroke-opacity: 0.9; stroke-linejoin: round; }
+.region-shape.is-clickable { pointer-events: visiblePainted; cursor: pointer; }
+.region-shape.is-clickable:hover { stroke-width: 3; }
+.region-shape.is-selected { stroke-width: 3.5; stroke-dasharray: 6 4; }
+.region-shape.is-drawing { fill-opacity: 0.2; stroke-dasharray: 5 4; }
+.region-label {
+  position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; pointer-events: none;
+  font-family: var(--font-display); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+  text-shadow: 0 0 3px #000, 0 0 8px #000; opacity: 0.95;
+}
+.region-label.is-button { position: static; transform: none; pointer-events: auto; background: none; border: 0; padding: 2px 4px; cursor: pointer; }
+.region-label.is-button:hover, .region-label.is-selected { text-decoration: underline; }
+.planet-anchor { display: block; }
+.region-corner {
+  position: absolute; left: 0; top: 0; width: 14px; height: 14px; padding: 0; transform: translate(-50%, -50%);
+  border-radius: 50%; border: 3px solid; background: #fff; cursor: move; touch-action: none;
+}
 .flat-map-controls { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 4px; }
 .flat-map-controls .btn { padding: 2px 10px; background: rgba(8, 8, 12, 0.7); color: #f2eee4; }
 /* Over the map, top left: breadcrumbs back up through the maps, and a map picker */
@@ -759,6 +778,9 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .map-trail-link { padding: 0; border: 0; background: none; color: #c9c3b6; font: inherit; text-decoration: underline; cursor: pointer; }
 .map-trail-link:hover { color: #fff; }
 .map-trail-current { font-weight: 600; }
+.map-regions-toggle { padding: 3px 10px; font-size: 0.85rem; background: rgba(8, 8, 12, 0.75); color: #f2eee4; border-color: rgba(255, 255, 255, 0.2); }
+.map-regions-toggle::before { content: '▱ '; opacity: 0.6; }
+.map-regions-toggle.is-on::before { content: '▰ '; opacity: 1; }
 .map-picker-select { padding: 4px 8px; font-size: 0.85rem; background: rgba(8, 8, 12, 0.75); color: #f2eee4; border-color: rgba(255, 255, 255, 0.2); }
 /* A place that opens another map: a small arrow after its name */
 .map-label.opens-map::before { content: '↘ '; color: var(--accent); }
@@ -790,6 +812,9 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 }
 .map-row.is-selected { border-color: var(--accent); }
 .map-thumb { flex: none; width: 56px; height: 38px; object-fit: cover; border: 1px solid var(--border); border-radius: calc(var(--radius) / 2); background: var(--space); }
+.map-thumb.is-planet { width: 38px; border-radius: 50%; object-position: 30% 50%; }
+.map-form-globe { position: relative; flex: none; width: min(100%, 320px); aspect-ratio: 1; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.planet-surface input[type='color'] { width: 44px; height: 30px; padding: 2px; }
 .map-thumb-3d { display: grid; place-items: center; color: #8fb4ff; }
 .map-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .map-row-main .muted { font-size: 0.8rem; }
@@ -1068,10 +1093,39 @@ button.chip-tag { font: inherit; font-size: inherit; background: none; }
 .family-person-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .family-person-text .muted { font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ---------- Accounts ---------- */
+.account-button { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.account-initial {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); font-size: 0.75rem; font-weight: 600;
+}
+.sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); vertical-align: middle; }
+.sync-dot.is-idle { background: #3fb36b; }
+.sync-dot.is-syncing { background: var(--accent); animation: sync-pulse 1s ease-in-out infinite alternate; }
+.sync-dot.is-offline { background: #c9a227; }
+.sync-dot.is-error { background: var(--danger); }
+@keyframes sync-pulse { from { opacity: 0.35; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sync-dot.is-syncing { animation: none; } }
+.account-page { max-width: 560px; }
+.account-form { margin: 16px 0; }
+.account-providers { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 0; }
+.account-or { text-align: center; margin: 8px 0 0; }
+.account-section { margin-top: 28px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.account-section .rows { width: 100%; }
+.account-section .row { display: flex; align-items: center; gap: 10px; }
+.offer-card { padding: 14px 16px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--surface); display: flex; flex-direction: column; gap: 10px; }
+.offer-card p { margin: 0; }
+.offer-banner { max-width: 1100px; margin: 12px auto 0; padding: 0 16px; }
+.landing { position: relative; }
+.landing-account { position: absolute; top: 0; right: 0; z-index: 1; }
+
 /* ---------- Search everything ---------- */
 .app-header { position: relative; }
 .app-header:has(.header-search) { padding-right: 170px; }
-.header-search { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.app-header:has(.account-button) { padding-right: 120px; }
+.app-header:has(.header-search):has(.account-button) { padding-right: 230px; }
+.header-actions { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 8px; }
+.header-search { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
 .header-search kbd, .search-help kbd { font: inherit; font-size: 0.75rem; padding: 0 5px; border: 1px solid var(--border); border-radius: 4px; }
 .search-dialog {
   width: min(620px, calc(100vw - 32px)); max-height: min(70vh, 560px); margin: 12vh auto auto; padding: 0;
@@ -1093,6 +1147,9 @@ button.chip-tag { font: inherit; font-size: inherit; background: none; }
 .search-help { margin: 0; padding: 8px 16px; border-top: 1px solid var(--border); font-size: 0.75rem; }
 @media (max-width: 600px) {
   .app-header:has(.header-search) { padding-right: 70px; }
+  .app-header:has(.account-button) { padding-right: 100px; }
+  .app-header:has(.header-search):has(.account-button) { padding-right: 130px; }
+  .header-actions { right: 12px; }
   .header-search { font-size: 0; }
   .header-search kbd { display: none; }
   .header-search span { font-size: 1.1rem; }

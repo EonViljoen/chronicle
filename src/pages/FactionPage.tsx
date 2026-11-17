@@ -12,6 +12,7 @@ import { useFactionTheme } from '../components/useFactionTheme';
 import { useThemeOverride } from '../components/themeOverride';
 import { membersOf } from '../lib/characters';
 import { ancestry, mainFactionOf, withDescendants } from '../lib/factions';
+import { regionColor } from '../lib/regions';
 import { RELATION_KINDS, relationDates, relationLabel, relationsOf } from '../lib/relations';
 
 export default function FactionPage() {
@@ -37,6 +38,8 @@ function FactionView({ timeline }: { timeline: Timeline }) {
   const members = membersOf(faction.id, timeline);
   const nameOf = (id: string) => timeline.factions.find((f) => f.id === id)?.name;
   const relations = relationsOf(faction.id, timeline);
+  // The regions it (or its sub-factions) holds
+  const regions = timeline.regions.filter((r) => r.factionId && ids.has(r.factionId)).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="page history-page">
@@ -88,6 +91,18 @@ function FactionView({ timeline }: { timeline: Timeline }) {
         </div>
 
         <aside className="history-side">
+          {regions.length > 0 && (
+            <section className="history-section">
+              <h2 className="history-heading">Holds</h2>
+              <div className="chips">
+                {regions.map((r) => (
+                  <Link key={r.id} className="chip chip-link" to={`/t/${timeline.id}/regions/${encodeURIComponent(r.id)}`} style={{ borderColor: regionColor(r, timeline.factions, 'var(--accent)') }}>
+                    ▱ {r.name}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
           {children.length > 0 && (
             <section className="history-section">
               <h2 className="history-heading">Sub-factions</h2>

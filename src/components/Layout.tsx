@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import SearchDialog from './SearchDialog';
+import AccountButton, { OfferBanner } from './AccountButton';
 import { Link, Outlet, useMatch } from 'react-router-dom';
 import { brand } from '../brand';
 import { useTimeline } from '../db/timelines';
@@ -40,6 +41,7 @@ export default function Layout() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [timeline]);
+  const onAccountPage = useMatch('/account') !== null;
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
   return (
@@ -57,13 +59,17 @@ export default function Layout() {
             </span>
             {isHome && <span className="brand-sub">{brand.tagline}</span>}
           </div>
-          {timeline && (
-            <button type="button" className="btn header-search" onClick={() => setSearching(true)} aria-keyshortcuts="Control+K Meta+K">
-              <span aria-hidden="true">⌕</span> Search <kbd>{isMac ? '⌘' : 'Ctrl+'}K</kbd>
-            </button>
-          )}
+          <div className="header-actions">
+            {timeline && (
+              <button type="button" className="btn header-search" onClick={() => setSearching(true)} aria-keyshortcuts="Control+K Meta+K">
+                <span aria-hidden="true">⌕</span> Search <kbd>{isMac ? '⌘' : 'Ctrl+'}K</kbd>
+              </button>
+            )}
+            <AccountButton />
+          </div>
         </header>
       )}
+      {!onAccountPage && <OfferBanner />}
       {searching && timeline && <SearchDialog timeline={timeline} inEditor={inEditor} onClose={() => setSearching(false)} />}
       <main className="app-main">
         <Outlet />

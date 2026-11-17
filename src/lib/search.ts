@@ -14,11 +14,11 @@ export interface SearchResult {
 }
 
 /** The editor tab for each kind, for opening results in the editor. */
-export const EDITOR_TAB: Record<LinkKind, string> = { event: 'events', character: 'characters', place: 'places', faction: 'factions', lore: 'lore' };
+export const EDITOR_TAB: Record<LinkKind, string> = { event: 'events', character: 'characters', place: 'places', faction: 'factions', lore: 'lore', region: 'regions' };
 
 /**
  * Searches everything in a timeline: events (title, summary, details, date,
- * tags), characters, places, factions and lore pages. Every word typed must
+ * tags), characters, places, factions, lore pages and map regions. Every word typed must
  * appear somewhere. Matches in the name rank first, best of all at its
  * start. In the editor (`inEditor`), results open the item's form.
  */
@@ -39,6 +39,7 @@ export function searchTimeline(t: Timeline, query: string, inEditor = false, lim
     ...t.places.map((p) => ({ kind: 'place' as const, id: p.id, title: p.name, detail: 'Place', text: p.description })),
     ...t.factions.map((f) => ({ kind: 'faction' as const, id: f.id, title: f.name, detail: faction(f.parentId) ? `Part of ${faction(f.parentId)}` : 'Faction', text: f.description ?? '' })),
     ...t.lore.map((p) => ({ kind: 'lore' as const, id: p.id, title: p.title, detail: p.category || 'Lore', text: p.body })),
+    ...t.regions.map((r) => ({ kind: 'region' as const, id: r.id, title: r.name, detail: faction(r.factionId) ? `Region · ${faction(r.factionId)}` : 'Region', text: r.description })),
   ];
 
   const scored = candidates

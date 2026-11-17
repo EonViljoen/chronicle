@@ -85,3 +85,15 @@ db.version(7)
         ref.value = upgradeTimeline(timeline);
       }),
   );
+
+// Version 8: map regions, planets (timeline schema 7).
+db.version(8)
+  .stores({ timelines: 'id, title, updatedAt', themes: 'id, name' })
+  .upgrade((tx) =>
+    tx
+      .table('timelines')
+      .toCollection()
+      .modify((timeline, ref) => {
+        ref.value = upgradeTimeline(timeline);
+      }),
+  );

@@ -11,6 +11,7 @@ import { CharacterChip, FactionChip, MissingItem } from '../components/history/C
 import { charactersIn } from '../lib/characters';
 import { compareEvents } from '../lib/dates';
 import { allMaps, mapPath } from '../lib/maps';
+import { regionColor, regionsWith } from '../lib/regions';
 
 export default function PlacePage() {
   return <TimelineGate>{(timeline) => <PlaceView timeline={timeline} />}</TimelineGate>;
@@ -29,6 +30,7 @@ function PlaceView({ timeline }: { timeline: Timeline }) {
   // Maps opened by clicking this place
   const maps = allMaps(timeline);
   const opens = timeline.maps.filter((m) => m.placeId === place.id);
+  const regions = regionsWith(place, timeline.regions);
 
   return (
     <div className="page history-page">
@@ -60,6 +62,18 @@ function PlaceView({ timeline }: { timeline: Timeline }) {
         </div>
 
         <aside className="history-side">
+          {regions.length > 0 && (
+            <section className="history-section">
+              <h2 className="history-heading">In</h2>
+              <div className="chips">
+                {regions.map((r) => (
+                  <Link key={r.id} className="chip chip-link" to={`/t/${timeline.id}/regions/${encodeURIComponent(r.id)}`} style={{ borderColor: regionColor(r, timeline.factions, 'var(--accent)') }}>
+                    ▱ {r.name}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
           {people.length > 0 && (
             <section className="history-section">
               <h2 className="history-heading">People here</h2>

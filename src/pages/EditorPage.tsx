@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useBlocker, useSearchParams, type BlockerFunction } from 'react-router-dom';
-import type { Faction, FactionRelation, Era, LorePage, Place, Timeline, TimelineEvent } from '../types/timeline';
+import type { Faction, FactionRelation, Era, LorePage, Place, Region, Timeline, TimelineEvent } from '../types/timeline';
+import RegionForm from '../components/editor/RegionForm';
+import { blankShape, describeShape, regionColor } from '../lib/regions';
 import RelationForm from '../components/editor/RelationForm';
 import LoreForm from '../components/editor/LoreForm';
 import { RELATION_KINDS } from '../lib/relations';
@@ -11,7 +13,7 @@ import { characterGroups } from '../lib/characters';
 import { FactionMark } from '../components/history/Chips';
 import TimelineGate from '../components/TimelineGate';
 import { EditOnly } from '../components/EditOnly';
-import { allMaps, mapsWithPlace } from '../lib/maps';
+import { allMaps, mapsWithPlace, masterMapId } from '../lib/maps';
 import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
 import PicturesSection from '../components/editor/PicturesSection';
@@ -45,9 +47,11 @@ import {
   saveEra,
   saveEvent,
   savePlace,
+  saveRegion,
+  removeRegion,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'factions', 'relations', 'characters', 'places', 'lore', 'maps', 'starmap', 'calendar', 'theme', 'website', 'settings'] as const;
+const TABS = ['events', 'eras', 'factions', 'relations', 'characters', 'places', 'lore', 'maps', 'regions', 'starmap', 'calendar', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -155,6 +159,16 @@ function Editor({ timeline }: { timeline: Timeline }) {
     [timeline.relations],
   );
   const lore = useMemo(() => sortLore(timeline.lore), [timeline.lore]);
+  const mapEntries = allMaps(timeline);
+  const mapName = (id: string) => mapEntries.find((m) => m.id === id)?.name ?? 'No map';
+  // Regions by map (in map order), then name
+  const regions = useMemo(
+    () => {
+      const order = allMaps(timeline).map((m) => m.id);
+      return [...timeline.regions].sort((a, b) => order.indexOf(a.mapId) - order.indexOf(b.mapId) || a.name.localeCompare(b.name));
+    },
+    [timeline],
+  );
   const groupOfCharacter = useMemo(() => new Map(groups.flatMap((g) => g.characters.map((c) => [c.id, g.name] as const))), [groups]);
 
   const counts: Record<Tab, number | null> = {
@@ -166,6 +180,7 @@ function Editor({ timeline }: { timeline: Timeline }) {
     characters: characters.length,
     places: places.length,
     maps: allMaps(timeline).length,
+    regions: timeline.regions.length,
     starmap: null,
     calendar: null,
     theme: null,
@@ -317,6 +332,37 @@ function Editor({ timeline }: { timeline: Timeline }) {
           renderForm={(p) => <LoreForm {...p} timeline={timeline} />}
         />
       )}
+
+      {tab === 'regions' &&
+        (mapEntries.length === 0 ? (
+          <div className="empty">
+            <p>Regions are drawn on a map, and this timeline has none yet.</p>
+            <Link className="btn" to="?tab=maps">Add a map or planet</Link>
+          </div>
+        ) : (
+          <CollectionTab<Region>
+            {...shared}
+            items={regions}
+            noun="region"
+            blank={() => {
+              const mapId = masterMapId(timeline) ?? mapEntries[0].id;
+              return { id: '', name: '', mapId, shape: blankShape(mapId, timeline.map.type === 'galaxy3d' ? timeline.map.radius : 100), fill: 0.3, description: '' };
+            }}
+            nameOf={(r) => r.name}
+            matches={(r, q) => `${r.name} ${mapName(r.mapId)}`.toLowerCase().includes(q)}
+            groupOf={(r) => mapName(r.mapId)}
+            renderRow={(r) => (
+              <>
+                <span className="swatch" style={{ background: regionColor(r, timeline.factions, 'var(--accent)') }} />
+                <span className="row-main">{r.name}</span>
+                <span className="row-meta">{describeShape(r.shape)}</span>
+              </>
+            )}
+            save={saveRegion}
+            remove={removeRegion}
+            renderForm={(p) => <RegionForm {...p} timeline={timeline} />}
+          />
+        ))}
 
       {tab === 'characters' && (
         <CollectionTab<CharacterDraft>

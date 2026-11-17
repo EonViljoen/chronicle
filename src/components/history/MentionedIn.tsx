@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Timeline } from '../../types/timeline';
 import { backlinks, linkHref, type LinkKind } from '../../lib/links';
 
-const ICONS: Record<LinkKind, string> = { event: '◆', character: '☺', place: '⌖', faction: '⚑', lore: '❡' };
+const ICONS: Record<LinkKind, string> = { event: '◆', character: '☺', place: '⌖', faction: '⚑', lore: '❡', region: '▱' };
 
 /**
  * "Mentioned in": everything whose text [[links]] to this page, as chips.

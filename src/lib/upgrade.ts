@@ -127,6 +127,12 @@ function v5to6(t: V5Timeline): Timeline {
   };
 }
 
+// ---------- Version 6 -> 7: map regions ----------
+
+function v6to7(t: Omit<Timeline, 'regions'>): Timeline {
+  return { ...t, schemaVersion: 7, regions: [] };
+}
+
 /** Returns the timeline in the current shape. Already-current ones pass through unchanged. */
 export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
   let t: unknown = data;
@@ -135,7 +141,8 @@ export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
   if ((t as { schemaVersion: number }).schemaVersion < 4) t = v3to4(t as V3Timeline);
   if ((t as { schemaVersion: number }).schemaVersion < 5) t = v4to5(t as V4Timeline);
   if ((t as { schemaVersion: number }).schemaVersion < 6) t = v5to6(t as V5Timeline);
-  // Future steps go here: if (version < 7) t = v6to7(t) …
+  if ((t as { schemaVersion: number }).schemaVersion < 7) t = v6to7(t as Omit<Timeline, 'regions'>);
+  // Future steps go here: if (version < 8) t = v7to8(t) …
   // A hand-made current file might leave lists out
   const current = t as Timeline;
   return {
@@ -144,6 +151,7 @@ export function upgradeTimeline(data: { schemaVersion: number }): Timeline {
     characters: (current.characters ?? []).map((c) => ({ ...c, description: c.description ?? '', feats: c.feats ?? [] })),
     relations: (current.relations ?? []).map((r) => ({ ...r, note: r.note ?? '' })),
     relationships: current.relationships ?? [],
+    regions: (current.regions ?? []).map((r) => ({ ...r, fill: r.fill ?? 0.3, description: r.description ?? '' })),
     lore: (current.lore ?? []).map((p) => ({ ...p, category: p.category ?? '', body: p.body ?? '', sources: p.sources ?? [] })),
     events: current.events.map((e) => (e.characterIds && e.tags && e.sources ? e : { ...e, characterIds: e.characterIds ?? [], tags: e.tags ?? [], sources: e.sources ?? [] })),
     schemaVersion: SCHEMA_VERSION,
