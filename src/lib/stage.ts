@@ -117,7 +117,7 @@ export interface Lane {
   /** The faction's id; undefined for "No faction". */
   id?: string;
   name: string;
-  /** For a child faction, the factions above it: "Imperium › Space Marines" shows "Imperium" small. */
+  /** For a child faction, the factions above it: "The Concord › Wardens of the Vale" shows "The Concord" small. */
   parents?: string;
   color?: string;
   imageUrl?: string;
@@ -128,8 +128,8 @@ const known = (id: string | undefined, factions: Faction[]) => (id && factions.s
 
 /**
  * The lane an event sits in: its own faction's, at whatever depth. An event of
- * the Space Marines goes in the Space Marines lane; only events of the Imperium
- * itself go in the Imperium lane. Its main faction, else its first faction.
+ * the Wardens of the Vale goes in the Wardens' lane; only events of the Concord
+ * itself go in the Concord's lane. Its main faction, else its first faction.
  */
 export function laneOf(event: TimelineEvent, factions: Faction[]): string | undefined {
   return known(mainFactionOf(event) ?? event.factionIds[0], factions);

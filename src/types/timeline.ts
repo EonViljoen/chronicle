@@ -36,7 +36,7 @@ export interface WebsiteSettings {
  *
  * - years:    one count with labels either side of year 0 ("500 BC", "AD 1066", "19 BBY")
  * - ages:     named ages that each count from 1 ("T.A. 3019", "4E 201")
- * - cycles:   fixed-length numbered cycles ("999.M41": year 999 of the 41st millennium)
+ * - cycles:   fixed-length numbered cycles ("999.M3": year 999 of the 3rd millennium)
  * - freeform: no calendar; each event has its own text label
  *
  * Templates use {n}, {year}, {cycle}, {age} and {name} placeholders.
@@ -82,7 +82,7 @@ export interface Age {
 /**
  * - exact:   the label as is
  * - circa, decade, century, millennium: approximate, shown with "c."
- * - period:  only the age or cycle is known ("M31", "Third Age")
+ * - period:  only the age or cycle is known ("M3", "Third Age")
  */
 export type DatePrecision = 'exact' | 'circa' | 'decade' | 'century' | 'millennium' | 'period';
 
@@ -94,7 +94,7 @@ export interface EventDate {
   label?: string;
 }
 
-/** A coloured band behind the timeline, e.g. "The Horus Heresy". */
+/** A coloured band behind the timeline, e.g. "The Crown Wars". */
 export interface Era {
   id: string;
   name: string;
@@ -107,7 +107,7 @@ export interface Era {
 /**
  * A tag with a colour, e.g. factions, characters or themes. Factions nest:
  * a faction with a `parentId` sits under that faction, to any depth
- * ("Imperium › Space Marines › Ultramarines"). See lib/factions.ts.
+ * ("The Concord › Wardens of the Vale › Vale Rangers"). See lib/factions.ts.
  */
 export interface Faction {
   id: string;

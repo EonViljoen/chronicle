@@ -102,9 +102,12 @@ export async function duplicateTimeline(id: string) {
 /** Save an editable copy of a published timeline in this browser. */
 export const copyToBrowser = (timeline: Timeline) => addCopy(timeline);
 
-/** Store a copy under a fresh id, so imports never overwrite existing timelines. */
-async function addCopy(source: Timeline, title = source.title): Promise<Timeline> {
-  const now = Date.now();
+/**
+ * Store a copy under a fresh id, so imports never overwrite existing timelines.
+ * (The seed timeline passes its own id and dates instead, see seedOnFirstVisit.)
+ */
+async function addCopy(source: Timeline, title = source.title, keep?: { id: string; at: number }): Promise<Timeline> {
+  const now = keep?.at ?? Date.now();
   // A file may bring its themes along: add them to the library and keep just the ids.
   // ensureTheme may save a clashing theme under a new id, so faction links are remapped.
   const { themeDef, themeDefs, ...rest } = source;
@@ -112,7 +115,7 @@ async function addCopy(source: Timeline, title = source.title): Promise<Timeline
   const newIds = new Map<string, string>();
   for (const def of themeDefs ?? []) newIds.set(def.id, await ensureTheme(def));
   const factions = rest.factions.map((f) => (f.themeId && newIds.has(f.themeId) ? { ...f, themeId: newIds.get(f.themeId) } : f));
-  const copy: Timeline = { ...rest, factions, theme, id: newId(), title, createdAt: now, updatedAt: now };
+  const copy: Timeline = { ...rest, factions, theme, id: keep?.id ?? newId(), title, createdAt: now, updatedAt: now };
   await db.timelines.add(copy);
   return copy;
 }
@@ -159,15 +162,21 @@ export async function importTimelineFile(file: File): Promise<Timeline> {
  * If the site sets a seed timeline (brand.seedUrl), add it on the visitor's
  * first visit so they land on content. Remembered per browser, so deleting
  * the seeded timeline doesn't bring it back.
+ *
+ * The copy keeps a fixed id ("seed-…") and the file's own save date, so someone
+ * signed in on several devices gets one shared copy in their account, and
+ * a fresh seed on a new device never overwrites their edits to it.
  */
 export async function seedOnFirstVisit(): Promise<void> {
-  if (!brand.seedUrl || readPref('seeded', false)) return;
+  if (!brand.seedUrl || brand.isSite || brand.readOnly || readPref('seeded', false)) return;
   writePref('seeded', true); // set first, so a second call can't seed twice
   try {
     const res = await fetch(brand.seedUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data: unknown = await res.json();
-    await addCopy(parseTimeline(data));
+    const timeline = parseTimeline(data);
+    const id = `seed-${timeline.id}`;
+    if (!(await db.timelines.get(id))) await addCopy(timeline, timeline.title, { id, at: timeline.updatedAt || 1 });
   } catch (e) {
     writePref('seeded', false); // try again next visit
     console.error(`Couldn't load the seed timeline from ${brand.seedUrl}`, e);

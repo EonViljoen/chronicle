@@ -157,7 +157,7 @@ That's the whole lifecycle: **render from data → user does something → data 
 ## 3. A tour of the project folders
 
 ```
-wh40k-timeline/
+chronicle/
 ├── index.html                  The one HTML page; loads main.tsx
 ├── vite.config.ts              Vite settings (just the React plugin)
 ├── tsconfig*.json              TypeScript settings
@@ -177,7 +177,7 @@ wh40k-timeline/
     │   ├── dates.ts            Calendars: turning a date number into "AD 1066" and back
     │   ├── eras.ts             Which era a date is in; era bands
     │   ├── filters.ts          Does an event match the search/filters?
-    │   ├── ids.ts              "Horus Heresy" -> "horus-heresy"
+    │   ├── ids.ts              "Siege of Brightvale" -> "siege-of-brightvale"
     │   ├── images.ts           Reading and shrinking uploaded pictures (maps, portraits)
     │   ├── links.ts            [[Links]] in text: finding what they point at, renaming
     │   ├── maps.ts             The starmap and flat maps as one list; the map tree
@@ -1364,18 +1364,18 @@ Every date is stored as a single `sortKey` number, which sets its order. [`types
 ```ts
 export interface EventDate {
   sortKey: number;          // ordering; higher = later
-  precision: DatePrecision; // 'exact', 'circa', … or 'period' ("M31": only the cycle is known)
+  precision: DatePrecision; // 'exact', 'circa', … or 'period' ("M2": only the cycle is known)
   label?: string;           // only for free-text dates ("Time immemorial")
 }
 ```
 
-What you *see* comes from the timeline's **calendar**, another discriminated union (`years`, `ages`, `cycles`, `freeform`). [`lib/dates.ts`](../src/lib/dates.ts) converts both ways: `splitKey` turns a number into the calendar's parts (cycle 41, year 999), `joinKey` turns parts back into a number, and `formatKey`/`formatDate` build the label from the calendar's templates. With the "Numbered millennia" calendar (`{year}.M{cycle}`, 1000-year cycles):
+What you *see* comes from the timeline's **calendar**, another discriminated union (`years`, `ages`, `cycles`, `freeform`). [`lib/dates.ts`](../src/lib/dates.ts) converts both ways: `splitKey` turns a number into the calendar's parts (cycle 3, year 999), `joinKey` turns parts back into a number, and `formatKey`/`formatDate` build the label from the calendar's templates. With the "Numbered millennia" calendar (`{year}.M{cycle}`, 1000-year cycles):
 
 | Date | Calculation | sortKey |
 |---|---|---|
-| `005.M31` | 30 × 1000 + 5 | 30005 |
-| `999.M41` | 40 × 1000 + 999 | 40999 |
-| `M31` (year unknown) | 30 × 1000, precision `period` | 30000 |
+| `005.M2` | 1 × 1000 + 5 | 1005 |
+| `999.M3` | 2 × 1000 + 999 | 2999 |
+| `M2` (year unknown) | 1 × 1000, precision `period` | 1000 |
 | 60 million years before M1 | negative | −60000000 |
 
 The same number means different things in different calendars: 1066 is "1066" with years, "2A 66" with three 1000-year ages. Because labels aren't stored, changing the calendar relabels every date at once, and the order never changes. It also means the date inputs ([`DateInputs.tsx`](../src/components/form/DateInputs.tsx)) never hold their own state: they split the number, show the parts, and join the edited parts back into a number for the parent.
@@ -1404,7 +1404,7 @@ export function matchesFilters(event: TimelineEvent, f: Filters, calendar: Calen
 
 ### Nested factions
 
-Factions can sit inside each other ("Imperium › Space Marines › Ultramarines"), to any depth. They're still stored as a **flat list**; each faction just has an optional `parentId`. [`lib/factions.ts`](../src/lib/factions.ts) builds the tree when it's needed:
+Factions can sit inside each other ("The Concord › Wardens of the Vale › Vale Rangers"), to any depth. They're still stored as a **flat list**; each faction just has an optional `parentId`. [`lib/factions.ts`](../src/lib/factions.ts) builds the tree when it's needed:
 
 - `factionTree` returns every faction in display order with its depth, using a small **recursive** function: `visit(faction)` adds the faction, then calls `visit` on each of its children. The editor's list and the viewer's dropdown use the depth for indenting.
 - `withDescendants(id)` collects a faction and everything under it. The viewer uses it so that **filtering by a parent includes its children**: before filtering, `TimelineViewer` expands the picked ids (`expandFactions`), so `matchesFilters` above didn't need to change at all.
@@ -1694,8 +1694,8 @@ One piece of state (`filters.placeId`) changed, and the toolbar, track, counter,
 
 Each one is small and touches a different idea. Do them on a branch, with `npm run dev` running. Create a timeline (or import one) and add a few events first, so there's something to look at.
 
-1. **Read the props** *(components, props).* Add an "event count" badge to each era chip in the viewer's era bar, e.g. "The Horus Heresy (3)". Where do you get the count? (Hint: `visible` and `eraFor` are already in `TimelineViewer`.)
-2. **Derived, not stored** *(state vs derived data).* Show "Showing events from 005.M31 to 999.M41" under the toolbar, using the first and last *visible* events. Resist adding `useState`.
+1. **Read the props** *(components, props).* Add an "event count" badge to each era chip in the viewer's era bar, e.g. "The Crown Wars (3)". Where do you get the count? (Hint: `visible` and `eraFor` are already in `TimelineViewer`.)
+2. **Derived, not stored** *(state vs derived data).* Show "Showing events from 005.M2 to 999.M3" under the toolbar, using the first and last *visible* events. Resist adding `useState`.
 3. **A new keyboard shortcut** *(effects, cleanup).* Make `/` focus the search box. You'll need a ref to the input in `ViewerToolbar`, a way to reach it from the viewer's key handler, and to remember `preventDefault()`. Then delete the effect's `return () => …` line, save a few times (hot reload re-runs effects), and press `/` to see why cleanups matter. Put it back.
 4. **Break the functional update** *(state snapshots).* In `TimelineViewer`, change `step` back to `const t = neighbourOf(selectedId, direction); if (t) select(t.id);`. Hold down → and watch it stutter. Read the lint warning about dependencies, then undo.
 5. **A new field end to end** *(data model, forms, mutations).* Add an optional `location?: string` text field to events ("Where, in words"). Change the type, add a `Field` to `EventForm`, include it in `clean`, and show it in `EventPanel`. Old timelines don't have it; make sure nothing breaks when it's `undefined`.

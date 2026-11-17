@@ -8,7 +8,7 @@ import type { Age, Calendar, EventDate, TimelineEvent } from '../types/timeline'
  *
  *   years   (before "{n} BC", after "AD {n}"):  -500 -> "500 BC"     1066 -> "AD 1066"
  *   ages    (First Age 590 years, then Second):     590 -> "1A 590"    591 -> "2A 1"
- *   cycles  (1000 years, "{year}.M{cycle}"):      40999 -> "999.M41"  -60000000 -> "60M years before M1"
+ *   cycles  (1000 years, "{year}.M{cycle}"):      2999 -> "999.M3"  -60000000 -> "60M years before M1"
  *   freeform: no calendar; events carry their own text label
  */
 
@@ -42,7 +42,7 @@ export const CALENDAR_PRESETS: { name: string; calendar: Calendar }[] = [
     },
   },
   {
-    name: 'Numbered millennia: 999.M41',
+    name: 'Numbered millennia: 999.M3',
     calendar: { type: 'cycles', length: 1000, format: '{year}.M{cycle}', cycleFormat: 'M{cycle}', before: '{n} years before M1' },
   },
   { name: 'Free text on every event', calendar: { type: 'freeform' } },
@@ -146,7 +146,7 @@ export function joinKey(parts: DateParts, calendar: Calendar): number {
 
 /** The label for a sortKey, e.g. for era start/end markers. */
 export function formatKey(key: number, calendar: Calendar): string {
-  // A decimal part only orders events within the same year: 30007.002 is still 007.M31, and
+  // A decimal part only orders events within the same year: 2007.002 is still 007.M3, and
   // -65000000.1 is still 65M years before M1 (just a little further back)
   if (calendar.type !== 'freeform') key = Math.trunc(key);
   const parts = splitKey(key, calendar);
@@ -169,7 +169,7 @@ export function formatKey(key: number, calendar: Calendar): string {
   return String(key);
 }
 
-/** The label when only the age or cycle is known: "Third Age", "M31". */
+/** The label when only the age or cycle is known: "Third Age", "M3". */
 export function formatPeriod(key: number, calendar: Calendar): string {
   const parts = splitKey(key, calendar);
   if (parts.type === 'ages' && calendar.type === 'ages' && parts.age >= 0) return calendar.ages[parts.age].name;

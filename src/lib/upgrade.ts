@@ -35,7 +35,7 @@ const V1_CALENDARS: Record<V1Kind, Calendar> = {
 function upgradeDateV1(date: V1Date, format: V1Kind): EventDate {
   const { sortKey, precision, kind, display } = date;
   if (kind === 'freeform' || kind !== format) return { sortKey, precision, label: display };
-  if (kind === 'millennium' && precision === 'millennium') return { sortKey, precision: 'period' }; // "M31"
+  if (kind === 'millennium' && precision === 'millennium') return { sortKey, precision: 'period' }; // "M3"
   return { sortKey, precision };
 }
 

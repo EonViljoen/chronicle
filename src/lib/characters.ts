@@ -6,7 +6,7 @@ import { factionPath, factionTree, withDescendants } from './factions';
 export interface CharacterGroup {
   /** The faction's id, or undefined for independent characters. */
   factionId?: string;
-  /** "Imperium › Space Marines", or "Independent". */
+  /** "The Concord › Wardens of the Vale", or "Independent". */
   name: string;
   color?: string;
   imageUrl?: string;

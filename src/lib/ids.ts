@@ -3,7 +3,7 @@ export function slugify(text: string) {
 }
 
 /**
- * A readable id made from a name ("Horus Heresy" -> "horus-heresy"),
+ * A readable id made from a name ("Siege of Brightvale" -> "siege-of-brightvale"),
  * with -2, -3... added if it's already taken. Ids never change after
  * creation, so renaming an item doesn't break links to it.
  */

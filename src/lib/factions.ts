@@ -17,7 +17,7 @@ function parentOf(faction: Faction, byId: Map<string, Faction>): Faction | undef
   return faction.parentId ? byId.get(faction.parentId) : undefined;
 }
 
-/** The chain from the top level down to this faction: [Imperium, Space Marines]. */
+/** The chain from the top level down to this faction: [The Concord, Wardens of the Vale]. */
 export function ancestry(id: string, factions: Faction[]): Faction[] {
   const byId = new Map(factions.map((c) => [c.id, c]));
   const chain: Faction[] = [];
@@ -29,7 +29,7 @@ export function ancestry(id: string, factions: Faction[]): Faction[] {
   return chain;
 }
 
-/** "Imperium › Space Marines" */
+/** "The Concord › Wardens of the Vale" */
 export const factionPath = (id: string, factions: Faction[]) =>
   ancestry(id, factions)
     .map((c) => c.name)

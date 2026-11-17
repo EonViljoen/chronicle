@@ -11,7 +11,7 @@ npm run dev
 
 ## Sample timeline
 
-`samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, characters with feats and life dates, `[[links]]` in text, a named-ages calendar, eras, the 3D starmap and four nested flat maps: The Shattered Realms › Brightvale, and Starmap › The Hollow Reach › Hollowhold Keep). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, events with end dates (one running into the next era, one outlasting its era), an event with no faction, one with no place, a very long title, a character with only a birth date, an independent character with no dates, and a deliberately broken `[[link]]`. Load it with **Import file…** on the timelines page.
+`public/samples/test-timeline.json` is a made-up setting that uses every feature (nested factions with themes, main factions, characters with feats and life dates, `[[links]]` in text, a named-ages calendar, eras, the 3D starmap and four nested flat maps: The Shattered Realms › Brightvale, and Starmap › The Hollow Reach › Hollowhold Keep). It also covers the awkward cases: an era with more events than fit on screen (The Crown Wars, 14), an era with one event, an empty era, events outside every era, every date precision, events with end dates (one running into the next era, one outlasting its era), an event with no faction, one with no place, a very long title, a character with only a birth date, an independent character with no dates, and a deliberately broken `[[link]]`. Load it with **Import file…** on the timelines page. Production builds (and so the hosted site) add it for first-time visitors, set by `VITE_SEED_URL` in `.env.production`.
 
 ## How data is stored
 
@@ -32,6 +32,16 @@ A site can reuse this code with its own name, look and content, without editing 
 - **Branding:** set `VITE_BRAND_NAME`, `VITE_BRAND_TAGLINE`, `VITE_BRAND_MARK`, `VITE_BRAND_FOOTER`, `VITE_DEFAULT_THEME`, `VITE_SEED_URL`, `VITE_PUBLISHED`, `VITE_READ_ONLY` and `VITE_DEMO_URL` in a `.env` file. See `src/brand.ts`.
 - **Published timelines:** list timeline files in `VITE_PUBLISHED`. Every visitor sees them read-only, loaded fresh on each visit, so replacing a file updates the site. Add `VITE_READ_ONLY=true` to hide creating and editing entirely.
 - **Themes:** build them in the app (**Edit → Theme**): colours, fonts, node shapes and ornaments, starting from a built-in preset. Export a theme to share it; exported timelines carry their theme.
+
+## Hosting the app (Vercel)
+
+`vercel.json` has the settings: Vite builds into `dist`, every path that isn't a file serves `index.html` (so links like `/t/…/edit` work when opened directly), and the hashed files in `assets/` are cached for a year.
+
+1. On [vercel.com](https://vercel.com), **Add New → Project** and import this GitHub repository. The settings come from `vercel.json`; nothing to change.
+2. For accounts, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` under **Settings → Environment Variables** (for Production and Preview), then redeploy. Without them the site works, saving in the browser only.
+3. In Supabase, add the site's address (e.g. `https://chronicle.vercel.app`) under **Authentication → URL Configuration**: as the Site URL, and as a Redirect URL with `/**` after it.
+
+Every push to `main` deploys again. Only what's in the repository is published: timelines live in visitors' browsers (and accounts), never in the site.
 
 ## Accounts and cloud saving
 
