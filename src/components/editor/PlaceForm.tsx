@@ -81,7 +81,7 @@ export default function PlaceForm({ original, isNew, onSave, onDelete, onDirtyCh
 
       {map.type !== 'galaxy3d' && flatMaps.length === 0 && (
         <p className="muted">
-          This timeline has no map yet. Add a map picture in the <Link to="?tab=maps">Maps tab</Link>, or turn on the 3D starmap in the <Link to="?tab=starmap">Starmap tab</Link>.
+          This timeline has no map yet. Add a map picture, a planet or the 3D starmap in the <Link to="?tab=maps">Maps tab</Link>.
         </p>
       )}
 

@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import type { MapConfig, Timeline } from '../../types/timeline';
-import { updateTimeline } from '../../db/timelines';
+import type { GalaxyConfig, Timeline } from '../../types/timeline';
 import { GalaxyMap } from '../map/LazyGalaxyMap';
 import Field from '../form/Field';
 import NumberInput from '../form/NumberInput';
@@ -9,42 +8,47 @@ import FormActions from './FormActions';
 import { useDraft } from './useDraft';
 
 /** A new starmap: four arms, coloured by the theme. The custom colours are only a starting point. */
-const DEFAULT_GALAXY: MapConfig = { type: 'galaxy3d', arms: 4, radius: 100, colors: 'theme', coreColor: '#ffd9a0', armColor: '#7aa6ff' };
+export const DEFAULT_GALAXY: GalaxyConfig = { type: 'galaxy3d', arms: 4, radius: 100, colors: 'theme', coreColor: '#ffd9a0', armColor: '#7aa6ff' };
 
 interface Props {
   timeline: Timeline;
+  original: GalaxyConfig;
+  /** Adding the starmap (it's off until saved). */
+  isNew: boolean;
+  onSave: (map: GalaxyConfig) => Promise<void>;
+  onCancel: () => void;
   onDirtyChange: (dirty: boolean) => void;
 }
 
 /**
- * The editor's Starmap tab: turn the 3D galaxy on or off, its arms and its
- * colours, with a live preview. Places are positioned on it in the Places
- * tab; maps can sit inside it (Maps tab).
+ * The 3D starmap's form, opened in the Maps tab: its arms and colours, with
+ * a live preview. A timeline has at most one starmap; places are positioned
+ * on it in the Places tab, and maps can sit inside it.
  */
-export default function StarmapTab({ timeline, onDirtyChange }: Props) {
-  const save = async (d: { map: MapConfig }) => {
-    await updateTimeline(timeline.id, (t) => ({ ...t, map: d.map }));
-    onDirtyChange(false);
-  };
-  const { draft, patch, dirty, saving, submit, reset } = useDraft({ map: timeline.map }, save, onDirtyChange);
+export default function StarmapForm({ timeline, original, isNew, onSave, onCancel, onDirtyChange }: Props) {
+  const { draft, patch, dirty, saving, submit, reset } = useDraft({ map: original }, (d) => onSave(d.map), onDirtyChange, isNew);
   const map = draft.map;
   const placed = timeline.places.filter((p) => p.position).length;
 
   return (
-    <form className="form starmap-tab" onSubmit={(e) => submit(e)}>
-      <div>
-        <h2 className="form-title">Starmap</h2>
-        <p className="muted">A 3D spiral galaxy to place things on. Your own map pictures are in the Maps tab.</p>
+    <form className="form map-form starmap-form" onSubmit={(e) => submit(e)}>
+      <div className="map-form-head">
+        <h3>{isNew ? 'New starmap' : 'Edit the starmap'}</h3>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            const question = isNew ? "Discard the starmap? It hasn't been added yet." : 'Close the starmap? Your unsaved changes will be lost.';
+            if (dirty && !window.confirm(question)) return;
+            onCancel();
+          }}
+        >
+          {isNew ? 'Cancel' : 'Close'}
+        </button>
       </div>
+      <p className="muted">A 3D spiral galaxy to place things on. A timeline can have one.</p>
 
-      <Field label="Starmap">
-        <select value={map.type} onChange={(e) => patch({ map: e.target.value === 'galaxy3d' ? DEFAULT_GALAXY : { type: 'none' } })}>
-          <option value="none">Off</option>
-          <option value="galaxy3d">3D galaxy</option>
-        </select>
-      </Field>
-
-      {/* Narrowing: inside this block TypeScript knows map has the galaxy fields */}
+      {/* The map is always a galaxy here; the narrowing just tells TypeScript so */}
       {map.type === 'galaxy3d' && (
         <>
           <div className="map-picker starmap-preview">
@@ -93,13 +97,7 @@ export default function StarmapTab({ timeline, onDirtyChange }: Props) {
         </>
       )}
 
-      {map.type === 'none' && timeline.map.type === 'galaxy3d' && (
-        <p className="field-hint">
-          Turning it off keeps each place's position, so turning it back on puts them where they were. Maps inside the starmap move to the top level.
-        </p>
-      )}
-
-      <FormActions isNew={false} dirty={dirty} valid saving={saving} onRevert={reset} />
+      <FormActions isNew={isNew} dirty={dirty} valid saving={saving} onRevert={reset} />
     </form>
   );
 }

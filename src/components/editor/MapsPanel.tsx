@@ -1,6 +1,7 @@
 import { Suspense, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { STARMAP_ID, type FlatMap, type PlanetLook, type SurfaceSettings, type Timeline } from '../../types/timeline';
+import { STARMAP_ID, type FlatMap, type GalaxyConfig, type PlanetLook, type SurfaceSettings, type Timeline } from '../../types/timeline';
+import StarmapForm, { DEFAULT_GALAXY } from './StarmapForm';
 import { updateTimeline } from '../../db/timelines';
 import { allMaps, indentMapLabel, isPlacedOn, mapPath, mapTree, mapWithDescendants, masterMapId } from '../../lib/maps';
 import { canMoveMap, moveMap, removeMap, saveMap } from '../../lib/mutations';
@@ -25,9 +26,10 @@ interface Props {
 const pinLink = (mapId: string) => `?tab=places&map=${encodeURIComponent(mapId)}`;
 
 /**
- * The editor's Maps tab: every map in tree order (the 3D starmap, set up in
- * the Starmap tab, and your own map pictures), the one to start on, and a form to
- * add or change a map. A map can sit inside another map, opened by clicking
+ * The editor's Maps tab: every map in tree order (the 3D starmap, your own
+ * map pictures and planets), the one to start on, and a form to add or
+ * change a map. A timeline has at most one starmap, so it has its own add
+ * button and form (StarmapForm.tsx). A map can sit inside another map, opened by clicking
  * one of its places (see lib/maps.ts). Pinning places on a map happens in
  * the Places tab; each map links there.
  *
@@ -42,6 +44,14 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
   const [newMap, setNewMap] = useState<FlatMap | null>(null);
   const existing = itemId ? timeline.maps.find((m) => m.id === itemId) : undefined;
   const editing = newMap ? { map: newMap, isNew: true } : existing ? { map: existing, isNew: false } : null;
+  // The starmap's form: adding it (not on yet), or editing it (?item=starmap)
+  const [addingStarmap, setAddingStarmap] = useState(false);
+  const starmap: { config: GalaxyConfig; isNew: boolean } | null = addingStarmap
+    ? { config: DEFAULT_GALAXY, isNew: true }
+    : itemId === STARMAP_ID && timeline.map.type === 'galaxy3d'
+      ? { config: timeline.map, isNew: false }
+      : null;
+  const formOpen = editing !== null || starmap !== null;
   const [note, setNote] = useState<{ error: boolean; text: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -67,6 +77,24 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
     setNewMap({ id: crypto.randomUUID(), name: 'New planet', kind: 'planet', planet: defaultLook(generated), ...generateSurface(generated) });
   }
 
+  function removeStarmap() {
+    const placed = timeline.places.filter((p) => p.position).length;
+    const inside = timeline.maps.filter((m) => m.parentId === STARMAP_ID).length;
+    const regions = regionCount(timeline, STARMAP_ID);
+    const lines = [
+      'Remove the starmap?',
+      placed > 0 && `${placed} place${placed === 1 ? ' keeps its' : 's keep their'} position, so adding a starmap again puts them back.`,
+      regions > 0 && `Its ${regions} region${regions === 1 ? '' : 's'} are kept the same way.`,
+      inside > 0 && `${inside} map${inside === 1 ? '' : 's'} inside it will move to the top level.`,
+    ];
+    if (!window.confirm(lines.filter(Boolean).join('\n\n'))) return;
+    if (itemId === STARMAP_ID) {
+      onDirtyChange(false);
+      onSelectItem(null);
+    }
+    void change((t) => ({ ...t, map: { type: 'none' }, masterMapId: t.masterMapId === STARMAP_ID ? undefined : t.masterMapId }));
+  }
+
   function remove(map: FlatMap) {
     const inside = timeline.maps.filter((m) => m.parentId === map.id).length;
     const pinned = timeline.places.filter((p) => p.pins?.[map.id]).length;
@@ -90,6 +118,7 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
     onDirtyChange(false);
     setNote(null);
     if (newMap) setNewMap(null);
+    else if (addingStarmap) setAddingStarmap(false);
     else onSelectItem(null);
   }
 
@@ -99,18 +128,23 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
         <div>
           <h2 id="maps-title" className="form-title">Maps</h2>
           <p className="muted">
-            Your own map pictures, planets (a globe, from a picture or generated), plus the 3D starmap if it's on (Starmap tab). A map can sit
-            inside another, opened by clicking one of its places. Pin places on a map in the Places tab; draw areas in the Regions tab.
+            Your own map pictures, planets (a globe, from a picture or generated) and a 3D starmap (one per timeline). A map can sit inside
+            another, opened by clicking one of its places. Pin places on a map in the Places tab; draw areas in the Regions tab.
           </p>
         </div>
         <div className="toolbar-actions">
           {/* One form at a time: finish or close the open one first */}
-          <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={editing !== null}>
+          <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={formOpen}>
             + Add a map…
           </button>
-          <button type="button" className="btn" onClick={addPlanet} disabled={editing !== null}>
+          <button type="button" className="btn" onClick={addPlanet} disabled={formOpen}>
             + Add a planet
           </button>
+          {timeline.map.type !== 'galaxy3d' && (
+            <button type="button" className="btn" onClick={() => setAddingStarmap(true)} disabled={formOpen}>
+              + Add a starmap
+            </button>
+          )}
           <input
             ref={fileInput}
             type="file"
@@ -133,7 +167,7 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
               const flat = map.flat;
               const opener = map.placeId ? timeline.places.find((p) => p.id === map.placeId) : undefined;
               return (
-                <li key={map.id} className={`map-row${editing?.map.id === map.id ? ' is-selected' : ''}`} style={{ paddingLeft: 10 + depth * 22 }}>
+                <li key={map.id} className={`map-row${editing?.map.id === map.id || (!flat && starmap && !starmap.isNew) ? ' is-selected' : ''}`} style={{ paddingLeft: 10 + depth * 22 }}>
                   {flat ? (
                     <img className={`map-thumb${flat.kind === 'planet' ? ' is-planet' : ''}`} src={flat.image} alt="" />
                   ) : (
@@ -142,14 +176,19 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
                   <span className="map-row-main">
                     <strong>{map.name}</strong>
                     <span className="muted">
-                      {!flat ? '3D starmap · set up in the Starmap tab' : flat.kind === 'planet' ? `Planet · ${flat.planet?.generated ? 'generated surface' : 'your picture'}` : `${flat.width} × ${flat.height} px`}
+                      {!flat ? `3D starmap · ${timeline.map.type === 'galaxy3d' ? timeline.map.arms : 0} arms` : flat.kind === 'planet' ? `Planet · ${flat.planet?.generated ? 'generated surface' : 'your picture'}` : `${flat.width} × ${flat.height} px`}
                       {opener && ` · opens from ${opener.name}`}
                       {map.id === masterMapId(timeline) && ' · start map'}
                     </span>
                   </span>
                   <span className="map-row-actions">
                     <Link className="btn" to={flat ? pinLink(map.id) : '?tab=places'}>Pin places</Link>
-                    {!flat && <Link className="btn" to="?tab=starmap">Edit</Link>}
+                    {!flat && (
+                      <>
+                        <button type="button" className="btn" disabled={formOpen} onClick={() => onSelectItem(STARMAP_ID)}>Edit</button>
+                        <button type="button" className="btn btn-danger" onClick={removeStarmap}>Delete</button>
+                      </>
+                    )}
                     {flat && (
                       <>
                         {/* Greyed out when it's already first or last among the maps beside it */}
@@ -173,7 +212,7 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
                         >
                           ↓
                         </button>
-                        <button type="button" className="btn" disabled={newMap !== null} onClick={() => onSelectItem(map.id)}>Edit</button>
+                        <button type="button" className="btn" disabled={newMap !== null || addingStarmap} onClick={() => onSelectItem(map.id)}>Edit</button>
                         <button type="button" className="btn btn-danger" onClick={() => remove(flat)}>Delete</button>
                       </>
                     )}
@@ -194,6 +233,21 @@ export default function MapsPanel({ timeline, itemId, onSelectItem, onDirtyChang
             </Field>
           )}
         </>
+      )}
+
+      {starmap && (
+        <StarmapForm
+          key={starmap.isNew ? 'new-starmap' : STARMAP_ID}
+          timeline={timeline}
+          original={starmap.config}
+          isNew={starmap.isNew}
+          onDirtyChange={onDirtyChange}
+          onSave={async (map) => {
+            await change((t) => ({ ...t, map }));
+            close();
+          }}
+          onCancel={close}
+        />
       )}
 
       {editing && (

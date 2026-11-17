@@ -18,7 +18,6 @@ import CollectionTab from '../components/editor/CollectionTab';
 import SettingsForm from '../components/editor/SettingsForm';
 import PicturesSection from '../components/editor/PicturesSection';
 import CalendarTab from '../components/editor/CalendarTab';
-import StarmapTab from '../components/editor/StarmapTab';
 import ThemeTab from '../components/editor/ThemeTab';
 import WebsiteTab from '../components/editor/WebsiteTab';
 import EraForm from '../components/editor/EraForm';
@@ -51,7 +50,7 @@ import {
   removeRegion,
 } from '../lib/mutations';
 
-const TABS = ['events', 'eras', 'factions', 'relations', 'characters', 'places', 'lore', 'maps', 'regions', 'starmap', 'calendar', 'theme', 'website', 'settings'] as const;
+const TABS = ['events', 'eras', 'factions', 'relations', 'characters', 'places', 'lore', 'maps', 'regions', 'calendar', 'theme', 'website', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EditorPage() {
@@ -78,8 +77,10 @@ function ReadOnlyNotice({ id }: { id: string }) {
 function Editor({ timeline }: { timeline: Timeline }) {
   // The open tab and item live in the URL: ?tab=events&item=siege-of-terra
   const [params, setParams] = useSearchParams();
-  const tab: Tab = TABS.find((t) => t === params.get('tab')) ?? 'events';
-  const itemId = params.get('item');
+  // The starmap had a tab of its own once; old links open its form in the Maps tab
+  const oldStarmapLink = params.get('tab') === 'starmap';
+  const tab: Tab = oldStarmapLink ? 'maps' : (TABS.find((t) => t === params.get('tab')) ?? 'events');
+  const itemId = oldStarmapLink ? 'starmap' : params.get('item');
 
   // ----- Unsaved changes guard -----
   // A ref, not state: forms update it often and nothing needs to re-render.
@@ -181,7 +182,6 @@ function Editor({ timeline }: { timeline: Timeline }) {
     places: places.length,
     maps: allMaps(timeline).length,
     regions: timeline.regions.length,
-    starmap: null,
     calendar: null,
     theme: null,
     website: null,
@@ -219,7 +219,6 @@ function Editor({ timeline }: { timeline: Timeline }) {
       )}
       {tab === 'calendar' && <CalendarTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'maps' && <MapsPanel {...shared} />}
-      {tab === 'starmap' && <StarmapTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'theme' && <ThemeTab timeline={timeline} onDirtyChange={setDirty} />}
       {tab === 'website' && <WebsiteTab timeline={timeline} onDirtyChange={setDirty} />}
 
